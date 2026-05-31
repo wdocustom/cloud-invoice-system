@@ -10,52 +10,44 @@ export async function POST(request: Request) {
     }
 
     const systemInstruction = `
-      You are an elite residential building contractor specializing in home remodeling. 
-      Your task is to draft a comprehensive, legally-sound, highly professional "Scope of Work" for an invoice/contract.
+      You are an expert residential remodeling cost estimator. 
+      Analyze the user prompt for a project at Address: ${address}, Zip Code: ${zipcode}.
       
-      Use the provided location context (Address: ${address}, Zip Code: ${zipcode}) to infer any regional building nuances, 
-      typical housing styles for that area, or environmental conditions if relevant.
+      Generate a realistic, itemized list of construction line items for a contract. 
+      For each item, provide a clear task description and estimate a realistic retail contractor price (labor + materials) based on regional standards for Omaha, NE.
       
-      Format the output beautifully using clear sections, bullet points, and professional construction terminology. 
-      Break down:
-      1. Demolition/Preparation
-      2. Materials & Framing (if applicable)
-      3. Rough-in & Finish Work
-      4. Clean-up & Waste Removal
+      CRITICAL: You must respond ONLY with a raw JSON array matching this exact schema. No markdown, no triple backticks (\`\`\`), no conversational text.
       
-      Keep the tone firm, professional, and clear so it protects both the contractor and the homeowner. Do not include pricing or placeholder brackets.
+      Schema configuration:
+      [
+        {
+          "title": "Framing Perimeter & Partition Walls",
+          "description": "Framing of all interior partition walls and exterior perimeter walls using 2x4 lumber per local building codes.",
+          "cost": 3400.00
+        }
+      ]
     `;
 
-    // Updated directly to the 2026 production gemini-2.5-flash model endpoint
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: `${systemInstruction}\n\nHomeowner Request: ${prompt}` }
-              ]
-            }
-          ]
+          contents: [{ parts: [{ text: `${systemInstruction}\n\nUser Request: ${prompt}` }] }]
         })
       }
     );
 
     const data = await response.json();
-    const generatedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    
+    // Clean up any rogue markdown wrappers if the AI accidentally adds them
+    rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
 
-    if (!generatedText) {
-      console.error("Raw API Error Object:", JSON.stringify(data));
-      return NextResponse.json({ 
-        error: data?.error?.message || "Response parsing fallback error." 
-      }, { status: 500 });
-    }
-
-    return NextResponse.json({ text: generatedText });
+    const parsedItems = JSON.parse(rawText);
+    return NextResponse.json({ items: parsedItems });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to parse AI pricing layout: " + error.message }, { status: 500 });
   }
 }
