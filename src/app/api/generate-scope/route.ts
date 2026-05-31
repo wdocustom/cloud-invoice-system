@@ -9,7 +9,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Gemini API key is not configured." }, { status: 500 });
     }
 
-    // Define the expert remodeling contractor persona and local search logic
     const systemInstruction = `
       You are an elite residential building contractor specializing in home remodeling. 
       Your task is to draft a comprehensive, legally-sound, highly professional "Scope of Work" for an invoice/contract.
@@ -27,7 +26,7 @@ export async function POST(request: Request) {
       Keep the tone firm, professional, and clear so it protects both the contractor and the homeowner. Do not include pricing or placeholder brackets.
     `;
 
-    // Call the official Gemini API endpoint using standard fetch
+    // Calling the native text generation pipeline directly
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           contents: [
             {
-              role: "user",
               parts: [
                 { text: `${systemInstruction}\n\nHomeowner Request: ${prompt}` }
               ]
@@ -48,11 +46,14 @@ export async function POST(request: Request) {
 
     const data = await response.json();
     
-    // Extract the text response from the Gemini JSON structure
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    // Safely look up nested text values step-by-step
+    const generatedText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!generatedText) {
-      return NextResponse.json({ error: "Failed to parse AI generation." }, { status: 500 });
+      console.error("Raw API Error Object Payload Back From Google:", JSON.stringify(data));
+      return NextResponse.json({ 
+        error: data?.error?.message || "Response parsing fallback error. Check server logs." 
+      }, { status: 500 });
     }
 
     return NextResponse.json({ text: generatedText });
