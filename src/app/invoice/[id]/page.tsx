@@ -148,7 +148,7 @@ export default function HomeownerPortal() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-400">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-500">
       <div className="flex flex-col items-center gap-2">
         <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
         <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Syncing Portal View...</p>
@@ -189,7 +189,7 @@ export default function HomeownerPortal() {
             <h1 className="text-lg font-black tracking-tight uppercase">{projectHeaderTitle}</h1>
             <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide">ID Token: {invoice.id.slice(0,8)}</p>
           </div>
-          <span className={`self-start sm:self-center px-3 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider ${isLocked ? 'bg-emerald-600 text-white' : 'bg-amber-50 text-amber-700'}`}>
+          <span className={`self-start sm:self-center px-3 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider ${isLocked ? 'bg-emerald-600 text-white' : 'bg-amber-50 text-white'}`}>
             {invoice.status}
           </span>
         </div>
@@ -227,7 +227,7 @@ export default function HomeownerPortal() {
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Living Combined Project Valuation</p>
             <p className="text-xl font-black font-mono text-slate-900 mt-0.5">${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             <p className="text-[9px] text-slate-400 mt-1 border-t pt-1 border-slate-100">
-              Base Contract: <span className="font-mono font-bold">${baseTotal.toLocaleString()}</span> {approvedCoTotal > 0 && `| CO Adjustments: $${approvedCoTotal.toLocaleString()}`}
+              Base Contract: <span className="font-mono font-bold">${baseTotal.toLocaleString()}</span> {approvedCoTotal > 0 && `| CO Adjustments: +$${approvedCoTotal.toLocaleString()}`}
             </p>
           </div>
         </div>
@@ -291,28 +291,43 @@ export default function HomeownerPortal() {
           </div>
         )}
 
-        {/* INTERACTIVE CHANGE ORDERS SYSTEM WORKBENCH */}
+        {/* CLIENT CHANGE ORDERS SYSTEM WORKBENCH */}
         {isLocked && changeOrders.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-left">
             <div>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">📋 Project Scope Modifications (Change Orders)</h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">Review, expand, and approve site adaptation supplements launched by your contracting manager below.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Review and approve site variations. **Note:** Approved Change Orders require separate fulfillment independent of core construction phases.</p>
             </div>
 
             <div className="border rounded-xl divide-y overflow-hidden shadow-inner">
               {changeOrders.map((co: any) => {
                 const isCoApproved = co.status === "approved";
+                const isCoPaid = co.deposit_cleared;
                 const isExpanded = expandedCoId === co.id;
 
                 return (
                   <div key={co.id} className="bg-white transition-all">
                     <div 
                       onClick={() => setExpandedCoId(isExpanded ? null : co.id)}
-                      className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50/60"
+                      className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50/60 font-sans"
                     >
-                      <div className="text-left space-y-0.5">
+                      <div className="text-left space-y-1">
                         <p className="text-sm font-extrabold text-slate-900">{co.description}</p>
-                        <p className="text-[10px] text-slate-400">Status Verification: <span className={`font-bold ${isCoApproved ? 'text-emerald-600':'text-amber-500'}`}>{co.status.toUpperCase()}</span></p>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${
+                            isCoApproved ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'
+                          }`}>
+                            {isCoApproved ? "APPROVED" : "PENDING REVIEW"}
+                          </span>
+                          
+                          {isCoApproved && (
+                            <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${
+                              isCoPaid ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700 border border-red-100'
+                            }`}>
+                              {isCoPaid ? "💰 PAID" : "🛑 UNPAID"}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-4 shrink-0">
                         <span className="font-mono font-bold text-sm text-slate-900">${co.amount.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
@@ -334,6 +349,10 @@ export default function HomeownerPortal() {
                           ))}
                         </div>
 
+                        <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
+                          📌 <strong>Change Order Payment Status:</strong> This modification requires processing in full immediately upon approval, billed independently from your standard milestone draw parameters.
+                        </div>
+
                         {!isCoApproved && (
                           <button
                             type="button"
@@ -344,8 +363,13 @@ export default function HomeownerPortal() {
                           </button>
                         )}
                         {isCoApproved && (
-                          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-center font-bold text-xs rounded-xl">
-                            ✓ This modification is officially executed and appended into your living contract draw parameters.
+                          <div className={`p-3 text-center font-bold text-xs rounded-xl border ${
+                            isCoPaid ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                          }`}>
+                            {isCoPaid 
+                              ? "✓ Payment draft fully processed and recorded. This supplement is finalized." 
+                              : "✓ Supplement authorized. Awaiting check or card funding clearance matching the unpaid token parameters above."
+                            }
                           </div>
                         )}
                       </div>
@@ -437,7 +461,7 @@ export default function HomeownerPortal() {
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider tracking-widest">Contract Payments</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {invoice.payment_phases?.map((phase: any, idx: number) => {
-              const phaseVal = combinedProjectTotal * (phase.percentage / 100);
+              const phaseVal = baseTotal * (phase.percentage / 100);
               const activePhaseIdx = invoice.current_phase_index || 0;
               
               const isPaid = invoice.deposit_cleared && idx < activePhaseIdx;

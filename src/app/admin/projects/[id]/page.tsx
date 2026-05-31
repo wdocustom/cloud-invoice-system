@@ -60,6 +60,17 @@ export default function ProjectDetailPanel() {
     if (!error) fetchProjectDetail();
   };
 
+  // NEW: Handler to let you toggle dynamic paid status tracking flags directly on child change orders
+  const toggleChangeOrderPaymentStatus = async (co: any) => {
+    const nextState = !co.deposit_cleared; // Re-uses deposit_cleared flag layout for child rows
+    const { error } = await supabase
+      .from("invoices")
+      .update({ deposit_cleared: nextState })
+      .eq("id", co.id);
+
+    if (!error) fetchProjectDetail();
+  };
+
   const shiftPhase = async (increment: boolean) => {
     const curr = project.current_phase_index || 0;
     const nextIdx = increment ? curr + 1 : curr - 1;
@@ -106,7 +117,6 @@ export default function ProjectDetailPanel() {
     setTimeout(() => setCopied(false), 3000);
   };
 
-  // AI CHANGE ORDER ESTIMATOR
   const runAiChangeOrderEstimator = async () => {
     if (!coPrompt.trim()) return alert("Please specify the additional trade scope for the AI assistant.");
     setIsGeneratingCO(true);
@@ -136,7 +146,6 @@ export default function ProjectDetailPanel() {
     setCoLineItems(updated);
   };
 
-  // NEW: Handler to let contractor drop an unwanted AI row before deploying
   const handleDeleteCoLineItem = (idx: number) => {
     setCoLineItems(coLineItems.filter((_, i) => i !== idx));
   };
@@ -164,14 +173,15 @@ export default function ProjectDetailPanel() {
           items: flattenedItems,
           status: "pending",
           deposit_percentage: 0,
-          current_phase_index: 0
+          current_phase_index: 0,
+          deposit_cleared: false // Initiates as Unpaid upfront
         }
       ]);
 
     if (error) {
       alert("Deployment error: " + error.message);
     } else {
-      alert("Change Order published directly to client login view!");
+      alert("Change Order published directly to client view!");
       setCoPrompt("");
       setCoLineItems([]);
       setCoTitle("Change Order Supplement");
@@ -260,21 +270,35 @@ export default function ProjectDetailPanel() {
                 </div>
               </div>
 
-              {/* Historical Change Orders Monitor Log */}
+              {/* UPDATED: Historical Change Orders Monitor Log with Interactive Payment toggles */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 shadow-inner">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-2">Active Change Orders Ledger</h3>
-                <div className="divide-y divide-slate-200 border bg-white rounded-xl max-h-40 overflow-y-auto">
+                <div className="divide-y divide-slate-200 border bg-white rounded-xl max-h-48 overflow-y-auto">
                   {changeOrders.map((co) => (
-                    <div key={co.id} className="p-2.5 text-xs flex justify-between items-center bg-white">
-                      <div className="text-left">
-                        <p className="font-bold text-slate-800">{co.description}</p>
-                        <p className="text-[10px] text-slate-400 font-mono">ID ref: #{co.id.slice(0,6)}</p>
+                    <div key={co.id} className="p-3 text-xs space-y-2 bg-white">
+                      <div className="flex justify-between items-start">
+                        <div className="text-left">
+                          <p className="font-extrabold text-slate-900">{co.description}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">ID ref: #{co.id.slice(0,6)}</p>
+                        </div>
+                        <span className="font-mono font-bold text-slate-900 text-sm">${co.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                       </div>
-                      <div className="text-right flex items-center gap-2">
-                        <span className="font-mono font-bold text-slate-900">${co.amount.toLocaleString()}</span>
-                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
-                          co.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800 animate-pulse'
-                        }`}>{co.status}</span>
+                      
+                      {/* Interactive Payment Switcher Pill Controls */}
+                      <div className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border">
+                        <div className="flex gap-1.5">
+                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${co.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{co.status}</span>
+                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${co.deposit_cleared ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>{co.deposit_cleared ? "💰 Paid" : "🛑 Unpaid"}</span>
+                        </div>
+                        {co.status === "approved" && (
+                          <button 
+                            type="button" 
+                            onClick={() => toggleChangeOrderPaymentStatus(co)}
+                            className="text-[9px] font-bold text-slate-500 hover:text-slate-900 underline outline-none"
+                          >
+                            Toggle Paid State
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -285,7 +309,7 @@ export default function ProjectDetailPanel() {
               </div>
             </div>
 
-            {/* Right Column: AI CHANGE ORDER COMPILER */}
+            {/* Right Column */}
             <div className="p-4 bg-blue-50/40 border border-blue-200 rounded-xl space-y-4 text-left shadow-inner">
               <div className="border-b border-blue-200 pb-2">
                 <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest">⚡ AI Change Order Worksheet Builder</h3>
@@ -319,7 +343,6 @@ export default function ProjectDetailPanel() {
                 </div>
               </div>
 
-              {/* UPDATED: Review Table with Inline Line-Omit Actions */}
               {coLineItems.length > 0 && (
                 <div className="space-y-2 animate-fadeIn">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Review Generated Variance Additions:</p>
@@ -351,7 +374,6 @@ export default function ProjectDetailPanel() {
                             type="button"
                             onClick={() => handleDeleteCoLineItem(idx)}
                             className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase px-1 transition-colors"
-                            title="Omit item from this change order"
                           >
                             ✕
                           </button>
