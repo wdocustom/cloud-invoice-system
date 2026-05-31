@@ -32,6 +32,7 @@ export default function ContractorDashboard() {
     const { data } = await supabase
       .from("invoices")
       .select("id, created_at, homeowner_name, homeowner_email, job_address, amount, status, estimated_start_date, project_length, deposit_cleared, payment_phases, current_phase_index")
+      .is("parent_id", null) // Excludes individual change orders from duplicating onto the master project index
       .order("created_at", { ascending: false });
 
     if (data) setProjects(data);
@@ -88,7 +89,7 @@ export default function ContractorDashboard() {
                 <div 
                   key={project.id} 
                   onClick={() => router.push(`/admin/projects/${project.id}`)}
-                  className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:border-slate-400 transition-all duration-150 cursor-pointer flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 animate-fadeIn"
+                  className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:border-slate-400 transition-all duration-150 cursor-pointer flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
                 >
                   <div className="space-y-2 text-left">
                     <div className="flex flex-wrap items-center gap-2">
