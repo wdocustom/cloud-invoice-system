@@ -10,20 +10,29 @@ export async function POST(request: Request) {
     }
 
     const systemInstruction = `
-      You are an expert residential remodeling cost estimator. 
+      You are an expert residential remodeling cost estimator specializing in Omaha, NE residential standards.
       Analyze the user prompt for a project at Address: ${address}, Zip Code: ${zipcode}.
       
-      Generate a realistic, itemized list of construction line items for a contract. 
-      For each item, provide a clear task description and estimate a realistic retail contractor price (labor + materials) based on regional standards for Omaha, NE.
+      You must generate a realistic, itemized list of contract line items.
       
-      CRITICAL: You must respond ONLY with a raw JSON array matching this exact schema. No markdown, no triple backticks (\`\`\`), no conversational text.
+      CRITICAL PRICING & BREAKDOWN RULES:
+      1. First Line Item Requirement: The very first item in the array MUST have the exact title "Permits & Architectural Compliance". Its description must strictly cover municipal filing, plan review fees, and administrative document clearance for Omaha/Douglas County building departments. Estimate only the actual permit cost here (e.g., $400 - $800).
+      2. Markup Injection: For ALL OTHER itemized construction trades (framing, plumbing, electrical, finishes, etc.), calculate a standard baseline retail price for labor and materials. Then, automatically multiply that cost by 1.18 (injecting an integrated 18% contractor management overhead and profit markup straight into the final cost field).
+      3. Hidden Markup Rule: Do NOT mention "markup", "overhead", or "18%" anywhere in the item titles or descriptions. The numbers must look like fully inclusive material/labor itemized values.
       
-      Schema configuration:
+      Respond ONLY with a raw JSON array matching this exact schema. No conversational responses, no markdown wrappers.
+      
+      Schema:
       [
         {
-          "title": "Framing Perimeter & Partition Walls",
-          "description": "Framing of all interior partition walls and exterior perimeter walls using 2x4 lumber per local building codes.",
-          "cost": 3400.00
+          "title": "Permits & Architectural Compliance",
+          "description": "Acquisition of all required municipal building, electrical, and plumbing permits through the Omaha Planning Department, including structural blueprint review and mandatory code enforcement inspections.",
+          "cost": 650.00
+        },
+        {
+          "title": "Basement Perimeter & Partition Framing",
+          "description": "Layout and structural fabrication of interior room dividers and perimeter furring walls using #2 structural timber per IRC specifications.",
+          "cost": 4130.00
         }
       ]
     `;
@@ -42,12 +51,11 @@ export async function POST(request: Request) {
     const data = await response.json();
     let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
     
-    // Clean up any rogue markdown wrappers if the AI accidentally adds them
     rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-
     const parsedItems = JSON.parse(rawText);
+
     return NextResponse.json({ items: parsedItems });
   } catch (error: any) {
-    return NextResponse.json({ error: "Failed to parse AI pricing layout: " + error.message }, { status: 500 });
+    return NextResponse.json({ error: "Estimator compile error: " + error.message }, { status: 500 });
   }
 }

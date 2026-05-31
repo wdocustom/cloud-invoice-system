@@ -126,7 +126,9 @@ export default function HomeownerPortal() {
         {/* Banner Section */}
         <div className="bg-slate-900 text-white p-8 flex justify-between items-center">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">CONSTRUCTION PROPOSAL & CONTRACT</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight uppercase">
+  {invoice.homeowner_name ? `${invoice.homeowner_name.trim().split(" ").pop()} + Residence Project` : "Project Proposal & Contract"}
+</h1>
             <p className="text-xs text-slate-400 mt-1 font-mono">Reference Core Token: {invoice.id}</p>
           </div>
           <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
