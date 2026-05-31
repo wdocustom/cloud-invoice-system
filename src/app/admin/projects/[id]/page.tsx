@@ -60,9 +60,8 @@ export default function ProjectDetailPanel() {
     if (!error) fetchProjectDetail();
   };
 
-  // NEW: Handler to let you toggle dynamic paid status tracking flags directly on child change orders
   const toggleChangeOrderPaymentStatus = async (co: any) => {
-    const nextState = !co.deposit_cleared; // Re-uses deposit_cleared flag layout for child rows
+    const nextState = !co.deposit_cleared;
     const { error } = await supabase
       .from("invoices")
       .update({ deposit_cleared: nextState })
@@ -174,7 +173,7 @@ export default function ProjectDetailPanel() {
           status: "pending",
           deposit_percentage: 0,
           current_phase_index: 0,
-          deposit_cleared: false // Initiates as Unpaid upfront
+          deposit_cleared: false
         }
       ]);
 
@@ -200,8 +199,9 @@ export default function ProjectDetailPanel() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased pb-24 text-left">
-      <div className="max-w-5xl mx-auto px-4 pt-8 space-y-4">
+      <div className="max-w-4xl mx-auto px-4 pt-8 space-y-4">
         
+        {/* Back Link Row */}
         <div className="flex justify-between items-center">
           <button type="button" onClick={() => router.push("/admin/projects")} className="text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors uppercase tracking-wider outline-none">
             ← Back to operational line ledger
@@ -213,7 +213,7 @@ export default function ProjectDetailPanel() {
           </span>
         </div>
 
-        {/* Shared Link Card */}
+        {/* Homeowner Shared Portal Access URL Top Ribbon Drawer */}
         <div className="bg-slate-900 text-white rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left shadow-md">
           <div className="space-y-1 max-w-xl truncate w-full">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Homeowner Shared Access Portal URL</h4>
@@ -232,22 +232,46 @@ export default function ProjectDetailPanel() {
           </button>
         </div>
 
-        {/* Main Operational Panel Card */}
+        {/* Main Workframe Control Command Sheet Card */}
         <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 text-left space-y-6 shadow-sm">
-          <div className="border-b border-slate-100 pb-5 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-            <div className="space-y-0.5">
+          
+          {/* REWORKED PREMIUM COMPACT HEADER AREA */}
+          <div className="border-b border-slate-100 pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-0.5 text-left">
               <h1 className="text-xl font-bold tracking-tight text-slate-900 uppercase">{project.homeowner_name} Production Desk</h1>
               <p className="text-xs text-slate-500 font-medium">📍 Structural Jobsite: {project.job_address}</p>
             </div>
-            <div className="sm:text-right border-t sm:border-transparent border-slate-100 pt-3 sm:pt-0">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Locked Contract Value</p>
-              <p className="text-lg font-mono font-bold text-slate-900 tracking-tight mt-0.5">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            
+            {/* Integrated Financial Stats & Master Deposit Toggle row */}
+            <div className="flex items-center gap-6 border-t sm:border-transparent border-slate-100 pt-3 sm:pt-0 shrink-0">
+              {/* Compact Deposit Pill Switch */}
+              <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Deposit Paid</span>
+                <button
+                  type="button"
+                  onClick={toggleDeposit}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    project.deposit_cleared ? 'bg-slate-900' : 'bg-slate-200'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                      project.deposit_cleared ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="text-right">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Locked Value</p>
+                <p className="text-base font-mono font-bold text-slate-900 tracking-tight">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* Left Column */}
+            {/* Left Column: Stage Controls & Active Change Orders Ledger */}
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4 shadow-inner">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-2">Active Draw Target</h3>
@@ -255,49 +279,46 @@ export default function ProjectDetailPanel() {
                   <p className="text-sm font-bold text-slate-800">🚧 Phase: {project.payment_phases?.[project.current_phase_index || 0]?.name || "Mobilization Setup"}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => shiftPhase(false)} disabled={(project.current_phase_index || 0) === 0} className="flex-1 bg-white hover:bg-slate-100 disabled:opacity-30 border border-slate-200 p-2 rounded-xl text-[10px] font-bold uppercase tracking-wider text-slate-600 transition-all">◀ Reverse Step</button>
-                  <button type="button" onClick={() => shiftPhase(true)} disabled={(project.current_phase_index || 0) === (project.payment_phases?.length || 1) - 1} className="flex-1 bg-slate-900 hover:bg-slate-800 text-white p-2 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all">Advance Draw ▶</button>
+                  <button type="button" onClick={() => shiftPhase(false)} disabled={(project.current_phase_index || 0) === 0} className="flex-1 bg-white hover:bg-slate-100 disabled:opacity-30 border border-slate-200 p-2 rounded-xl text-[10px] font-bold uppercase tracking-wider text-slate-600 transition-all outline-none">◀ Reverse Step</button>
+                  <button type="button" onClick={() => shiftPhase(true)} disabled={(project.current_phase_index || 0) === (project.payment_phases?.length || 1) - 1} className="flex-1 bg-slate-900 hover:bg-slate-800 text-white p-2 rounded-xl text-[10px] font-bold uppercase tracking-wider text-center transition-all outline-none">Advance Draw ▶</button>
                 </div>
               </div>
 
+              {/* Active Change Orders History List */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 shadow-inner">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-2">Financial Setup Clearance</h3>
-                <div className="flex items-center justify-between">
-                  <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-sm ${project.deposit_cleared ? 'bg-emerald-600 text-white border-transparent':'bg-red-50 text-red-700 border-red-200'}`}>
-                    {project.deposit_cleared ? "💰 Deposit Paid / Verified" : "🛑 Awaiting Clearance"}
-                  </span>
-                  <button type="button" onClick={toggleDeposit} className="text-xs font-bold text-slate-500 hover:text-slate-900 underline transition-colors">Toggle Status</button>
-                </div>
-              </div>
-
-              {/* UPDATED: Historical Change Orders Monitor Log with Interactive Payment toggles */}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 shadow-inner">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-2">Active Change Orders Ledger</h3>
-                <div className="divide-y divide-slate-200 border bg-white rounded-xl max-h-48 overflow-y-auto">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-2">Active Change Orders Ledger</h3>
+                <div className="divide-y divide-slate-100 border bg-white rounded-xl max-h-56 overflow-y-auto shadow-sm">
                   {changeOrders.map((co) => (
                     <div key={co.id} className="p-3 text-xs space-y-2 bg-white">
                       <div className="flex justify-between items-start">
                         <div className="text-left">
                           <p className="font-extrabold text-slate-900">{co.description}</p>
-                          <p className="text-[10px] text-slate-400 font-mono">ID ref: #{co.id.slice(0,6)}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">ID: #{co.id.slice(0,6)}</p>
                         </div>
                         <span className="font-mono font-bold text-slate-900 text-sm">${co.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                       </div>
                       
-                      {/* Interactive Payment Switcher Pill Controls */}
                       <div className="flex justify-between items-center bg-slate-50 p-2 rounded-lg border">
-                        <div className="flex gap-1.5">
-                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${co.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{co.status}</span>
-                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${co.deposit_cleared ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>{co.deposit_cleared ? "💰 Paid" : "🛑 Unpaid"}</span>
-                        </div>
+                        <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{co.status}</span>
+                        
+                        {/* Interactive Pill Toggle for child change orders payment clearance tracking flags */}
                         {co.status === "approved" && (
-                          <button 
-                            type="button" 
-                            onClick={() => toggleChangeOrderPaymentStatus(co)}
-                            className="text-[9px] font-bold text-slate-500 hover:text-slate-900 underline outline-none"
-                          >
-                            Toggle Paid State
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-bold uppercase text-slate-400">{co.deposit_cleared ? "Paid" : "Unpaid"}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleChangeOrderPaymentStatus(co)}
+                              className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                co.deposit_cleared ? 'bg-slate-900' : 'bg-slate-200'
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                  co.deposit_cleared ? 'translate-x-3' : 'translate-x-0'
+                                }`}
+                              />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -309,7 +330,7 @@ export default function ProjectDetailPanel() {
               </div>
             </div>
 
-            {/* Right Column */}
+            {/* Right Column: AI Assistant & Materials Choices Builder */}
             <div className="p-4 bg-blue-50/40 border border-blue-200 rounded-xl space-y-4 text-left shadow-inner">
               <div className="border-b border-blue-200 pb-2">
                 <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest">⚡ AI Change Order Worksheet Builder</h3>
@@ -336,7 +357,7 @@ export default function ProjectDetailPanel() {
                     type="button" 
                     onClick={runAiChangeOrderEstimator}
                     disabled={isGeneratingCO}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-xs font-bold px-3 rounded-xl transition"
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-xs font-bold px-3 rounded-xl transition outline-none"
                   >
                     {isGeneratingCO ? "Pricing..." : "Run AI"}
                   </button>
