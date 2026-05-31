@@ -40,6 +40,7 @@ interface Invoice {
 export default function HomeownerPortal() {
   const { id } = useParams();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [changeOrders, setChangeOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [tier, setTier] = useState<"mid" | "high">("mid");
@@ -49,40 +50,52 @@ export default function HomeownerPortal() {
   const [typedSignature, setTypedSignature] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "check">("stripe");
+  const [expandedCoId, setExpandedCoId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInvoiceData();
   }, [id]);
 
   async function fetchInvoiceData() {
-    const { data } = await supabase
+    const { data: mainProject } = await supabase
       .from("invoices")
       .select("*")
       .eq("id", id)
       .single();
 
-    if (data) {
-      setInvoice(data);
-      if (data.items && activeIndices.length === 0) {
-        setActiveIndices(data.items.map((_: any, idx: number) => idx));
+    if (mainProject) {
+      setInvoice(mainProject);
+      if (mainProject.items && activeIndices.length === 0) {
+        setActiveIndices(mainProject.items.map((_: any, idx: number) => idx));
       }
+
+      const { data: children } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("parent_id", id)
+        .order("created_at", { ascending: true });
+
+      if (children) setChangeOrders(children);
     }
     setLoading(false);
   }
 
   const isLocked = invoice?.status === "approved";
   const masterItems = invoice?.items || [];
-  const computedTotal = isLocked ? invoice.amount : masterItems.reduce((sum, item, idx) => activeIndices.includes(idx) ? sum + (tier === "mid" ? item.mid_cost : item.high_cost) : sum, 0);
-  const depositAmount = computedTotal * ((invoice?.deposit_percentage || 20) / 100);
+  
+  const baseTotal = isLocked ? invoice.amount : masterItems.reduce((sum: number, item: any, idx: number) => activeIndices.includes(idx) ? sum + (tier === "mid" ? item.mid_cost : item.high_cost) : sum, 0);
+  const approvedCoTotal = changeOrders.filter((co: any) => co.status === "approved").reduce((sum: number, co: any) => sum + co.amount, 0);
+  const combinedProjectTotal = baseTotal + approvedCoTotal;
+  const depositAmount = baseTotal * ((invoice?.deposit_percentage || 20) / 100);
 
   const handleRemoveIndex = (idx: number) => {
     if (isLocked) return;
-    setActiveIndices(activeIndices.filter((i) => i !== idx));
+    setActiveIndices(activeIndices.filter((i: number) => i !== idx));
   };
 
   const handleReinstateIndex = (idx: number) => {
     if (isLocked) return;
-    setActiveIndices([...activeIndices, idx].sort((a, b) => a - b));
+    setActiveIndices([...activeIndices, idx].sort((a: number, b: number) => a - b));
   };
 
   const handleSelectMaterialChoice = async (category: string, value: string) => {
@@ -98,13 +111,25 @@ export default function HomeownerPortal() {
     if (!error) fetchInvoiceData();
   };
 
+  const executeOneClickCoApproval = async (coId: string) => {
+    if (!confirm("Authorize and append this trade modification adjustment to your active project framework?")) return;
+    
+    const { error } = await supabase
+      .from("invoices")
+      .update({ status: "approved" })
+      .eq("id", coId);
+
+    if (error) alert("Approval exception mapping validation token.");
+    else fetchInvoiceData();
+  };
+
   const handleApprove = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!typedSignature.trim()) return alert("Please type your name to authorize signature.");
     setIsSubmitting(true);
     const timestamp = new Date().toISOString();
     
-    const finalizedItems = masterItems.filter((_, idx) => activeIndices.includes(idx)).map((item: any) => ({
+    const finalizedItems = masterItems.filter((_: any, idx: number) => activeIndices.includes(idx)).map((item: any) => ({
       title: tier === "mid" ? item.title : (item.high_title || `${item.title} Upgrade`),
       description: tier === "mid" ? item.mid_description : item.high_description,
       cost: tier === "mid" ? item.mid_cost : item.high_cost
@@ -112,7 +137,7 @@ export default function HomeownerPortal() {
 
     const { error } = await supabase
       .from("invoices")
-      .update({ status: "approved", amount: computedTotal, items: finalizedItems, signature_name: typedSignature, signed_at: timestamp })
+      .update({ status: "approved", amount: baseTotal, items: finalizedItems, signature_name: typedSignature, signed_at: timestamp })
       .eq("id", id);
 
     if (!error) {
@@ -123,10 +148,10 @@ export default function HomeownerPortal() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-500">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-400">
       <div className="flex flex-col items-center gap-2">
         <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-        <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Portal View...</p>
+        <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Syncing Portal View...</p>
       </div>
     </div>
   );
@@ -135,19 +160,14 @@ export default function HomeownerPortal() {
 
   const clientLastName = invoice.homeowner_name ? invoice.homeowner_name.trim().split(" ").pop() : "Client";
   const projectHeaderTitle = `${clientLastName} Residence Project`;
+  const activePhaseIndex = invoice.current_phase_index || 0;
   
-  // FIXED: DIRECTLY MAPPED TIMELINE STEPS BACKED BY CONTRACTOR DATA STATUS
-  let dynamicTimelineIndex = 0; // Step 1: Proposal Signed (Contract is Locked)
+  let dynamicTimelineIndex = 0;
   if (isLocked) {
     if (invoice.deposit_cleared) {
-      // If deposit is cleared, follow the contractor current_phase_index exactly
-      // Database index 0 = Staging (Step 2 on ribbon)
-      // Database index 1 = Rough-In (Step 3 on ribbon)
-      // Database index 2 = Finishes (Step 4 on ribbon)
-      // Database index 3 = Final Hand-off (Step 5 on ribbon)
       dynamicTimelineIndex = 1 + (invoice.current_phase_index || 0);
     } else {
-      dynamicTimelineIndex = 1; // Locked, but waiting for deposit clearance verification
+      dynamicTimelineIndex = 1;
     }
   }
 
@@ -169,7 +189,7 @@ export default function HomeownerPortal() {
             <h1 className="text-lg font-black tracking-tight uppercase">{projectHeaderTitle}</h1>
             <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide">ID Token: {invoice.id.slice(0,8)}</p>
           </div>
-          <span className={`self-start sm:self-center px-3 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider ${isLocked ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'}`}>
+          <span className={`self-start sm:self-center px-3 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider ${isLocked ? 'bg-emerald-600 text-white' : 'bg-amber-50 text-amber-700'}`}>
             {invoice.status}
           </span>
         </div>
@@ -195,7 +215,7 @@ export default function HomeownerPortal() {
         {/* HORIZONTAL PROFILE CARDS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-1.5 shadow-sm text-xs">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contractor</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contractor Details</p>
             <p className="font-black text-slate-900 uppercase">WDO Custom</p>
             <p className="text-slate-500">Skyler Camacho • <span className="font-mono text-[10px]">LIC-1901422</span></p>
           </div>
@@ -204,9 +224,11 @@ export default function HomeownerPortal() {
             <p className="font-bold text-slate-700">📍 {invoice.job_address}</p>
           </div>
           <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm text-xs flex flex-col justify-center relative">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project Value ({isLocked ? 'Locked' : tier === 'mid' ? 'Mid' : 'High'})</p>
-            <p className="text-xl font-black font-mono text-slate-900 mt-0.5">${computedTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            <p className="text-[9px] text-slate-400 mt-1 border-t pt-1 border-slate-100">Deposit down: <span className="font-bold text-slate-700 font-mono">${depositAmount.toLocaleString()}</span> ({invoice.deposit_percentage}%)</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Living Combined Project Valuation</p>
+            <p className="text-xl font-black font-mono text-slate-900 mt-0.5">${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="text-[9px] text-slate-400 mt-1 border-t pt-1 border-slate-100">
+              Base Contract: <span className="font-mono font-bold">${baseTotal.toLocaleString()}</span> {approvedCoTotal > 0 && `| CO Adjustments: $${approvedCoTotal.toLocaleString()}`}
+            </p>
           </div>
         </div>
 
@@ -251,7 +273,7 @@ export default function HomeownerPortal() {
                   style={{ width: `${(dynamicTimelineIndex / (standardMilestones.length - 1)) * 100}%` }} 
                 />
               </div>
-              {standardMilestones.map((step, idx) => {
+              {standardMilestones.map((step: any, idx: number) => {
                 const isCompleted = idx < dynamicTimelineIndex;
                 const isActive = idx === dynamicTimelineIndex;
                 return (
@@ -262,6 +284,72 @@ export default function HomeownerPortal() {
                       'bg-white border-slate-200 text-slate-300'
                     }`}>{isCompleted ? "✓" : idx + 1}</div>
                     <p className={`text-[9px] font-bold mt-2 uppercase tracking-wide ${isActive ? 'text-blue-600 font-extrabold' : isCompleted ? 'text-slate-800' : 'text-slate-400'}`}>{step.title}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* INTERACTIVE CHANGE ORDERS SYSTEM WORKBENCH */}
+        {isLocked && changeOrders.length > 0 && (
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-left">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">📋 Project Scope Modifications (Change Orders)</h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">Review, expand, and approve site adaptation supplements launched by your contracting manager below.</p>
+            </div>
+
+            <div className="border rounded-xl divide-y overflow-hidden shadow-inner">
+              {changeOrders.map((co: any) => {
+                const isCoApproved = co.status === "approved";
+                const isExpanded = expandedCoId === co.id;
+
+                return (
+                  <div key={co.id} className="bg-white transition-all">
+                    <div 
+                      onClick={() => setExpandedCoId(isExpanded ? null : co.id)}
+                      className="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50/60"
+                    >
+                      <div className="text-left space-y-0.5">
+                        <p className="text-sm font-extrabold text-slate-900">{co.description}</p>
+                        <p className="text-[10px] text-slate-400">Status Verification: <span className={`font-bold ${isCoApproved ? 'text-emerald-600':'text-amber-500'}`}>{co.status.toUpperCase()}</span></p>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <span className="font-mono font-bold text-sm text-slate-900">${co.amount.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                        <span className="text-xs text-slate-400">{isExpanded ? "▲" : "▼"}</span>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="p-4 bg-slate-50/50 border-t space-y-4 animate-fadeIn">
+                        <div className="divide-y border bg-white rounded-xl text-xs shadow-sm">
+                          {co.items?.map((item: any, iIdx: number) => (
+                            <div key={iIdx} className="p-3 flex justify-between gap-4 items-center bg-white">
+                              <div className="text-left">
+                                <p className="font-bold text-slate-900">{item.title}</p>
+                                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{item.description}</p>
+                              </div>
+                              <span className="font-mono font-bold text-slate-800">${item.cost.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {!isCoApproved && (
+                          <button
+                            type="button"
+                            onClick={() => executeOneClickCoApproval(co.id)}
+                            className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-black py-3 rounded-xl tracking-wider uppercase transition-all shadow-md outline-none"
+                          >
+                            🔒 Authorize & Execute Change Order Supplement
+                          </button>
+                        )}
+                        {isCoApproved && (
+                          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-center font-bold text-xs rounded-xl">
+                            ✓ This modification is officially executed and appended into your living contract draw parameters.
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -344,15 +432,14 @@ export default function HomeownerPortal() {
           )}
         </div>
 
-        {/* CONTRACT PAYMENTS MATRIX SPLITS WITH LIVE SYNCED PILLS */}
+        {/* CONTRACT PAYMENTS MATRIX SPLITS */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 text-left space-y-3 shadow-sm">
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider tracking-widest">Contract Payments</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {invoice.payment_phases?.map((phase, idx) => {
-              const phaseVal = computedTotal * (phase.percentage / 100);
+            {invoice.payment_phases?.map((phase: any, idx: number) => {
+              const phaseVal = combinedProjectTotal * (phase.percentage / 100);
               const activePhaseIdx = invoice.current_phase_index || 0;
               
-              // Correct tracking metrics matching contractor console steps
               const isPaid = invoice.deposit_cleared && idx < activePhaseIdx;
               const isFirstPhaseDepositPaid = invoice.deposit_cleared && idx === 0;
               const isPhaseActive = isLocked && (idx === activePhaseIdx || (idx === 0 && !invoice.deposit_cleared));
@@ -362,8 +449,6 @@ export default function HomeownerPortal() {
                   <div className="text-left space-y-1">
                     <div className="flex items-center gap-1.5">
                       <p className="font-bold text-slate-800 leading-tight">{phase.name}</p>
-                      
-                      {/* Live Synchronized Payment Status Indicators */}
                       {(isPaid || isFirstPhaseDepositPaid) ? (
                         <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
                           PAID
