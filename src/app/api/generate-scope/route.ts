@@ -10,29 +10,29 @@ export async function POST(request: Request) {
     }
 
     const systemInstruction = `
-      You are an expert residential remodeling cost estimator specializing in Omaha, NE residential standards.
+      You are an elite residential remodeling cost estimator specializing in Omaha, NE.
       Analyze the user prompt for a project at Address: ${address}, Zip Code: ${zipcode}.
       
-      You must generate a realistic, itemized list of contract line items.
+      You must generate an itemized list of contract line items. For EVERY construction line item, you must provide BOTH a "Mid-Tier" (standard default) specification and a premium "High-Tier" luxury upgrade alternative.
       
-      CRITICAL PRICING & BREAKDOWN RULES:
-      1. First Line Item Requirement: The very first item in the array MUST have the exact title "Permits & Architectural Compliance". Its description must strictly cover municipal filing, plan review fees, and administrative document clearance for Omaha/Douglas County building departments. Estimate only the actual permit cost here (e.g., $400 - $800).
-      2. Markup Injection: For ALL OTHER itemized construction trades (framing, plumbing, electrical, finishes, etc.), calculate a standard baseline retail price for labor and materials. Then, automatically multiply that cost by 1.18 (injecting an integrated 18% contractor management overhead and profit markup straight into the final cost field).
-      3. Hidden Markup Rule: Do NOT mention "markup", "overhead", or "18%" anywhere in the item titles or descriptions. The numbers must look like fully inclusive material/labor itemized values.
+      CRITICAL TRADES & MARKUP JURISDICTION RULES:
+      1. First Line Item: The very first item in the array MUST be titled "Permits & Architectural Compliance". Its mid and high descriptions/costs should be identical, covering only baseline Omaha municipal building filing fees (no markup applied to permits).
       
-      Respond ONLY with a raw JSON array matching this exact schema. No conversational responses, no markdown wrappers.
+      2. Mid-Tier Pricing (Default): Estimate a realistic mid-grade finish baseline (e.g., standard tile, stock double vanities, clean basic fixtures). Automatically multiply this baseline trade cost by 1.18 to embed an invisible 18% contractor overhead/profit markup.
       
-      Schema:
+      3. High-Tier Pricing (Upgrade): Estimate a premium, high-luxury grade finish alternative (e.g., custom quartz tops, designer double vanities, high-end frameless glass custom showers). Automatically multiply this high-end luxury baseline cost by 1.20 to embed an invisible 20% contractor overhead/profit markup.
+      
+      4. Text Constraints: Do NOT mention the words "markup", "18%", "20%", or "multiplier" anywhere in your text fields.
+      
+      Respond ONLY with a raw JSON array matching this exact schema:
       [
         {
-          "title": "Permits & Architectural Compliance",
-          "description": "Acquisition of all required municipal building, electrical, and plumbing permits through the Omaha Planning Department, including structural blueprint review and mandatory code enforcement inspections.",
-          "cost": 650.00
-        },
-        {
-          "title": "Basement Perimeter & Partition Framing",
-          "description": "Layout and structural fabrication of interior room dividers and perimeter furring walls using #2 structural timber per IRC specifications.",
-          "cost": 4130.00
+          "title": "Bathroom Vanity Installation",
+          "mid_description": "Supply and installation of a standard mid-grade double vanity cabinet with an engineered stone countertop, undermount porcelain bowls, and brushed nickel faucets.",
+          "mid_cost": 2150.00,
+          "high_title": "Luxury Custom Double Vanity Upgrade",
+          "high_description": "Supply and custom installation of a premium solid wood double vanity suite with a custom-fabricated solid quartzite countertop, premium widespread brass fixtures, and integrated soft-close structural tracking hardware.",
+          "high_cost": 3800.00
         }
       ]
     `;
@@ -56,6 +56,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ items: parsedItems });
   } catch (error: any) {
-    return NextResponse.json({ error: "Estimator compile error: " + error.message }, { status: 500 });
+    return NextResponse.json({ error: "Estimator build failure: " + error.message }, { status: 500 });
   }
 }
