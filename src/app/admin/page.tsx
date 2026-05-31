@@ -61,7 +61,8 @@ export default function AdminDashboard() {
           homeowner_name: homeownerName,
           homeowner_email: homeownerEmail,
           job_address: `${address}, Omaha, NE ${zipcode}`,
-          amount: totalMidCost, // Store mid-cost as baseline fallback
+          amount: totalMidCost, 
+          description: `Multi-tier interactive proposal generated for ${homeownerName}. Specifications managed via items array payload.`, // Fixes the NOT NULL constraint
           items: lineItems, 
           deposit_percentage: depositPercent,
           payment_phases: defaultPhases,
