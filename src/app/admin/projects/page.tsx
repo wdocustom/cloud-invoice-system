@@ -37,77 +37,92 @@ export default function ContractorDashboard() {
   }
 
   const handleDeleteProject = async (id: string, name: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Stop click from triggering card redirect
-    if (!confirm(`Are you absolutely sure you want to permanently delete the project file for ${name}? This cannot be undone.`)) return;
+    e.stopPropagation();
+    if (!confirm(`Permanently wipe out construction proposal file for ${name}?`)) return;
 
     const { error } = await supabase
       .from("invoices")
       .delete()
       .eq("id", id);
 
-    if (error) alert("Deletion block: " + error.message);
+    if (error) alert("Deletion error: " + error.message);
     else fetchProjects();
   };
 
-  if (loading) return <div className="p-12 text-center text-sm font-sans text-slate-500">Loading pipeline matrix...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center font-sans text-slate-500">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">Querying Active Pipelines...</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-100 py-8 px-4 font-sans text-slate-900">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased pb-24">
+      <div className="max-w-5xl mx-auto px-4 pt-12 space-y-8">
         
-        <div className="bg-slate-900 text-white p-6 rounded-lg shadow-md flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">WDO CUSTOM PRODUCTION PIPELINE</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Click a project layout card to open its dedicated operational suite.</p>
+        {/* Banner Section */}
+        <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-2xl flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left shadow-lg">
+          <div className="space-y-1">
+            <h1 className="text-lg sm:text-xl font-black tracking-tight text-white uppercase">WDO Custom Production Pipeline</h1>
+            <p className="text-xs text-slate-400 font-medium">Click a project file index ledger row to execute parameter modifications or build design sheets.</p>
           </div>
-          <span className="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded text-slate-300 font-mono">LIC-1901422</span>
+          <span className="text-[10px] bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg text-slate-400 font-mono tracking-widest uppercase align-middle self-start sm:self-center">
+            MGR Suite: LIC-1901422
+          </span>
         </div>
 
+        {/* Project List */}
         <div className="space-y-4">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">Active Projects Management Backlog</h2>
+          <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest px-1 text-left">Active Operational Backlog Ledger</h2>
           
           <div className="space-y-3">
             {projects.map((project) => (
               <div 
                 key={project.id} 
                 onClick={() => router.push(`/admin/projects/${project.id}`)}
-                className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:border-slate-400 transition cursor-pointer flex justify-between items-center gap-4"
+                className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 shadow-sm hover:border-slate-700 hover:bg-slate-900/60 transition-all duration-200 cursor-pointer flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
               >
-                <div className="space-y-1.5 text-left">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                      project.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                <div className="space-y-2 text-left">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border ${
+                      project.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                     }`}>
                       {project.status}
                     </span>
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
-                      project.deposit_cleared ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border ${
+                      project.deposit_cleared ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
                     }`}>
                       {project.deposit_cleared ? "💰 Paid" : "🛑 Unpaid"}
                     </span>
                   </div>
-                  <h3 className="font-bold text-slate-900 text-base">{project.homeowner_name}</h3>
-                  <p className="text-xs text-slate-500">📍 {project.job_address}</p>
+                  <div>
+                    <h3 className="font-bold text-slate-200 text-base tracking-wide">{project.homeowner_name}</h3>
+                    <p className="text-xs text-slate-400 font-medium mt-0.5">📍 {project.job_address}</p>
+                  </div>
                 </div>
 
-                <div className="text-right flex items-center gap-6 shrink-0">
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contract</p>
-                    <p className="text-sm font-mono font-bold text-slate-900">${project.amount.toLocaleString()}</p>
+                <div className="flex items-center justify-between sm:justify-end gap-8 border-t sm:border-transparent border-slate-900 pt-3 sm:pt-0 shrink-0">
+                  <div className="text-left sm:text-right">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Locked Contract Value</p>
+                    <p className="text-sm font-mono font-bold text-white mt-0.5">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </div>
                   <button 
                     type="button" 
                     onClick={(e) => handleDeleteProject(project.id, project.homeowner_name, e)}
-                    className="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded transition border border-transparent hover:border-red-100"
+                    className="text-[10px] font-black uppercase tracking-wider text-red-400 hover:text-red-300 border border-red-950/40 hover:border-red-900/60 px-3.5 py-2 rounded-xl bg-red-950/10 transition-all"
                   >
-                    Delete
+                    Delete File
                   </button>
                 </div>
               </div>
             ))}
 
             {projects.length === 0 && (
-              <div className="bg-white border rounded-lg p-8 text-center text-sm text-slate-400">No active projects loaded. Deploy a workbook form template to instantiate data.</div>
+              <div className="bg-slate-900/20 border border-dashed border-slate-800 p-12 text-center text-xs text-slate-500 font-medium italic rounded-2xl">
+                No active projects deployed. Seed a proposal workbook template to populate data.
+              </div>
             )}
           </div>
         </div>
