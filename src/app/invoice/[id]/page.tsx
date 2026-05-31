@@ -100,11 +100,11 @@ export default function HomeownerPortal() {
 
   const handleApprove = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!typedSignature.trim()) return alert("Please sign with your name to approve.");
+    if (!typedSignature.trim()) return alert("Please type your name to authorize signature.");
     setIsSubmitting(true);
     const timestamp = new Date().toISOString();
     
-    const finalizedItems = masterItems.filter((_, idx) => activeIndices.includes(idx)).map((item: any) => ({
+    const finalizedItems = masterItems.filter((_: any, idx: number) => activeIndices.includes(idx)).map((item: any) => ({
       title: tier === "mid" ? item.title : (item.high_title || `${item.title} Upgrade`),
       description: tier === "mid" ? item.mid_description : item.high_description,
       cost: tier === "mid" ? item.mid_cost : item.high_cost
@@ -123,10 +123,10 @@ export default function HomeownerPortal() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-400">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-500">
       <div className="flex flex-col items-center gap-2">
-        <div className="w-6 h-6 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Syncing Dashboard...</p>
+        <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+        <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Portal View...</p>
       </div>
     </div>
   );
@@ -135,14 +135,31 @@ export default function HomeownerPortal() {
 
   const clientLastName = invoice.homeowner_name ? invoice.homeowner_name.trim().split(" ").pop() : "Client";
   const projectHeaderTitle = `${clientLastName} Residence Project`;
-  const activePhaseIndex = invoice.current_phase_index || 0;
   
+  // DYNAMIC SYNCHRONIZED MILESTONE STEP ENGINE
+  let dynamicTimelineIndex = 0; // Baseline: Signed Proposal
+  if (isLocked) {
+    dynamicTimelineIndex = 1; // Stage 1: Approved Framework
+    if (invoice.deposit_cleared) {
+      dynamicTimelineIndex = 2; // Stage 2: Deposit Confirmed Cleared
+      if ((invoice.current_phase_index || 0) >= 1) {
+        dynamicTimelineIndex = 3; // Stage 3: Rough-Ins Production Underway
+        if ((invoice.current_phase_index || 0) >= 2) {
+          dynamicTimelineIndex = 4; // Stage 4: Surface Finishes & Trim Underway
+          if ((invoice.current_phase_index || 0) === 3) {
+            dynamicTimelineIndex = 5; // Stage 5: Final Closeout
+          }
+        }
+      }
+    }
+  }
+
   const standardMilestones = [
-    { title: "Proposal", subtitle: "Locked" },
-    { title: "Deposit", subtitle: "Mobilized" },
-    { title: "Rough-In", subtitle: "Utilities" },
-    { title: "Finishes", subtitle: "Drywall" },
-    { title: "Hand-off", subtitle: "Complete" }
+    { title: "Proposal", subtitle: "Contract Locked" },
+    { title: "Deposit", subtitle: "Project Initiated" },
+    { title: "Rough-In", subtitle: "Framing & Utilities" },
+    { title: "Finishes", subtitle: "Drywall & Trim" },
+    { title: "Hand-off", subtitle: "Final Walkthrough" }
   ];
 
   return (
@@ -162,7 +179,7 @@ export default function HomeownerPortal() {
 
         {/* Streamlined Confirmation Banner */}
         {isLocked && (
-          <div className="bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl p-4 shadow-sm text-xs text-slate-700">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm text-xs text-slate-700">
             <strong>✓ Proposal Framework Approved & Project Contract Live.</strong> Skyler Camacho is delighted to begin production on your home! Use the material tools below to log style choices as the schedule advances.
           </div>
         )}
@@ -178,7 +195,7 @@ export default function HomeownerPortal() {
           </div>
         )}
 
-        {/* FIXED HORIZONTAL METRICS BLOCK GRID */}
+        {/* HORIZONTAL PROFILE CARDS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-1.5 shadow-sm text-xs">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contractor</p>
@@ -218,24 +235,35 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* PROGRESS PROGRESS PROGRESS RIBBON TRAIL */}
+        {/* SYNCHRONIZED PROGRESS TIMELINE TRACK RIBBON */}
         {isLocked && (
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <div className="text-left border-b border-slate-100 pb-2 flex justify-between items-center">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Construction Stage Progress Tracker</p>
-              <p className="text-xs font-bold text-blue-600">{invoice.payment_phases?.[invoice.current_phase_index || 0]?.name || "Mobilization Setup"}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Automated Construction Stage Progress Tracker</p>
+              <span className={`text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded ${invoice.deposit_cleared ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                {invoice.deposit_cleared ? "💰 Active Staging: Production Enabled" : "⏳ Staging: Awaiting Financial Clearance"}
+              </span>
             </div>
             <div className="relative flex items-center justify-between w-full pt-2 pb-1 overflow-x-auto scrollbar-none">
               <div className="absolute left-4 right-4 top-[18px] h-0.5 bg-slate-100 z-0">
-                <div className="h-full bg-slate-900 transition-all duration-500 rounded-full" style={{ width: `${(activePhaseIndex / (standardMilestones.length - 1)) * 100}%` }} />
+                <div 
+                  className="h-full bg-slate-900 transition-all duration-500 rounded-full" 
+                  style={{ width: `${((dynamicTimelineIndex) / (standardMilestones.length - 1)) * 100}%` }} 
+                />
               </div>
               {standardMilestones.map((step, idx) => {
-                const isCompleted = idx < activePhaseIndex;
-                const isActive = idx === activePhaseIndex;
+                const isCompleted = idx < dynamicTimelineIndex;
+                const isActive = idx === dynamicTimelineIndex;
                 return (
                   <div key={idx} className="flex flex-col items-center relative z-10 text-center shrink-0 w-16 sm:w-20">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] border transition-all ${isCompleted ? 'bg-slate-900 border-slate-900 text-white' : isActive ? 'bg-white border-blue-600 text-blue-600 scale-110 ring-4 ring-blue-50 font-black' : 'bg-white border-slate-200 text-slate-300'}`}>{isCompleted ? "✓" : idx + 1}</div>
-                    <p className={`text-[9px] font-bold mt-2 uppercase tracking-wide ${isActive ? 'text-blue-600 font-extrabold' : isCompleted ? 'text-slate-800' : 'text-slate-400'}`}>{step.title}</p>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] border transition-all ${
+                      isCompleted ? 'bg-slate-900 border-slate-900 text-white' : 
+                      isActive ? 'bg-white border-slate-900 text-slate-900 scale-110 ring-4 ring-slate-100 font-black' : 
+                      'bg-white border-slate-200 text-slate-300'
+                    }`}>
+                      {isCompleted ? "✓" : idx + 1}
+                    </div>
+                    <p className={`text-[9px] font-bold mt-2 uppercase tracking-wide ${isActive ? 'text-slate-900 font-extrabold' : isCompleted ? 'text-slate-600' : 'text-slate-400'}`}>{step.title}</p>
                   </div>
                 );
               })}
@@ -261,7 +289,7 @@ export default function HomeownerPortal() {
                       {group.choices.map((choice: string, cIdx: number) => {
                         const isChosen = chosen === choice;
                         return (
-                          <button type="button" key={cIdx} onClick={() => handleSelectMaterialChoice(group.category, choice)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isChosen ? 'bg-slate-900 border-transparent text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'}`}>{choice} {isChosen && "✓"}</button>
+                          <button type="button" key={cIdx} onClick={() => handleSelectMaterialChoice(group.category, choice)} className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide transition-all border ${isChosen ? 'bg-slate-900 border-transparent text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'}`}>{choice} {isChosen && "✓"}</button>
                         );
                       })}
                     </div>
@@ -275,7 +303,7 @@ export default function HomeownerPortal() {
           </div>
         )}
 
-        {/* Closed Document Accordion Box View */}
+        {/* Invoice Itemized Breakdown Accordion */}
         <div className="border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm">
           <button type="button" onClick={() => setShowInvoiceDetails(!showInvoiceDetails)} className="w-full bg-slate-50/60 p-4 font-bold text-xs uppercase tracking-wider flex justify-between items-center text-slate-500 hover:bg-slate-100 transition-all outline-none" >
             <span>📋 {isLocked ? "View Closed Contract Trade Scope Paperwork" : "Review Planned Operations Specifications Grid"}</span>
@@ -318,17 +346,41 @@ export default function HomeownerPortal() {
           )}
         </div>
 
-        {/* Milestone payment matrix splits */}
+        {/* RENAMED & UPGRADED: CONTRACT PAYMENTS SHEET DRAW MATRIX */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 text-left space-y-3 shadow-sm">
-          <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contract Progress Milestone Payment Draws</h3>
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider tracking-widest">Contract Payments</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {invoice.payment_phases?.map((phase, idx) => {
               const phaseVal = computedTotal * (phase.percentage / 100);
+              const activePhaseIdx = invoice.current_phase_index || 0;
+              
+              // Status Flag computation
+              const isPaid = invoice.deposit_cleared && idx < activePhaseIdx;
+              const isFirstPhaseDepositPaid = invoice.deposit_cleared && idx === 0;
+              const isPhaseActive = isLocked && (idx === activePhaseIdx || (idx === 0 && !invoice.deposit_cleared));
+
               return (
                 <div key={idx} className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex justify-between items-center shadow-inner text-xs">
-                  <div className="text-left">
-                    <p className="font-bold text-slate-800 leading-tight">{phase.name}</p>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Portion Split: {phase.percentage}%</p>
+                  <div className="text-left space-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-bold text-slate-800 leading-tight">{phase.name}</p>
+                      
+                      {/* Dynamic Payment Status Badges */}
+                      {(isPaid || isFirstPhaseDepositPaid) ? (
+                        <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          PAID
+                        </span>
+                      ) : isPhaseActive ? (
+                        <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">
+                          ACTIVE
+                        </span>
+                      ) : (
+                        <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded bg-slate-200 text-slate-500">
+                          PENDING
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Draw Allocation Split: {phase.percentage}%</p>
                   </div>
                   <span className="font-mono font-bold text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
@@ -363,7 +415,6 @@ export default function HomeownerPortal() {
           {showTerms && (
             <div className="p-5 text-xs text-slate-500 space-y-3 max-h-56 overflow-y-scroll leading-relaxed border-t border-slate-100 bg-white">
               <p>This agreement is configured specifically under the building framework of the City of Omaha, Douglas County, Nebraska. All modifications, materials, structural deviations, and framing updates shall be performed in accordance with the International Residential Code (IRC) as amended by local Omaha ordinances.</p>
-              <p>The Homeowner has executed selective omissions resulting in a final bound project consideration total of <span className="font-bold text-slate-900">${computedTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span> under the selected finish specification tier profile matrix.</p>
             </div>
           )}
         </div>
