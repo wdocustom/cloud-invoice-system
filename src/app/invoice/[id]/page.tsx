@@ -43,6 +43,9 @@ export default function HomeownerPortal() {
   const [showTerms, setShowTerms] = useState(false);
   const [typedSignature, setTypedSignature] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Payment gateway choice state: 'stripe' or 'check'
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "check">("stripe");
 
   useEffect(() => {
     async function fetchInvoice() {
@@ -148,7 +151,19 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* Tier Control Hub */}
+        {/* Post-Approval Celebration Header Panel */}
+        {isLocked && (
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 border-b text-center sm:text-left shadow-inner">
+            <h2 className="text-lg font-bold flex items-center justify-center sm:justify-start gap-2 animate-bounce">
+              🎉 Congratulations! Your Project Framework is Approved & Locked.
+            </h2>
+            <p className="text-xs text-emerald-100 mt-1 max-w-3xl">
+              Skyler is absolutely delighted to get started on your remodeling project! He will be in touch with you shortly to work through your specific material selections, coordinate your target start date logistics, and provide guidance on how to prepare your home for your upcoming project.
+            </p>
+          </div>
+        )}
+
+        {/* Finish Tier Control Hub Selector */}
         {!isLocked && (
           <div className="bg-slate-100 border-b border-slate-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-xs font-medium text-slate-600">Toggle preferred finish specifications to view live budget variations:</p>
@@ -164,7 +179,7 @@ export default function HomeownerPortal() {
         )}
 
         <div className="p-8 space-y-8">
-          {/* Metadata Layout */}
+          {/* Metadata Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 border-b border-slate-100 pb-6">
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Project Contractor</h3>
@@ -187,16 +202,24 @@ export default function HomeownerPortal() {
             </div>
           </div>
 
-          {/* Timeline Deck */}
+          {/* Timeline Deck with Tooltip Hover Notification */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="border border-slate-200 bg-slate-50/50 rounded-lg p-4 flex justify-between items-center">
+            <div className="group relative border border-slate-200 bg-slate-50/50 hover:bg-blue-50/20 hover:border-blue-300 rounded-lg p-4 flex justify-between items-center transition cursor-help">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Start Date</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  Start Date <span className="text-[10px] text-blue-500 lowercase bg-blue-100/60 px-1.5 py-0.5 rounded font-normal font-sans">ⓘ hover note</span>
+                </p>
                 <p className="text-sm font-bold text-slate-800 mt-0.5">
-                  {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { dateStyle: 'long' }) : "Pending Schedule Assignment"}
+                  {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { dateStyle: 'long' }) : "Pending Assignment"}
                 </p>
               </div>
               <span className="text-xl">📅</span>
+
+              {/* Hover Tooltip Popup Element */}
+              <div className="pointer-events-none absolute left-1/2 -top-14 -translate-x-1/2 w-72 bg-slate-950 text-white text-xs rounded-md p-2.5 opacity-0 group-hover:opacity-100 transition duration-200 shadow-xl z-20 text-center leading-normal">
+                💡 Please coordinate directly with your contractor if you would like to adjust or modify this targeted start date timeline.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-950" />
+              </div>
             </div>
             <div className="border border-slate-200 bg-slate-50/50 rounded-lg p-4 flex justify-between items-center">
               <div>
@@ -210,7 +233,6 @@ export default function HomeownerPortal() {
           {/* Active Work Items Spec Sheet */}
           <div>
             <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3">Approved Operations Blueprint</h2>
-            
             <div className="border border-slate-200 rounded-lg overflow-hidden bg-white divide-y">
               {masterItems.map((item, idx) => {
                 const isActive = activeIndices.includes(idx);
@@ -269,6 +291,56 @@ export default function HomeownerPortal() {
             </div>
           </div>
 
+          {/* Interactive Deposit Payment Guidance Hub */}
+          <div className="border border-slate-200 rounded-lg p-6 bg-white space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Deposit Processing Portal</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Select your preferred payment method below to execute the mobilization deposit of <span className="font-bold text-slate-900">${depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button 
+                type="button" 
+                onClick={() => setPaymentMethod("stripe")}
+                className={`p-4 border rounded-lg text-left flex items-center justify-between transition shadow-sm ${paymentMethod === 'stripe' ? 'border-blue-600 bg-blue-50/10 ring-2 ring-blue-500/20' : 'border-slate-200 hover:bg-slate-50'}`}
+              >
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Credit / Debit Card</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Process instantly using secure Stripe infrastructure</p>
+                </div>
+                <span className="text-lg">💳</span>
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => setPaymentMethod("check")}
+                className={`p-4 border rounded-lg text-left flex items-center justify-between transition shadow-sm ${paymentMethod === 'check' ? 'border-slate-900 bg-slate-50 ring-2 ring-slate-900/10' : 'border-slate-200 hover:bg-slate-50'}`}
+              >
+                <div>
+                  <p className="text-xs font-bold text-slate-900">Physical Check Allocation</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Mail or hand-deliver a standard bank draft check</p>
+                </div>
+                <span className="text-lg">📝</span>
+              </button>
+            </div>
+
+            {/* Dynamic Payment Details Display Card */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-xs leading-relaxed animate-fadeIn">
+              {paymentMethod === "stripe" ? (
+                <div className="text-slate-600 flex items-center justify-between gap-4">
+                  <p>🔒 <strong>Stripe Integration Mode:</strong> Clicking authorization sign-off below will process your card mobilization assignment securely. Credit card processor routing will coordinate with you via account notification triggers.</p>
+                  <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold uppercase tracking-wider shrink-0">Stripe Active</span>
+                </div>
+              ) : (
+                <div className="text-slate-700 space-y-1">
+                  <p className="font-bold text-slate-900">💵 Physical Check Remittance Guidance:</p>
+                  <p>Please issue all payment drafts to the exact corporate name entity: <span className="underline font-bold text-slate-950">WDO Custom</span></p>
+                  <p className="text-slate-500 text-[11px] mt-1">Your licensed contractor will coordinate check pick-up scheduling, receipt verification logging, and database clearing confirmations directly with you upon arrival.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Legal Accordion */}
           <div className="border border-slate-200 rounded-lg bg-white overflow-hidden">
             <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-100 p-4 font-bold text-xs uppercase tracking-wider flex justify-between text-slate-700 hover:bg-slate-200/60 transition">
@@ -290,7 +362,7 @@ export default function HomeownerPortal() {
             )}
           </div>
 
-          {/* Signoff Panel */}
+          {/* Approval Signoff Panel Footer */}
           <div className="pt-4 border-t">
             {isLocked ? (
               <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 text-center shadow-sm">
