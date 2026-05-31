@@ -41,6 +41,7 @@ export default function HomeownerPortal() {
   const { id } = useParams();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
+  const [scheduleTasks, setScheduleTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [tier, setTier] = useState<"mid" | "high">("mid");
@@ -69,13 +70,21 @@ export default function HomeownerPortal() {
         setActiveIndices(mainProject.items.map((_: any, idx: number) => idx));
       }
 
+      // Query Change Orders
       const { data: children } = await supabase
         .from("invoices")
         .select("*")
         .eq("parent_id", id)
         .order("created_at", { ascending: true });
-
       if (children) setChangeOrders(children);
+
+      // Query Project Production Schedule Milestones
+      const { data: schedule } = await supabase
+        .from("project_schedules")
+        .select("*")
+        .eq("project_id", id)
+        .order("target_start_date", { ascending: true });
+      if (schedule) setScheduleTasks(schedule);
     }
     setLoading(false);
   }
@@ -148,7 +157,7 @@ export default function HomeownerPortal() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-500">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-400">
       <div className="flex flex-col items-center gap-2">
         <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
         <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Syncing Portal View...</p>
@@ -291,6 +300,46 @@ export default function HomeownerPortal() {
           </div>
         )}
 
+        {/* NEW COMPONENT: CLIENT-FACING ACTIVE LIVE Gantt MAP SCHEDULE (ONLY VISIBLE ON APPROVED CONTRACTS) */}
+        {isLocked && scheduleTasks.length > 0 && (
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-left">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">🗓️ Project Production Schedule Roadmap</h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">Track live progress targets and completed field milestones across on-site remodeling operations.</p>
+            </div>
+
+            <div className="border rounded-xl bg-slate-50 p-4 space-y-3 shadow-inner">
+              {scheduleTasks.map((task) => (
+                <div key={task.id} className="bg-white border p-3 rounded-lg shadow-sm space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-extrabold text-slate-900">{task.task_name}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        Target window: {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}
+                      </p>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+                      task.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                      task.status === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-100 animate-pulse' :
+                      'bg-slate-100 text-slate-500'
+                    }`}>{task.status.replace('_', ' ')}</span>
+                  </div>
+
+                  {/* Horizontal progress percentage fill rail */}
+                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border">
+                    <div 
+                      className={`h-full transition-all duration-500 ${
+                        task.status === 'completed' ? 'bg-emerald-500' : 'bg-blue-500'
+                      }`}
+                      style={{ width: `${task.progress_percent}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* CLIENT CHANGE ORDERS SYSTEM WORKBENCH */}
         {isLocked && changeOrders.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-left">
@@ -322,7 +371,7 @@ export default function HomeownerPortal() {
                           
                           {isCoApproved && (
                             <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${
-                              isCoPaid ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700 border border-red-100'
+                              isCoPaid ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700 border-red-100'
                             }`}>
                               {isCoPaid ? "💰 PAID" : "🛑 UNPAID"}
                             </span>
