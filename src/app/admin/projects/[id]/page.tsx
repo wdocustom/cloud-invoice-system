@@ -32,7 +32,6 @@ export default function ProjectDetailPanel() {
 
   async function fetchProjectDetail() {
     setLoading(true);
-    // Fetch Main parent project file configuration rows
     const { data: mainProject } = await supabase
       .from("invoices")
       .select("*")
@@ -42,7 +41,6 @@ export default function ProjectDetailPanel() {
     if (mainProject) {
       setProject(mainProject);
       
-      // Fetch associated Child Change Orders
       const { data: children } = await supabase
         .from("invoices")
         .select("*")
@@ -108,7 +106,7 @@ export default function ProjectDetailPanel() {
     setTimeout(() => setCopied(false), 3000);
   };
 
-  // AI CHANGE ORDER WORKBENCH ESTIMATOR COMPILER ENGINE
+  // AI CHANGE ORDER ESTIMATOR
   const runAiChangeOrderEstimator = async () => {
     if (!coPrompt.trim()) return alert("Please specify the additional trade scope for the AI assistant.");
     setIsGeneratingCO(true);
@@ -124,7 +122,6 @@ export default function ProjectDetailPanel() {
       });
       const data = await res.json();
       if (data.items && Array.isArray(data.items)) {
-        // Map elements cleanly to child line configurations
         setCoLineItems(data.items);
       }
     } catch (err) {
@@ -137,6 +134,11 @@ export default function ProjectDetailPanel() {
     const updated = [...coLineItems];
     updated[idx] = { ...updated[idx], [field]: value };
     setCoLineItems(updated);
+  };
+
+  // NEW: Handler to let contractor drop an unwanted AI row before deploying
+  const handleDeleteCoLineItem = (idx: number) => {
+    setCoLineItems(coLineItems.filter((_, i) => i !== idx));
   };
 
   const deployChangeOrderToPortal = async () => {
@@ -153,14 +155,14 @@ export default function ProjectDetailPanel() {
       .from("invoices")
       .insert([
         {
-          parent_id: id, // Maps child reference link straight to master project
+          parent_id: id,
           homeowner_name: project.homeowner_name,
           homeowner_email: project.homeowner_email,
           job_address: project.job_address,
           amount: coTotalCost,
           description: coTitle.trim(),
-          items: flattenedItems, // Passes standalone trade matrix components
-          status: "pending", // Awaiting single-click client approval
+          items: flattenedItems,
+          status: "pending",
           deposit_percentage: 0,
           current_phase_index: 0
         }
@@ -235,7 +237,7 @@ export default function ProjectDetailPanel() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* Left Column: Progress Toggles & Change Order History Logs */}
+            {/* Left Column */}
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4 shadow-inner">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-2">Active Draw Target</h3>
@@ -258,11 +260,11 @@ export default function ProjectDetailPanel() {
                 </div>
               </div>
 
-              {/* NEW Component: Historical Change Orders Monitor Log */}
+              {/* Historical Change Orders Monitor Log */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 shadow-inner">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-2">Active Change Orders Ledger</h3>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-2">Active Change Orders Ledger</h3>
                 <div className="divide-y divide-slate-200 border bg-white rounded-xl max-h-40 overflow-y-auto">
-                  {changeOrders.map((co, cIdx) => (
+                  {changeOrders.map((co) => (
                     <div key={co.id} className="p-2.5 text-xs flex justify-between items-center bg-white">
                       <div className="text-left">
                         <p className="font-bold text-slate-800">{co.description}</p>
@@ -283,7 +285,7 @@ export default function ProjectDetailPanel() {
               </div>
             </div>
 
-            {/* Right Column: AI CHANGE ORDER COMPILER WORKSPACE SYSTEM */}
+            {/* Right Column: AI CHANGE ORDER COMPILER */}
             <div className="p-4 bg-blue-50/40 border border-blue-200 rounded-xl space-y-4 text-left shadow-inner">
               <div className="border-b border-blue-200 pb-2">
                 <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest">⚡ AI Change Order Worksheet Builder</h3>
@@ -317,13 +319,13 @@ export default function ProjectDetailPanel() {
                 </div>
               </div>
 
-              {/* Editable Temporary AI Result Table Block */}
+              {/* UPDATED: Review Table with Inline Line-Omit Actions */}
               {coLineItems.length > 0 && (
                 <div className="space-y-2 animate-fadeIn">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Review Generated Variance Additions:</p>
                   <div className="border rounded-xl bg-white divide-y max-h-40 overflow-y-auto text-xs shadow-sm">
                     {coLineItems.map((item, idx) => (
-                      <div key={idx} className="p-2.5 flex justify-between gap-3 items-start bg-white">
+                      <div key={idx} className="p-2.5 flex justify-between gap-3 items-start bg-white hover:bg-slate-50/40 transition-colors">
                         <div className="space-y-0.5 text-left flex-1">
                           <input 
                             type="text" 
@@ -338,12 +340,22 @@ export default function ProjectDetailPanel() {
                             className="text-[11px] text-slate-500 w-full bg-transparent outline-none resize-none"
                           />
                         </div>
-                        <input 
-                          type="text" 
-                          value={item.mid_cost} 
-                          onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)}
-                          className="font-mono font-bold text-right text-slate-800 w-16 bg-transparent border-b border-transparent focus:border-slate-900 outline-none"
-                        />
+                        <div className="flex items-center gap-2 shrink-0">
+                          <input 
+                            type="text" 
+                            value={item.mid_cost} 
+                            onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)}
+                            className="font-mono font-bold text-right text-slate-800 w-16 bg-transparent border-b border-transparent focus:border-slate-900 outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCoLineItem(idx)}
+                            className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase px-1 transition-colors"
+                            title="Omit item from this change order"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -357,7 +369,7 @@ export default function ProjectDetailPanel() {
                 </div>
               )}
 
-              {/* Selections Builder Core Engine Panel Component */}
+              {/* Selections Builder */}
               <div className="border-t border-blue-200/60 pt-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">Material Selections Log</h4>
