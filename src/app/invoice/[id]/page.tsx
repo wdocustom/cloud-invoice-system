@@ -38,7 +38,6 @@ export default function HomeownerPortal() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Interactive Tier Level Management: 'mid' or 'high'
   const [tier, setTier] = useState<"mid" | "high">("mid");
   const [activeIndices, setActiveIndices] = useState<number[]>([]);
   const [showTerms, setShowTerms] = useState(false);
@@ -67,7 +66,6 @@ export default function HomeownerPortal() {
   const isLocked = invoice?.status === "approved";
   const masterItems = invoice?.items || [];
 
-  // Compute pricing based dynamically on active rows AND currently chosen finish tier
   const computedTotal = masterItems.reduce((sum, item, idx) => {
     if (!activeIndices.includes(idx)) return sum;
     return sum + (tier === "mid" ? item.mid_cost : item.high_cost);
@@ -87,12 +85,11 @@ export default function HomeownerPortal() {
 
   const handleApprove = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!typedSignature.trim()) return alert("Please map your full signature name to approve.");
+    if (!typedSignature.trim()) return alert("Please type your name to approve.");
     setIsSubmitting(true);
 
     const timestamp = new Date().toISOString();
     
-    // Package final selected scope row layouts specifically based on locked tier choice
     const finalizedItems = masterItems
       .filter((_, idx) => activeIndices.includes(idx))
       .map(item => ({
@@ -129,7 +126,6 @@ export default function HomeownerPortal() {
   if (loading) return <div className="text-center p-12 font-sans">Connecting to client portal...</div>;
   if (!invoice) return <div className="text-center p-12 font-sans text-red-500">Proposal file not found.</div>;
 
-  // Extract dynamic header typography layout: "LastName Residence Project"
   const clientLastName = invoice.homeowner_name ? invoice.homeowner_name.trim().split(" ").pop() : "Client";
   const projectHeaderTitle = `${clientLastName} Residence Project`;
 
@@ -137,7 +133,7 @@ export default function HomeownerPortal() {
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">
       <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl overflow-hidden border border-slate-200">
         
-        {/* Dynamic Header Banner */}
+        {/* Header Banner */}
         <div className="bg-slate-900 text-white p-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight uppercase">{projectHeaderTitle}</h1>
@@ -152,10 +148,10 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* Tier Interactive Selection Control Hub */}
+        {/* Tier Control Hub */}
         {!isLocked && (
           <div className="bg-slate-100 border-b border-slate-200 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs font-medium text-slate-600">Toggle your preferred tier grading specification option to view live alternative budgets:</p>
+            <p className="text-xs font-medium text-slate-600">Toggle preferred finish specifications to view live budget variations:</p>
             <div className="bg-white border rounded-lg p-1 flex shadow-sm shrink-0">
               <button type="button" onClick={() => setTier("mid")} className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${tier === 'mid' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'}`}>
                 Standard Mid-Tier
@@ -168,30 +164,36 @@ export default function HomeownerPortal() {
         )}
 
         <div className="p-8 space-y-8">
-          {/* Information Deck */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-b border-slate-100 pb-6">
+          {/* Metadata Layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 border-b border-slate-100 pb-6">
             <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Project Prepared For</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Project Contractor</h3>
+              <p className="mt-1 font-extrabold text-slate-900 text-base">WDO Custom</p>
+              <p className="text-sm font-medium text-slate-700">Skyler Camacho</p>
+              <p className="text-xs text-slate-500 mt-0.5 font-mono">Reg: LIC-1901422</p>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Prepared For</h3>
               <p className="mt-1 font-bold text-slate-800 text-base">{invoice.homeowner_name}</p>
               <p className="text-sm text-slate-500">{invoice.homeowner_email}</p>
-              <p className="text-sm text-slate-700 font-medium mt-2 bg-slate-100 px-3 py-1.5 rounded inline-block">📍 Jobsite: {invoice.job_address}</p>
+              <p className="text-xs text-slate-700 font-medium mt-2 bg-slate-100 px-2.5 py-1 rounded inline-block">📍 Jobsite: {invoice.job_address}</p>
             </div>
             <div className="sm:text-right flex flex-col justify-end sm:items-end">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Project Value ({tier === 'mid' ? 'Standard Finishes' : 'Luxury High Finishes'})
+                Project Value ({tier === 'mid' ? 'Standard' : 'Luxury'})
               </h3>
               <p className="mt-1 text-3xl font-extrabold text-slate-900">${computedTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
               <p className="text-xs text-slate-500 mt-1">Mobilization Draw: ${depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ({invoice.deposit_percentage}%)</p>
             </div>
           </div>
 
-          {/* Timeline Metrics */}
+          {/* Timeline Deck */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="border border-slate-200 bg-slate-50/50 rounded-lg p-4 flex justify-between items-center">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Target Construction Launch</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Start Date</p>
                 <p className="text-sm font-bold text-slate-800 mt-0.5">
-                  {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { dateStyle: 'long' }) : "Pending Schedule Sync"}
+                  {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { dateStyle: 'long' }) : "Pending Schedule Assignment"}
                 </p>
               </div>
               <span className="text-xl">📅</span>
@@ -212,8 +214,6 @@ export default function HomeownerPortal() {
             <div className="border border-slate-200 rounded-lg overflow-hidden bg-white divide-y">
               {masterItems.map((item, idx) => {
                 const isActive = activeIndices.includes(idx);
-                
-                // If contract is locked and item was omitted, completely hide it
                 if (isLocked && !isActive) return null;
 
                 const currentTitle = tier === "mid" ? item.title : (item.high_title || `${item.title} (Luxury Upgrade)`);
@@ -250,7 +250,7 @@ export default function HomeownerPortal() {
             </div>
           </div>
 
-          {/* Dynamic Payment Phases Table */}
+          {/* Payment Schedule */}
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Milestone Draw Milestones</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -269,7 +269,7 @@ export default function HomeownerPortal() {
             </div>
           </div>
 
-          {/* Legal Document Accordion Box */}
+          {/* Legal Accordion */}
           <div className="border border-slate-200 rounded-lg bg-white overflow-hidden">
             <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-100 p-4 font-bold text-xs uppercase tracking-wider flex justify-between text-slate-700 hover:bg-slate-200/60 transition">
               <span>⚖️ Review Binding Terms & Conditions (Omaha Construction Law Standard)</span>
@@ -290,7 +290,7 @@ export default function HomeownerPortal() {
             )}
           </div>
 
-          {/* Approval Signoff Panel Footer */}
+          {/* Signoff Panel */}
           <div className="pt-4 border-t">
             {isLocked ? (
               <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 text-center shadow-sm">
@@ -316,7 +316,7 @@ export default function HomeownerPortal() {
                     className="flex-1 px-4 py-2.5 rounded-md outline-none text-sm text-slate-900 bg-white font-medium shadow-sm"
                   />
                   <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-emerald-600 hover:bg-emerald-500 font-bold px-8 py-2.5 rounded-md text-xs tracking-wider uppercase transition shadow-md disabled:opacity-50">
-                    {isSubmitting ? "Locking Structural Bounds..." : "Execute & Approve Contract"}
+                    {isSubmitting ? "Locking Bounds..." : "Execute & Approve Contract"}
                   </button>
                 </div>
               </form>
