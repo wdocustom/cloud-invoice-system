@@ -44,7 +44,6 @@ export default function HomeownerPortal() {
   const [typedSignature, setTypedSignature] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Payment gateway choice state: 'stripe' or 'check'
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "check">("stripe");
 
   useEffect(() => {
@@ -122,6 +121,11 @@ export default function HomeownerPortal() {
         signature_name: typedSignature,
         signed_at: timestamp 
       } : null);
+
+      // Auto-scroll instantly back up to the top of the viewport to display onboarding banner
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 100);
     }
     setIsSubmitting(false);
   };
@@ -154,10 +158,10 @@ export default function HomeownerPortal() {
         {/* Post-Approval Celebration Header Panel */}
         {isLocked && (
           <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 border-b text-center sm:text-left shadow-inner">
-            <h2 className="text-lg font-bold flex items-center justify-center sm:justify-start gap-2 animate-bounce">
+            <h2 className="text-lg font-bold flex items-center justify-center sm:justify-start gap-2">
               🎉 Congratulations! Your Project Framework is Approved & Locked.
             </h2>
-            <p className="text-xs text-emerald-100 mt-1 max-w-3xl">
+            <p className="text-xs text-emerald-100 mt-1 max-w-3xl leading-relaxed">
               Skyler is absolutely delighted to get started on your remodeling project! He will be in touch with you shortly to work through your specific material selections, coordinate your target start date logistics, and provide guidance on how to prepare your home for your upcoming project.
             </p>
           </div>
@@ -293,9 +297,9 @@ export default function HomeownerPortal() {
 
           {/* Interactive Deposit Payment Guidance Hub */}
           <div className="border border-slate-200 rounded-lg p-6 bg-white space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Deposit Processing Portal</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Select your preferred payment method below to execute the mobilization deposit of <span className="font-bold text-slate-900">${depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>.</p>
+            <div className="text-left">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Deposit Information to start your project</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Select a payment preference to route your mobilization commitment balance of <span className="font-bold text-slate-900">${depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -304,9 +308,9 @@ export default function HomeownerPortal() {
                 onClick={() => setPaymentMethod("stripe")}
                 className={`p-4 border rounded-lg text-left flex items-center justify-between transition shadow-sm ${paymentMethod === 'stripe' ? 'border-blue-600 bg-blue-50/10 ring-2 ring-blue-500/20' : 'border-slate-200 hover:bg-slate-50'}`}
               >
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Credit / Debit Card</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Process instantly using secure Stripe infrastructure</p>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-slate-900">Credit / Debit Card / ACH Bank Transfer</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Secure credit routing or immediate digital checking check-out</p>
                 </div>
                 <span className="text-lg">💳</span>
               </button>
@@ -316,26 +320,26 @@ export default function HomeownerPortal() {
                 onClick={() => setPaymentMethod("check")}
                 className={`p-4 border rounded-lg text-left flex items-center justify-between transition shadow-sm ${paymentMethod === 'check' ? 'border-slate-900 bg-slate-50 ring-2 ring-slate-900/10' : 'border-slate-200 hover:bg-slate-50'}`}
               >
-                <div>
-                  <p className="text-xs font-bold text-slate-900">Physical Check Allocation</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Mail or hand-deliver a standard bank draft check</p>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-slate-900">Physical Check</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Hand-deliver or process a traditional corporate paper check</p>
                 </div>
                 <span className="text-lg">📝</span>
               </button>
             </div>
 
-            {/* Dynamic Payment Details Display Card */}
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-xs leading-relaxed animate-fadeIn">
+            {/* Cleaned Dynamic Payment Details Display Card */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-xs leading-relaxed text-left animate-fadeIn">
               {paymentMethod === "stripe" ? (
                 <div className="text-slate-600 flex items-center justify-between gap-4">
-                  <p>🔒 <strong>Stripe Integration Mode:</strong> Clicking authorization sign-off below will process your card mobilization assignment securely. Credit card processor routing will coordinate with you via account notification triggers.</p>
-                  <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold uppercase tracking-wider shrink-0">Stripe Active</span>
+                  <p>💳 Ready for processing. Your contract checkout pipeline will route verification triggers directly to your account file once finalized.</p>
+                  <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold uppercase tracking-wider shrink-0">Processor Ready</span>
                 </div>
               ) : (
                 <div className="text-slate-700 space-y-1">
-                  <p className="font-bold text-slate-900">💵 Physical Check Remittance Guidance:</p>
-                  <p>Please issue all payment drafts to the exact corporate name entity: <span className="underline font-bold text-slate-950">WDO Custom</span></p>
-                  <p className="text-slate-500 text-[11px] mt-1">Your licensed contractor will coordinate check pick-up scheduling, receipt verification logging, and database clearing confirmations directly with you upon arrival.</p>
+                  <p className="font-bold text-slate-900">💵 Physical Check Remittance Instructions:</p>
+                  <p>Please make check payable exactly to: <span className="underline font-bold text-slate-950">WDO Custom</span></p>
+                  <p className="text-slate-500 text-[11px] mt-1">Skyler will coordinate check handoff logs and register clearing confirmations inside your client dashboard history upon arrival.</p>
                 </div>
               )}
             </div>
