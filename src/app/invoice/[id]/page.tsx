@@ -54,8 +54,43 @@ export default function HomeownerPortal() {
   const [expandedCoId, setExpandedCoId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchInvoiceData();
+    if (id) {
+      logStealthTelemetryView();
+      fetchInvoiceData();
+    }
   }, [id]);
+
+  // FIXED: Standard try/catch async block replacing the illegal builder chain
+  async function logStealthTelemetryView() {
+    const timestamp = new Date().toISOString();
+    
+    try {
+      const { error } = await supabase.rpc("increment_invoice_views", { 
+        target_id: id, 
+        current_time: timestamp 
+      });
+      
+      if (error) throw error;
+    } catch (err) {
+      // Fallback seamlessly if database RPC function is missing or uncompiled
+      const { data } = await supabase
+        .from("invoices")
+        .select("view_count, view_history")
+        .eq("id", id)
+        .single();
+        
+      if (data) {
+        const updatedHistory = [...(data.view_history || []), timestamp];
+        await supabase
+          .from("invoices")
+          .update({ 
+            view_count: (data.view_count || 0) + 1, 
+            view_history: updatedHistory 
+          })
+          .eq("id", id);
+      }
+    }
+  }
 
   async function fetchInvoiceData() {
     const { data: mainProject } = await supabase
@@ -553,7 +588,7 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* REWORKED CONDITIONAL REMITTANCE (ONLY RENDERS POST-APPROVAL) */}
+        {/* CONDITIONAL REMITTANCE (ONLY RENDERS POST-APPROVAL) */}
         {isLocked && !invoice.deposit_cleared && (
           <div className="border border-slate-200 bg-white rounded-xl p-5 text-left space-y-3 shadow-sm animate-fadeIn">
             <div>
@@ -599,7 +634,7 @@ export default function HomeownerPortal() {
               </div>
               <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="flex-1 px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all" />
-                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white font-bold text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm">
+                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm">
                   Accept Proposal
                 </button>
               </div>

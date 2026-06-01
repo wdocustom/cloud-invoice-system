@@ -48,7 +48,6 @@ export default function ProjectDetailPanel() {
     if (mainProject) {
       setProject(mainProject);
       
-      // Fetch Child Change Orders
       const { data: children } = await supabase
         .from("invoices")
         .select("*")
@@ -56,7 +55,6 @@ export default function ProjectDetailPanel() {
         .order("created_at", { ascending: true });
       if (children) setChangeOrders(children);
 
-      // Fetch Dynamic Project Schedule Milestones
       const { data: schedule } = await supabase
         .from("project_schedules")
         .select("*")
@@ -94,7 +92,6 @@ export default function ProjectDetailPanel() {
     if (!error) fetchProjectDetail();
   };
 
-  // SCHEDULER: Insert new production timeline block
   const handlePublishScheduleTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!taskName.trim() || !startDate || !endDate) return;
@@ -122,7 +119,6 @@ export default function ProjectDetailPanel() {
     setIsPublishingTask(false);
   };
 
-  // SCHEDULER: Update progress scale percentage or status flags inline
   const handleUpdateTaskProgress = async (taskId: string, currentPercent: number) => {
     let nextPercent = currentPercent + 25;
     if (nextPercent > 100) nextPercent = 0;
@@ -289,7 +285,7 @@ export default function ProjectDetailPanel() {
             type="button"
             onClick={handleCopyLink}
             className={`w-full sm:w-auto text-xs font-bold px-5 py-3 rounded-xl shadow-sm uppercase tracking-wider transition-all duration-200 whitespace-nowrap shrink-0 border ${
-              copied ? 'bg-emerald-600 text-white text-white border-transparent shadow-md' : 'bg-white text-slate-900 hover:bg-slate-100 border-transparent'
+              copied ? 'bg-emerald-600 text-white border-transparent shadow-md' : 'bg-white text-slate-900 hover:bg-slate-100 border-transparent'
             }`}
           >
             {copied ? "✓ Copied Link" : "Copy Shared URL"}
@@ -330,7 +326,7 @@ export default function ProjectDetailPanel() {
             </div>
           </div>
 
-          {/* DYNAMIC CALENDAR OPERATIONS MANAGER PANEL (GANTT ROW BUILDER) */}
+          {/* Master Construction Production Scheduler */}
           <div className="bg-slate-50 border rounded-xl p-5 shadow-inner space-y-4">
             <div>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">📅 Master Construction Production Scheduler</h3>
@@ -338,10 +334,9 @@ export default function ProjectDetailPanel() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Form Input Row Column */}
               <form onSubmit={handlePublishScheduleTask} className="space-y-2 bg-white border p-4 rounded-xl shadow-sm h-fit">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Publish Schedule Item:</p>
-                <input type="text" placeholder="Task Title (e.g., Basement Framing Framework)" required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-lg text-xs outline-none focus:border-slate-900" />
+                <input type="text" placeholder="Task Title..." required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-lg text-xs outline-none focus:border-slate-900" />
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[8px] font-bold text-slate-400 uppercase block mb-0.5">Start Target:</label>
@@ -357,7 +352,6 @@ export default function ProjectDetailPanel() {
                 </button>
               </form>
 
-              {/* Live Status Ledger Tracker Rows */}
               <div className="md:col-span-2 divide-y divide-slate-200 border bg-white rounded-xl max-h-60 overflow-y-auto shadow-sm">
                 {scheduleTasks.map((task) => (
                   <div key={task.id} className="p-3 text-xs flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white hover:bg-slate-50/50">
@@ -369,7 +363,6 @@ export default function ProjectDetailPanel() {
                     </div>
                     
                     <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-transparent pt-2 sm:pt-0 border-slate-100">
-                      {/* Inline percentage control track wrapper */}
                       <button
                         type="button"
                         onClick={() => handleUpdateTaskProgress(task.id, task.progress_percent)}
@@ -390,8 +383,34 @@ export default function ProjectDetailPanel() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Column: Draw Controls & Active Change Orders Ledger */}
+            
+            {/* Left Column: Stage Controls, Change Orders, & NEW VIEW TELEMETRY LOGS */}
             <div className="space-y-4">
+              
+              {/* NEW ANALYTICAL COMPONENT: TELEMETRY READ TRACKER LOG */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 shadow-inner">
+                <div className="flex justify-between items-center border-b pb-2 border-slate-200/60">
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">👁️ Client Engagement View Tracker</h3>
+                  <span className="text-[11px] font-mono bg-slate-900 text-white px-2 py-0.5 rounded-md font-bold">
+                    Views: {project.view_count || 0}
+                  </span>
+                </div>
+                
+                {/* Historical Entry Array timestamps list layout */}
+                <div className="bg-white rounded-xl border divide-y divide-slate-100 max-h-36 overflow-y-auto shadow-sm">
+                  {project.view_history && project.view_history.length > 0 ? (
+                    project.view_history.map((timeStr: string, tIdx: number) => (
+                      <div key={tIdx} className="p-2 text-[11px] flex justify-between items-center bg-white">
+                        <span className="text-slate-400 font-medium">Session Entry #{tIdx + 1}</span>
+                        <span className="font-mono text-slate-700 font-semibold">{new Date(timeStr).toLocaleString()}</span>
+                      </div>
+                    )).reverse() // Reverse lists so latest views stay at top
+                  ) : (
+                    <p className="p-3 text-center text-xs text-slate-400 italic">Link dispatched, client hasn't clicked open yet.</p>
+                  )}
+                </div>
+              </div>
+
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4 shadow-inner">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-2">Active Draw Target</h3>
                 <div>
@@ -403,7 +422,6 @@ export default function ProjectDetailPanel() {
                 </div>
               </div>
 
-              {/* Change Orders History Ledger */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 shadow-inner">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-2">Active Change Orders Ledger</h3>
                 <div className="divide-y divide-slate-200 border bg-white rounded-xl max-h-48 overflow-y-auto">
