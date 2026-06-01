@@ -219,6 +219,16 @@ export default function HomeownerPortal() {
 
   if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
 
+  // RE-INJECTED STRUCTURAL METRIC CALCULATION LOOP FOR MILESTONES PROGRESS LINES
+  let dynamicTimelineIndex = 0;
+  if (isLocked) {
+    if (invoice.deposit_cleared) {
+      dynamicTimelineIndex = 1 + (invoice.current_phase_index || 0);
+    } else {
+      dynamicTimelineIndex = 1;
+    }
+  }
+
   const standardMilestones = [
     { title: "Proposal", subtitle: "Locked" },
     { title: "Deposit", subtitle: "Initiated" },
