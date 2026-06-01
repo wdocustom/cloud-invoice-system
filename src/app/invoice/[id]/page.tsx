@@ -60,34 +60,19 @@ export default function HomeownerPortal() {
     }
   }, [id]);
 
-  // FIXED: Standard try/catch async block replacing the illegal builder chain
   async function logStealthTelemetryView() {
     const timestamp = new Date().toISOString();
-    
     try {
       const { error } = await supabase.rpc("increment_invoice_views", { 
         target_id: id, 
         current_time: timestamp 
       });
-      
       if (error) throw error;
     } catch (err) {
-      // Fallback seamlessly if database RPC function is missing or uncompiled
-      const { data } = await supabase
-        .from("invoices")
-        .select("view_count, view_history")
-        .eq("id", id)
-        .single();
-        
+      const { data } = await supabase.from("invoices").select("view_count, view_history").eq("id", id).single();
       if (data) {
         const updatedHistory = [...(data.view_history || []), timestamp];
-        await supabase
-          .from("invoices")
-          .update({ 
-            view_count: (data.view_count || 0) + 1, 
-            view_history: updatedHistory 
-          })
-          .eq("id", id);
+        await supabase.from("invoices").update({ view_count: (data.view_count || 0) + 1, view_history: updatedHistory }).eq("id", id);
       }
     }
   }
@@ -155,12 +140,7 @@ export default function HomeownerPortal() {
 
   const executeOneClickCoApproval = async (coId: string) => {
     if (!confirm("Authorize and append this trade modification adjustment to your active project framework?")) return;
-    
-    const { error } = await supabase
-      .from("invoices")
-      .update({ status: "approved" })
-      .eq("id", coId);
-
+    const { error } = await supabase.from("invoices").update({ status: "approved" }).eq("id", coId);
     if (error) alert("Approval exception mapping validation token.");
     else fetchInvoiceData();
   };
@@ -190,15 +170,15 @@ export default function HomeownerPortal() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-400">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-sans">
       <div className="flex flex-col items-center gap-2">
-        <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-        <p className="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Syncing Portal View...</p>
+        <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+        <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Workspace Securely...</p>
       </div>
     </div>
   );
 
-  if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
+  if (!invoice) return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
 
   const clientLastName = invoice.homeowner_name ? invoice.homeowner_name.trim().split(" ").pop() : "Client";
   const projectHeaderTitle = `${clientLastName} Residence Project`;
@@ -222,72 +202,72 @@ export default function HomeownerPortal() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased pb-16 text-left">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10">
       <div className="max-w-4xl mx-auto px-4 pt-6 space-y-4">
         
         {/* Compact Navigation Banner */}
         <div className="bg-slate-900 text-white rounded-xl p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 shadow-sm">
           <div className="space-y-0.5">
-            <h1 className="text-lg font-black tracking-tight uppercase">{projectHeaderTitle}</h1>
-            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide">ID Token: {invoice.id.slice(0,8)}</p>
+            <h1 className="text-base font-black tracking-tight uppercase text-slate-100">{projectHeaderTitle}</h1>
+            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide">Secure Client Token: {invoice.id.slice(0,8)}</p>
           </div>
-          <span className={`self-start sm:self-center px-3 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider ${isLocked ? 'bg-emerald-600 text-white' : 'bg-amber-50 text-white'}`}>
-            {invoice.status}
+          <span className={`self-start sm:self-center px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${isLocked ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'}`}>
+            • {invoice.status}
           </span>
         </div>
 
         {/* Streamlined Confirmation Banner */}
         {isLocked && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm text-xs text-slate-700">
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs text-slate-700 font-medium leading-relaxed">
             <strong>✓ Proposal Framework Approved & Project Contract Live.</strong> Skyler Camacho is delighted to begin production on your home! Use the material tools below to log style choices as the schedule advances.
           </div>
         )}
 
         {/* Grade Option Selection Strip */}
         {!isLocked && (
-          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+          <div className="bg-white border border-slate-200/60 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Project Specification Grade</p>
-            <div className="bg-slate-100 p-0.5 rounded-lg flex w-full sm:w-auto border border-slate-200/40">
+            <div className="bg-slate-100 p-0.5 rounded-lg flex w-full sm:w-auto border border-slate-200/40 shadow-inner">
               <button type="button" onClick={() => setTier("mid")} className={`flex-1 sm:flex-initial px-4 py-1.5 text-xs font-bold rounded-md transition-all ${tier === 'mid' ? 'bg-white text-slate-900 shadow-sm font-black' : 'text-slate-500 hover:text-slate-800'}`}>Standard Mid</button>
-              <button type="button" onClick={() => setTier("high")} className={`flex-1 sm:flex-initial px-4 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1.5 ${tier === 'high' ? 'bg-blue-600 text-white shadow-sm font-black' : 'text-blue-600'}`}>💎 Luxury High</button>
+              <button type="button" onClick={() => setTier("high")} className={`flex-1 sm:flex-initial px-4 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-1.5 ${tier === 'high' ? 'bg-slate-900 text-white shadow-sm font-black' : 'text-slate-500 hover:text-slate-900'}`}>💎 Luxury High</button>
             </div>
           </div>
         )}
 
-        {/* HORIZONTAL PROFILE CARDS GRID */}
+        {/* HORIZONTAL PROFILE CARDS GRID WITH LAYERED ELEVATION */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-1.5 shadow-sm text-xs">
+          <div className="bg-white border border-slate-200/60 p-4 rounded-xl space-y-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-xs">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contractor Details</p>
             <p className="font-black text-slate-900 uppercase">WDO Custom</p>
-            <p className="text-slate-500">Skyler Camacho • <span className="font-mono text-[10px]">LIC-1901422</span></p>
+            <p className="text-slate-500 font-medium">Skyler Camacho • <span className="font-mono text-[10px]">LIC-1901422</span></p>
           </div>
-          <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm text-xs flex flex-col justify-center">
+          <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-xs flex flex-col justify-center">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Jobsite Location</p>
             <p className="font-bold text-slate-700">📍 {invoice.job_address}</p>
           </div>
-          <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm text-xs flex flex-col justify-center relative">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Living Combined Project Valuation</p>
-            <p className="text-xl font-black font-mono text-slate-900 mt-0.5">${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            <p className="text-[9px] text-slate-400 mt-1 border-t pt-1 border-slate-100">
-              Base Contract: <span className="font-mono font-bold">${baseTotal.toLocaleString()}</span> {approvedCoTotal > 0 && `| CO Adjustments: +$${approvedCoTotal.toLocaleString()}`}
+          <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-xs flex flex-col justify-center relative">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Living Combined Valuation</p>
+            <p className="text-xl font-black font-mono text-slate-900 mt-0.5 tracking-tight">${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p className="text-[9px] text-slate-400 mt-1 border-t pt-1 border-slate-100 font-medium">
+              Base Contract: <span className="font-mono font-bold text-slate-600">${baseTotal.toLocaleString()}</span> {approvedCoTotal > 0 && `| CO Additions: +$${approvedCoTotal.toLocaleString()}`}
             </p>
           </div>
         </div>
 
         {/* Timeline Logistics Strip Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="group relative border border-slate-200 bg-white hover:border-blue-500/40 rounded-xl p-4 flex justify-between items-center transition-all cursor-help shadow-sm text-xs">
+          <div className="group relative border border-slate-200/60 bg-white hover:border-slate-300 rounded-xl p-4 flex justify-between items-center transition-all cursor-help shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-xs">
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Start Date Target <span className="text-[9px] text-blue-500 bg-blue-50 px-1 py-0.2 rounded font-normal font-sans">ⓘ info</span></p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">Start Date Target <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-normal font-sans uppercase font-bold text-[8px]">ⓘ Details</span></p>
               <p className="font-bold text-slate-800 mt-0.5">{invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { dateStyle: 'long' }) : "Unassigned"}</p>
             </div>
-            <span className="text-lg opacity-30 group-hover:opacity-100">📅</span>
+            <span className="text-lg opacity-30 group-hover:opacity-100 transition-opacity">📅</span>
             <div className="pointer-events-none absolute left-1/2 -top-14 -translate-x-1/2 w-64 bg-slate-950 text-white text-[10px] rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-all shadow-xl z-30 text-center leading-normal">
               💡 Please coordinate directly with your manager to modify this targeted start date timeline.
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-950" />
             </div>
           </div>
-          <div className="border border-slate-200 bg-white rounded-xl p-4 flex justify-between items-center text-xs shadow-sm">
+          <div className="border border-slate-200/60 bg-white rounded-xl p-4 flex justify-between items-center text-xs shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estimated Project Duration</p>
               <p className="font-bold text-slate-800 mt-0.5">{invoice.project_length || "TBD"}</p>
@@ -296,9 +276,9 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* SYNCHRONIZED PROGRESS TIMELINE TRACK RIBBON */}
+        {/* PROGRESS PROGRESS PROGRESS RIBBON TRAIL */}
         {isLocked && (
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4">
             <div className="text-left border-b border-slate-100 pb-2 flex justify-between items-center">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Construction Stage Progress Tracker</p>
               <span className={`text-[10px] font-bold tracking-wide uppercase px-2 py-0.5 rounded ${invoice.deposit_cleared ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>
@@ -322,10 +302,10 @@ export default function HomeownerPortal() {
                   <div key={idx} className="flex flex-col items-center relative z-10 text-center shrink-0 w-16 sm:w-20">
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] border transition-all ${
                       isCompleted ? 'bg-slate-900 border-slate-900 text-white' : 
-                      isActive ? 'bg-white border-blue-600 text-blue-600 scale-110 ring-4 ring-blue-50 font-black' : 
+                      isActive ? 'bg-white border-slate-900 text-slate-900 scale-110 ring-4 ring-slate-100 font-black' : 
                       'bg-white border-slate-200 text-slate-300'
                     }`}>{isCompleted ? "✓" : idx + 1}</div>
-                    <p className={`text-[9px] font-bold mt-2 uppercase tracking-wide ${isActive ? 'text-blue-600 font-extrabold' : isCompleted ? 'text-slate-800' : 'text-slate-400'}`}>{step.title}</p>
+                    <p className={`text-[9px] font-bold mt-2 uppercase tracking-wide ${isActive ? 'text-slate-900 font-extrabold' : isCompleted ? 'text-slate-600' : 'text-slate-400'}`}>{step.title}</p>
                   </div>
                 );
               })}
@@ -335,7 +315,7 @@ export default function HomeownerPortal() {
 
         {/* CLIENT-FACING ACTIVE LIVE Gantt MAP SCHEDULE */}
         {isLocked && scheduleTasks.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-left">
+          <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3 text-left">
             <div>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">🗓️ Project Production Schedule Roadmap</h3>
               <p className="text-[11px] text-slate-400 mt-0.5">Track live progress targets and completed field milestones across on-site remodeling operations.</p>
@@ -373,13 +353,13 @@ export default function HomeownerPortal() {
 
         {/* CLIENT CHANGE ORDERS SYSTEM WORKBENCH */}
         {isLocked && changeOrders.length > 0 && (
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-left">
+          <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3 text-left">
             <div>
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">📋 Project Scope Modifications (Change Orders)</h3>
               <p className="text-[11px] text-slate-400 mt-0.5">Review and approve site variations. **Note:** Approved Change Orders require separate fulfillment independent of core construction phases.</p>
             </div>
 
-            <div className="border rounded-xl divide-y overflow-hidden shadow-inner">
+            <div className="border border-slate-200/80 rounded-xl divide-y overflow-hidden shadow-sm">
               {changeOrders.map((co: any) => {
                 const isCoApproved = co.status === "approved";
                 const isCoPaid = co.deposit_cleared;
@@ -410,26 +390,26 @@ export default function HomeownerPortal() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4 shrink-0">
-                        <span className="font-mono font-bold text-sm text-slate-900">${co.amount.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                        <span className="font-mono font-black text-sm text-slate-900">${co.amount.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
                         <span className="text-xs text-slate-400">{isExpanded ? "▲" : "▼"}</span>
                       </div>
                     </div>
 
                     {isExpanded && (
                       <div className="p-4 bg-slate-50/50 border-t space-y-4 animate-fadeIn">
-                        <div className="divide-y border bg-white rounded-xl text-xs shadow-sm">
+                        <div className="divide-y border bg-white text-xs shadow-sm rounded-xl overflow-hidden">
                           {co.items?.map((item: any, iIdx: number) => (
                             <div key={iIdx} className="p-3 flex justify-between gap-4 items-center bg-white">
                               <div className="text-left">
                                 <p className="font-bold text-slate-900">{item.title}</p>
-                                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{item.description}</p>
+                                <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed font-medium">{item.description}</p>
                               </div>
-                              <span className="font-mono font-bold text-slate-800">${item.cost.toLocaleString()}</span>
+                              <span className="font-mono font-black text-slate-800">${item.cost.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
                             </div>
                           ))}
                         </div>
 
-                        <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-xl text-xs text-amber-900 font-medium">
+                        <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-xl text-xs text-amber-900 font-semibold shadow-inner">
                           📌 <strong>Change Order Payment Status:</strong> This modification requires processing in full immediately upon approval, billed independently from your standard milestone draw parameters.
                         </div>
 
@@ -463,7 +443,7 @@ export default function HomeownerPortal() {
 
         {/* Dynamic Materials Choices Section Dashboard */}
         {isLocked && (
-          <div className="border border-slate-200 bg-white rounded-xl p-5 text-left space-y-4 shadow-sm relative overflow-hidden">
+          <div className="border border-slate-200/60 bg-white rounded-xl p-5 text-left space-y-4 shadow-[0_1px_3_rgba(0,0,0,0.02)] relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-slate-900" />
             <div>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">🎨 Project Materials Selection Board</h3>
@@ -479,7 +459,7 @@ export default function HomeownerPortal() {
                       {group.choices.map((choice: string, cIdx: number) => {
                         const isChosen = chosen === choice;
                         return (
-                          <button type="button" key={cIdx} onClick={() => handleSelectMaterialChoice(group.category, choice)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isChosen ? 'bg-slate-900 border-transparent text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'}`}>{choice} {isChosen && "✓"}</button>
+                          <button type="button" key={cIdx} onClick={() => handleSelectMaterialChoice(group.category, choice)} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${isChosen ? 'bg-slate-900 border-transparent text-white shadow-sm font-black' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'}`}>{choice} {isChosen && "✓"}</button>
                         );
                       })}
                     </div>
@@ -494,7 +474,7 @@ export default function HomeownerPortal() {
         )}
 
         {/* Invoice Itemized Breakdown Accordion */}
-        <div className="border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm">
+        <div className="border border-slate-200/60 bg-white rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
           <button type="button" onClick={() => setShowInvoiceDetails(!showInvoiceDetails)} className="w-full bg-slate-50/60 p-4 font-bold text-xs uppercase tracking-wider flex justify-between items-center text-slate-500 hover:bg-slate-100 transition-all outline-none" >
             <span>📋 {isLocked ? "View Closed Contract Trade Scope Paperwork" : "Review Planned Operations Specifications Grid"}</span>
             <span className="text-[10px] bg-white px-2 py-0.5 rounded border text-slate-500 font-bold shadow-sm">{showInvoiceDetails ? "Hide ▲" : "Expand Scope ▼"}</span>
@@ -504,9 +484,9 @@ export default function HomeownerPortal() {
               {!isLocked && (
                 <div className="bg-slate-50 px-4 py-2.5 flex items-center justify-between gap-4 border-b">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Scope Multiplier Switch</p>
-                  <div className="bg-white border rounded p-0.5 flex">
-                    <button type="button" onClick={() => setTier("mid")} className={`px-2.5 py-1 text-[10px] font-bold rounded ${tier === 'mid' ? 'bg-slate-900 text-white':''}`}>Mid Tier</button>
-                    <button type="button" onClick={() => setTier("high")} className={`px-2.5 py-1 text-[10px] font-bold rounded ${tier === 'high' ? 'bg-slate-900 text-white':''}`}>💎 High Upgrade</button>
+                  <div className="bg-white border rounded p-0.5 flex shadow-inner">
+                    <button type="button" onClick={() => setTier("mid")} className={`px-3 py-1 text-[10px] font-bold rounded-md ${tier === 'mid' ? 'bg-slate-900 text-white font-black shadow-sm':''}`}>Mid Tier</button>
+                    <button type="button" onClick={() => setTier("high")} className={`px-3 py-1 text-[10px] font-bold rounded-md ${tier === 'high' ? 'bg-slate-900 text-white font-black shadow-sm':''}`}>💎 High Upgrade</button>
                   </div>
                 </div>
               )}
@@ -514,19 +494,19 @@ export default function HomeownerPortal() {
                 const isActive = activeIndices.includes(idx);
                 if (isLocked && !isActive) return null;
                 return (
-                  <div key={idx} className={`p-4 flex justify-between items-center gap-4 ${!isActive ? 'bg-slate-50/50 opacity-30':''}`}>
-                    <div className="text-left space-y-0.5">
-                      <h4 className="font-bold text-slate-900">{isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}</h4>
-                      <p className="text-slate-500 text-[11px] leading-relaxed max-w-2xl">{isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}</p>
+                  <div key={idx} className={`p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 ${!isActive ? 'bg-slate-50/50 opacity-30':''}`}>
+                    <div className="text-left space-y-0.5 flex-1">
+                      <h4 className="font-extrabold text-slate-900 text-sm">{isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}</h4>
+                      <p className="text-slate-400 text-xs leading-relaxed max-w-2xl font-medium">{isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}</p>
                     </div>
-                    <div className="text-right flex flex-col items-end gap-2 shrink-0">
-                      <span className="font-mono font-bold text-slate-800">${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <div className="text-right flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-transparent border-slate-100">
+                      <span className="font-mono font-black text-slate-900 text-sm tracking-tight">${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_tier_cost || item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       {!isLocked && (
                         isActive ? (
                           <button 
                             type="button" 
                             onClick={() => handleRemoveIndex(idx)} 
-                            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase shadow-sm transition-all"
+                            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 font-black text-[10px] px-3.5 py-1.5 rounded-xl uppercase tracking-wider shadow-sm transition-all outline-none"
                           >
                             Remove
                           </button>
@@ -534,7 +514,7 @@ export default function HomeownerPortal() {
                           <button 
                             type="button" 
                             onClick={() => handleReinstateIndex(idx)} 
-                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase shadow-sm transition-all"
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 font-black text-[10px] px-3.5 py-1.5 rounded-xl uppercase tracking-wider shadow-sm transition-all outline-none"
                           >
                             Reinstate
                           </button>
@@ -549,7 +529,7 @@ export default function HomeownerPortal() {
         </div>
 
         {/* CONTRACT PAYMENTS MATRIX SPLITS */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 text-left space-y-3 shadow-sm">
+        <div className="bg-white border border-slate-200/60 rounded-xl p-5 text-left space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider tracking-widest">Contract Payments</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {invoice.payment_phases?.map((phase: any, idx: number) => {
@@ -581,7 +561,7 @@ export default function HomeownerPortal() {
                     </div>
                     <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Draw Allocation Split: {phase.percentage}%</p>
                   </div>
-                  <span className="font-mono font-bold text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono font-black text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
               );
             })}
@@ -606,13 +586,13 @@ export default function HomeownerPortal() {
         )}
 
         {/* Legal Accordion Box */}
-        <div className="border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm text-left">
+        <div className="border border-slate-200/60 bg-white rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-left">
           <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-50 p-3 font-bold text-xs uppercase tracking-wider flex justify-between items-center text-slate-400 hover:text-slate-900 transition-all outline-none"  >
             <span>⚖️ Review Binding Terms & Conditions (Omaha Construction Law Standard)</span>
             <span className="text-[10px] text-slate-400 font-mono">{showTerms ? "Hide ▲" : "View ▼"}</span>
           </button>
           {showTerms && (
-            <div className="p-5 text-xs text-slate-500 space-y-3 max-h-56 overflow-y-scroll leading-relaxed border-t border-slate-100 bg-white">
+            <div className="p-5 text-xs text-slate-500 space-y-3 max-h-56 overflow-y-scroll leading-relaxed border-t border-slate-100 bg-white font-medium">
               <p>This agreement is configured specifically under the building framework of the City of Omaha, Douglas County, Nebraska. All modifications, materials, structural deviations, and framing updates shall be performed in accordance with the International Residential Code (IRC) as amended by local Omaha ordinances.</p>
             </div>
           )}
@@ -621,7 +601,7 @@ export default function HomeownerPortal() {
         {/* Project Approval Signature */}
         <div className="pt-4 border-t border-slate-200">
           {isLocked ? (
-            <div className="bg-slate-900 text-white rounded-xl p-5 text-center shadow-sm text-xs font-medium">
+            <div className="bg-slate-900 text-white rounded-xl p-5 text-center shadow-md relative overflow-hidden">
               <p className="text-emerald-400 font-bold uppercase tracking-wider">✓ Contract Legally Signed & Bound</p>
               <p className="text-slate-400 mt-1.5">Executed digital token authorized by client name: <span className="font-serif italic font-black text-white underline">{invoice.signature_name}</span></p>
               <p className="text-[10px] text-slate-500 font-mono mt-0.5">Timestamp: {new Date(invoice.signed_at || "").toLocaleString()}</p>
@@ -633,8 +613,8 @@ export default function HomeownerPortal() {
                 <p className="text-xs text-slate-400 font-medium">Type name to authorize digital contract execution and lock construction bounds.</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="flex-1 px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all" />
-                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm">
+                <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="flex-1 px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all placeholder:text-slate-400 shadow-inner" />
+                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-widest transition-all shadow-md shrink-0 outline-none">
                   Accept Proposal
                 </button>
               </div>
