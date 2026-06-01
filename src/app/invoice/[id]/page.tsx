@@ -231,7 +231,7 @@ export default function HomeownerPortal() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
           {/* LEFT CONTAINER COMPONENT FRAME */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="lg:col-span-2 space-y-4">
             
             {/* Global Tier Option Selector Card */}
             {!isLocked && (
@@ -317,8 +317,14 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* CLEAN LINE ITEMS ARCHITECTURE WITH ACCORDION DROPDOWNS AND UTILITY RED X TRIGGER BUTTONS */}
-            <div className="space-y-4 bg-transparent">
+            {/* ONBOARDING GUIDANCE INSTRUCTION BLOCK */}
+            <div className="bg-slate-100/70 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.01)] select-none">
+              <span className="text-blue-500 text-sm">💡</span>
+              <p>Click the <span className="font-black text-slate-800 bg-white border border-slate-200 px-1 py-0.2 rounded">+</span> icon next to any milestone row item below to expand detailed scopes and technical criteria logs.</p>
+            </div>
+
+            {/* CONDENSED AND CLEAN COMPACT LINE ITEMS FEED ROW PANELS */}
+            <div className="space-y-2 bg-transparent">
               {masterItems.map((item: any, idx: number) => {
                 const isActive = activeIndices.includes(idx);
                 const isExpanded = expandedIndices.includes(idx);
@@ -326,56 +332,59 @@ export default function HomeownerPortal() {
                 return (
                   <div 
                     key={idx} 
-                    className={`p-6 flex flex-col sm:flex-row justify-between sm:items-start gap-4 transition-all duration-200 rounded-xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.01)] ${
+                    className={`px-5 py-3 rounded-xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-all duration-150 text-xs ${
                       !isActive ? 'opacity-30 select-none border-dashed bg-slate-50/50' : 'hover:border-slate-300'
                     }`}
                   >
-                    <div className="text-left space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
+                    {/* Synchronized layout grid mapping everything inside a tight, clean baseline */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
                         <button
                           type="button"
                           onClick={() => toggleExpandDescription(idx)}
-                          className="flex items-center justify-center w-5 h-5 rounded border border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-300 transition-all font-sans font-bold text-xs bg-slate-50/50"
+                          className="flex items-center justify-center w-5 h-5 rounded border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 transition-all font-sans font-black text-xs bg-slate-50/60 shrink-0 outline-none"
                         >
                           {isExpanded ? "−" : "+"}
                         </button>
-                        <h4 className="font-extrabold text-slate-900 text-base tracking-tight">
+                        <h4 className="font-extrabold text-slate-900 text-sm tracking-tight truncate">
                           {isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}
                         </h4>
                       </div>
                       
-                      {isExpanded && (
-                        <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-medium pl-7 animate-fadeIn">
+                      <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 sm:pt-0">
+                        <span className="font-sans font-extrabold text-slate-950 text-sm tracking-tight">
+                          ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                        {!isLocked && (
+                          isActive ? (
+                            <button 
+                              type="button" 
+                              onClick={() => handleRemoveIndex(idx)} 
+                              title="remove item"
+                              className="w-5 h-5 flex items-center justify-center rounded bg-red-50 hover:bg-red-500 text-red-500 hover:text-white border border-red-100 transition-all duration-150 outline-none font-sans font-black text-[10px]"
+                            >
+                              ✕
+                            </button>
+                          ) : (
+                            <button 
+                              type="button" 
+                              onClick={() => handleReinstateIndex(idx)} 
+                              className="bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[9px] px-2 py-1 rounded uppercase tracking-wider shadow-sm transition-all outline-none"
+                            >
+                              Include
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-2.5 pt-2.5 border-t border-slate-100 pl-7 max-w-3xl text-left animate-fadeIn">
+                        <p className="text-slate-500 font-medium leading-relaxed">
                           {isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}
                         </p>
-                      )}
-                    </div>
-                    
-                    <div className="text-right flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-transparent border-slate-100 min-w-[140px]">
-                      <span className="font-sans font-extrabold text-slate-950 text-base tracking-tight block">
-                        ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                      {!isLocked && (
-                        isActive ? (
-                          <button 
-                            type="button" 
-                            onClick={() => handleRemoveIndex(idx)} 
-                            title="Omit Phase"
-                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white border border-red-200/60 transition-all duration-150 shadow-sm outline-none font-sans font-black text-xs"
-                          >
-                            ✕
-                          </button>
-                        ) : (
-                          <button 
-                            type="button" 
-                            onClick={() => handleReinstateIndex(idx)} 
-                            className="bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm transition-all outline-none"
-                          >
-                            Reinstate
-                          </button>
-                        )
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -417,11 +426,11 @@ export default function HomeownerPortal() {
           {/* RIGHT SIDEBAR COMPONENT PANEL: FIXED CHECKOUT VALUE HUB */}
           <div className="space-y-4 sticky top-20">
             
-            {/* COMPACT CLEAN SIDEBAR VALUE HUB */}
+            {/* LIVING COMPACT SIDEBAR HUB */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.02)] space-y-5 text-left relative overflow-hidden">
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Total</p>
-                <h2 className="text-3xl font-black text-slate-955 mt-1 tracking-tight">
+                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
                   ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
@@ -550,7 +559,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* SIGNATURE MATRIX SUBMISSION */}
+            {/* CLEAN, REAL-WORLD BINDING SIGNATURE PANEL */}
             <div className="border-t pt-2 border-slate-200/40">
               {isLocked ? (
                 <div className="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md relative overflow-hidden border border-slate-800">
@@ -560,12 +569,12 @@ export default function HomeownerPortal() {
                 </div>
               ) : (
                 <form onSubmit={handleApprove} className="bg-white border border-slate-200/80 rounded-xl p-5 space-y-3 shadow-md">
-                  <div className="text-left space-y-0.5">
+                  <div className="text-left space-y-1">
                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
-                    <p className="text-[11px] text-slate-400 font-medium">Type legal name below to bind customized omissions, authorize milestones draws, and instantiate operations schedules schedules.</p>
+                    <p className="text-[11px] text-slate-400 font-medium leading-relaxed">Please type your full name below to accept this proposal and authorize the project scope and payment schedule.</p>
                   </div>
                   <div className="space-y-2 pt-1">
-                    <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all shadow-inner placeholder:text-slate-400" />
+                    <input type="text" required placeholder="Type your name to sign..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all shadow-inner placeholder:text-slate-400" />
                     <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all shadow-md shadow-blue-900/10 outline-none">
                       Accept Proposal
                     </button>
