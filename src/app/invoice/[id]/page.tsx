@@ -219,15 +219,6 @@ export default function HomeownerPortal() {
 
   if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
 
-  let dynamicTimelineIndex = 0;
-  if (isLocked) {
-    if (invoice.deposit_cleared) {
-      dynamicTimelineIndex = 1 + (invoice.current_phase_index || 0);
-    } else {
-      dynamicTimelineIndex = 1;
-    }
-  }
-
   const standardMilestones = [
     { title: "Proposal", subtitle: "Locked" },
     { title: "Deposit", subtitle: "Initiated" },
@@ -244,7 +235,9 @@ export default function HomeownerPortal() {
         <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
           <div className="space-y-0.5">
             <h1 className="text-sm font-black tracking-wider uppercase text-slate-200">WDO Custom Client Hub</h1>
-            <p className="text-[10px] font-sans font-bold tracking-widest text-slate-400 uppercase">Project Address</p>
+            <p className="text-[10px] font-sans font-bold tracking-widest text-slate-400 uppercase">
+              {invoice.job_address && invoice.job_address.trim() !== "" ? invoice.job_address : "Project Location Pending"}
+            </p>
           </div>
           <span className={`px-3 py-1 rounded-md text-[9px] font-black tracking-widest uppercase border ${
             isLocked ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
