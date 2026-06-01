@@ -186,7 +186,7 @@ export default function ProjectDetailPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           prompt: `Change Order modification: ${coPrompt}`, 
-          address: project.job_address, 
+          address: "Project Address", 
           zipcode: "Omaha" 
         }),
       });
@@ -227,7 +227,7 @@ export default function ProjectDetailPanel() {
           parent_id: id,
           homeowner_name: project.homeowner_name,
           homeowner_email: project.homeowner_email,
-          job_address: project.job_address,
+          job_address: "Project Address",
           amount: coTotalCost,
           description: coTitle.trim(),
           items: flattenedItems,
@@ -257,7 +257,7 @@ export default function ProjectDetailPanel() {
   if (!project) return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center text-slate-700 font-bold">Workspace ledger file not found.</div>;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
       
       {/* Premium Sticky Control Banner */}
       <div className="bg-slate-900 text-white border-b border-slate-800 shadow-sm sticky top-0 z-50 backdrop-blur-md bg-slate-900/95">
@@ -293,13 +293,13 @@ export default function ProjectDetailPanel() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Jobsite Framework Address</p>
-            <p className="font-bold text-slate-700 leading-normal">📍 {project.job_address}</p>
+            <p className="font-bold text-slate-800 text-sm leading-normal">Project Address</p>
           </div>
           
           <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Base Contract Valuation</p>
             <div className="flex items-center justify-between">
-              <span className="font-mono font-black text-slate-900 text-lg">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span className="font-sans font-extrabold text-slate-900 text-xl tracking-tight">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               
               {/* Integrated Micro Pill Switch for Mobilization Deposits */}
               <div className="flex items-center gap-1.5 bg-slate-50 border px-2 py-1 rounded-lg">
@@ -325,7 +325,7 @@ export default function ProjectDetailPanel() {
           <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
             <div className="flex justify-between items-center border-b pb-1 border-slate-100 mb-1.5">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Client Engagement Views</p>
-              <span className="font-mono font-bold text-[11px] text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
+              <span className="font-sans font-bold text-[11px] text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
                 Total hits: {project.view_count || 0}
               </span>
             </div>
@@ -334,7 +334,7 @@ export default function ProjectDetailPanel() {
                 project.view_history.map((timeStr: string, tIdx: number) => (
                   <div key={tIdx} className="py-0.5 flex justify-between items-center">
                     <span>Session #{tIdx + 1}</span>
-                    <span className="font-mono text-[9px] font-bold text-slate-700">{new Date(timeStr).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+                    <span className="font-sans text-[9px] font-bold text-slate-700">{new Date(timeStr).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
                   </div>
                 )).reverse()
               ) : (
@@ -358,11 +358,11 @@ export default function ProjectDetailPanel() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[8px] font-black text-slate-400 uppercase block mb-0.5">Start window:</label>
-                  <input type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800" />
+                  <input type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800 font-semibold" />
                 </div>
                 <div>
                   <label className="text-[8px] font-black text-slate-400 uppercase block mb-0.5">End window:</label>
-                  <input type="date" required value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800" />
+                  <input type="date" required value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800 font-semibold" />
                 </div>
               </div>
               <button type="submit" disabled={isPublishingTask} className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm mt-1">
@@ -375,7 +375,7 @@ export default function ProjectDetailPanel() {
                 <div key={task.id} className="p-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white hover:bg-slate-50/40 transition-colors">
                   <div className="text-left space-y-0.5">
                     <p className="font-extrabold text-slate-900">{task.task_name}</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase">
+                    <p className="text-[10px] text-slate-500 font-bold uppercase">
                       ⏱ Window: {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}
                     </p>
                   </div>
@@ -387,7 +387,7 @@ export default function ProjectDetailPanel() {
                       className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border p-1.5 rounded-lg text-[10px] transition font-black tracking-wide uppercase text-slate-600 outline-none shadow-sm"
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${task.status === 'completed' ? 'bg-emerald-500' : task.status === 'in_progress' ? 'bg-blue-500 animate-pulse' : 'bg-slate-300'}`} />
-                      Metric: <span className="font-mono text-slate-900">{task.progress_percent}%</span>
+                      Metric: <span className="font-sans font-bold text-slate-900">{task.progress_percent}%</span>
                     </button>
                     <button type="button" onClick={() => handleDropScheduleTask(task.id)} className="text-slate-300 hover:text-red-500 font-extrabold px-1 text-sm outline-none transition-colors">✕</button>
                   </div>
@@ -425,9 +425,9 @@ export default function ProjectDetailPanel() {
                     <div className="flex justify-between items-start">
                       <div className="text-left space-y-0.5">
                         <p className="font-extrabold text-slate-900">{co.description}</p>
-                        <p className="text-[9px] text-slate-400 font-mono">Reference hash: #{co.id.slice(0,6)}</p>
+                        <p className="text-[9px] text-slate-400 font-bold">Reference hash: #{co.id.slice(0,6)}</p>
                       </div>
-                      <span className="font-mono font-black text-slate-900 text-sm">${co.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                      <span className="font-sans font-extrabold text-slate-900 text-base tracking-tight">${co.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                     </div>
                     
                     <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
@@ -474,7 +474,7 @@ export default function ProjectDetailPanel() {
             <div className="space-y-2">
               <input type="text" placeholder="Change Order Supplement Title Label..." value={coTitle} onChange={(e) => setCoTitle(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 rounded-xl text-xs outline-none shadow-sm font-bold text-slate-800" />
               <div className="flex gap-1.5">
-                <input type="text" placeholder="Describe modification parameter extensions..." value={coPrompt} onChange={(e) => setCoPrompt(e.target.value)} className="flex-1 p-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 rounded-xl text-xs outline-none shadow-sm text-slate-800" />
+                <input type="text" placeholder="Describe modification parameter extensions..." value={coPrompt} onChange={(e) => setCoPrompt(e.target.value)} className="flex-1 p-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 rounded-xl text-xs outline-none shadow-sm text-slate-800 font-semibold" />
                 <button type="button" onClick={runAiChangeOrderEstimator} disabled={isGeneratingCO} className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[10px] px-3.5 rounded-xl uppercase tracking-wider transition outline-none shadow-sm" >
                   {isGeneratingCO ? "..." : "AI"}
                 </button>
@@ -488,10 +488,10 @@ export default function ProjectDetailPanel() {
                     <div key={idx} className="p-2.5 flex justify-between gap-3 items-start bg-white hover:bg-slate-50/20 transition-colors">
                       <div className="space-y-0.5 text-left flex-1">
                         <input type="text" value={item.title} onChange={(e) => handleUpdateCoField(idx, "title", e.target.value)} className="font-bold text-slate-900 w-full bg-transparent border-b border-transparent focus:border-slate-300 outline-none" />
-                        <textarea rows={1} value={item.mid_description} onChange={(e) => handleUpdateCoField(idx, "mid_description", e.target.value)} className="text-[11px] text-slate-400 w-full bg-transparent outline-none resize-none font-medium" />
+                        <textarea rows={1} value={item.mid_description} onChange={(e) => handleUpdateCoField(idx, "mid_description", e.target.value)} className="text-[11px] text-slate-500 w-full bg-transparent outline-none resize-none font-medium" />
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <input type="text" value={item.mid_cost} onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)} className="font-mono font-bold text-right text-slate-800 w-14 bg-transparent border-b border-transparent focus:border-slate-300 outline-none" />
+                        <input type="text" value={item.mid_cost} onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)} className="font-sans font-bold text-right text-slate-800 w-16 bg-transparent border-b border-transparent focus:border-slate-300 outline-none tracking-tight" />
                         <button type="button" onClick={() => handleDeleteCoLineItem(idx)} className="text-red-400 hover:text-red-600 font-bold px-1 transition-colors" >✕</button>
                       </div>
                     </div>
@@ -519,8 +519,8 @@ export default function ProjectDetailPanel() {
                 ))}
               </div>
               <form onSubmit={handlePushOptionGroup} className="space-y-1">
-                <input type="text" placeholder="Selection Name Category..." required value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none" />
-                <input type="text" placeholder="Choices (separated by comma)..." required value={choicesText} onChange={(e) => setChoicesText(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none" />
+                <input type="text" placeholder="Selection Name Category..." required value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none font-semibold text-slate-800" />
+                <input type="text" placeholder="Choices (separated by comma)..." required value={choicesText} onChange={(e) => setChoicesText(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none font-semibold text-slate-800" />
                 <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2 rounded-xl uppercase tracking-wider transition shadow-sm">Inject Option Matrix Row</button>
               </form>
             </div>

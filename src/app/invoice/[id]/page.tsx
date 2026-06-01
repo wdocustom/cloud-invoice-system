@@ -179,8 +179,6 @@ export default function HomeownerPortal() {
 
   if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
 
-  const clientLastName = invoice.homeowner_name ? invoice.homeowner_name.trim().split(" ").pop() : "Client";
-  const projectHeaderTitle = `${clientLastName} Residence Project`;
   const activePhaseIndex = invoice.current_phase_index || 0;
   
   let dynamicTimelineIndex = 0;
@@ -201,14 +199,14 @@ export default function HomeownerPortal() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
       
       {/* Top Professional Accent Header Bar */}
       <div className="bg-slate-900 text-white shadow-sm border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
           <div className="space-y-0.5">
             <h1 className="text-sm font-black tracking-wider uppercase text-slate-200">WDO Custom Client Hub</h1>
-            <p className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">{projectHeaderTitle}</p>
+            <p className="text-[10px] font-sans font-bold tracking-widest text-slate-400 uppercase">Project Address</p>
           </div>
           <span className={`px-3 py-1 rounded-md text-[9px] font-black tracking-widest uppercase border ${
             isLocked ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
@@ -281,7 +279,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* DYNAMIC TIMELINE SCHEDULE ROADMAP */}
+            {/*¼ TIMELINE SCHEDULE ROADMAP */}
             {isLocked && scheduleTasks.length > 0 && (
               <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">🗓️ Project Production Schedule Roadmap</h3>
@@ -291,7 +289,7 @@ export default function HomeownerPortal() {
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-extrabold text-slate-900">{task.task_name}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                          <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wide">
                             Window: {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}
                           </p>
                         </div>
@@ -302,7 +300,7 @@ export default function HomeownerPortal() {
                         }`}>{task.status.replace('_', ' ')}</span>
                       </div>
                       <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/40 shadow-inner">
-                        <div className={`h-full transition-all duration-500 ${task.status === 'completed' ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: `${task.progress_percent}%` }} />
+                        <div className="h-full bg-slate-900 transition-all duration-500 rounded-full" style={{ width: `${task.progress_percent}%` }} />
                       </div>
                     </div>
                   ))}
@@ -310,7 +308,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* HIGH-CONVERSION CLEAN ITEMS LEDGER */}
+            {/* ITEMS LEDGER */}
             <div className="bg-white border border-slate-200/60 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.01)] overflow-hidden">
               <div className="bg-slate-50 border-b border-slate-100 px-5 py-4">
                 <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest text-left">Items</h3>
@@ -329,7 +327,7 @@ export default function HomeownerPortal() {
                         </p>
                       </div>
                       <div className="text-right flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-transparent border-slate-100">
-                        <span className="font-mono font-black text-slate-900 text-sm tracking-tight">
+                        <span className="font-sans font-extrabold text-slate-900 text-sm tracking-tight">
                           ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                         {!isLocked && (
@@ -389,9 +387,8 @@ export default function HomeownerPortal() {
             {/* LIVING TRANSACTIONAL METRICS TILE */}
             <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-4 text-left">
               <div>
-                {/* REWORKED: "Total Project Cost" */}
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Project Cost</p>
-                <h2 className="text-3xl font-black font-mono text-slate-900 mt-1 tracking-tight">
+                <h2 className="text-3xl font-extrabold text-slate-900 mt-1 tracking-tight">
                   ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-2 flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
@@ -406,18 +403,16 @@ export default function HomeownerPortal() {
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-xl border border-slate-200/50 p-3.5 text-xs text-slate-600 space-y-2 font-medium">
+              <div className="bg-slate-50 rounded-xl border border-slate-200/50 p-3.5 text-xs text-slate-600 space-y-2 font-semibold">
                 <div className="flex justify-between items-center">
-                  {/* REWORKED: "Construction Deposit" */}
                   <span>Construction Deposit ({invoice.deposit_percentage}%):</span>
-                  <span className="font-mono font-bold text-slate-900">${depositAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                  <span className="font-sans font-extrabold text-slate-900">${depositAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-400">
+                <div className="flex justify-between items-center text-[10px] text-slate-500">
                   <span>Estimated Work Length:</span>
                   <span className="font-bold text-slate-700 uppercase tracking-wide">{invoice.project_length || "9 Weeks"}</span>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-400">
-                  {/* REWORKED: "Start Date" with Asterisk */}
+                <div className="flex justify-between items-center text-[10px] text-slate-500">
                   <span>Start Date*:</span>
                   <span className="font-bold text-slate-700">
                     {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
@@ -425,13 +420,11 @@ export default function HomeownerPortal() {
                 </div>
               </div>
               
-              {/* Footnote note validating asterisk framework context logic */}
-              <p className="text-[9px] text-slate-400 font-medium italic leading-normal px-0.5">* Dates are tentative and subject to change based on scheduling and clearance parameters.</p>
+              <p className="text-[9px] text-slate-400 font-semibold italic leading-normal px-0.5">* Dates are tentative and subject to change based on scheduling and clearance parameters.</p>
             </div>
 
             {/* DYNAMIC CONTRACT DRAW PHASES MATRIX */}
             <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm text-left space-y-3">
-              {/* REWORKED: "Payment Schedule" */}
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
@@ -457,7 +450,7 @@ export default function HomeownerPortal() {
                         </div>
                         <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {phase.percentage}%</p>
                       </div>
-                      <span className="font-mono font-black text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-sans font-extrabold text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   );
                 })}
@@ -484,7 +477,7 @@ export default function HomeownerPortal() {
                               {isCoApproved && <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoPaid ? 'bg-blue-50 text-blue-700':'bg-red-50 text-red-700'}`}>{isCoPaid ? "PAID":"UNPD"}</span>}
                             </div>
                           </div>
-                          <span className="font-mono font-black text-slate-900">${co.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                          <span className="font-sans font-extrabold text-slate-900">${co.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
                         </div>
                         {isExpanded && (
                           <div className="p-2.5 bg-slate-50 border-t space-y-2.5 animate-fadeIn">
@@ -492,7 +485,7 @@ export default function HomeownerPortal() {
                               {co.items?.map((item: any, iIdx: number) => (
                                 <div key={iIdx} className="p-2 flex justify-between bg-white">
                                   <span className="font-bold text-slate-800 truncate w-32">{item.title}</span>
-                                  <span className="font-mono">${item.cost.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                                  <span className="font-sans font-bold text-slate-700">${item.cost.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
                                 </div>
                               ))}
                             </div>
@@ -529,8 +522,8 @@ export default function HomeownerPortal() {
               {isLocked ? (
                 <div className="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md relative overflow-hidden border border-slate-800">
                   <p className="text-emerald-400 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">✓ Contract Execution Bound & Sealed</p>
-                  <p className="text-[11px] text-slate-400 mt-1 font-medium">Digital signature verification matching: <span className="font-serif italic font-extrabold text-white underline tracking-tight">{invoice.signature_name}</span></p>
-                  <p className="text-[9px] text-slate-500 font-mono mt-0.5 uppercase tracking-wider">Timestamp: {new Date(invoice.signed_at || "").toLocaleString()}</p>
+                  <p className="text-[11px] text-slate-400 mt-1 font-medium">Digital signature verification matching: <span className="font-sans font-extrabold text-white underline tracking-tight">{invoice.signature_name}</span></p>
+                  <p className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5">Timestamp: {new Date(invoice.signed_at || "").toLocaleString()}</p>
                 </div>
               ) : (
                 <form onSubmit={handleApprove} className="bg-white border border-slate-200/80 rounded-xl p-5 space-y-3 shadow-md">
@@ -552,7 +545,7 @@ export default function HomeownerPortal() {
             <div className="border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm text-left">
               <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-50 px-4 py-2.5 font-bold text-[10px] uppercase tracking-wider flex justify-between items-center text-slate-400 hover:text-slate-700 transition-all outline-none border-0"  >
                 <span>⚖️ Binding Terms (Omaha Law Standard)</span>
-                <span className="text-[10px] text-slate-400 font-mono">{showTerms ? "Hide ▲" : "View ▼"}</span>
+                <span className="text-[10px] text-slate-400 font-semibold">{showTerms ? "Hide ▲" : "View ▼"}</span>
               </button>
               {showTerms && (
                 <div className="p-4 text-[11px] text-slate-400 space-y-2 max-h-40 overflow-y-scroll border-t bg-white leading-relaxed font-medium">

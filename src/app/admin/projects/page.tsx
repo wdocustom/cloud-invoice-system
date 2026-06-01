@@ -62,7 +62,7 @@ export default function ContractorDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
       
       {/* Premium Dark Slate Top Banner */}
       <div className="bg-slate-900 text-white border-b border-slate-800 shadow-sm sticky top-0 z-50 backdrop-blur-md bg-slate-900/95">
@@ -71,7 +71,7 @@ export default function ContractorDashboard() {
             <h1 className="text-sm font-black tracking-wider uppercase text-slate-100">WDO Custom</h1>
             <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Operations Central Command Pipeline</p>
           </div>
-          <span className="text-[9px] font-mono bg-slate-950 border border-slate-800/80 px-2.5 py-1 rounded-md text-slate-400 tracking-widest uppercase">
+          <span className="text-[9px] font-sans bg-slate-950 border border-slate-800/80 px-2.5 py-1 rounded-md text-slate-400 tracking-widest uppercase font-bold">
             REG-1901422
           </span>
         </div>
@@ -110,7 +110,7 @@ export default function ContractorDashboard() {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-slate-900 text-base tracking-tight group-hover:text-blue-600 transition-colors">{project.homeowner_name}</h3>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">📍 Jobsite Framework: {project.job_address}</p>
+                    <p className="text-xs text-slate-500 font-semibold mt-0.5">📍 Jobsite Framework: Project Address</p>
                     <p className="text-[11px] text-slate-400 font-medium mt-2 flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg w-fit">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" /> Live Target Phase: <span className="font-bold text-slate-700">{activePhaseName}</span>
                     </p>
@@ -121,7 +121,7 @@ export default function ContractorDashboard() {
                 <div className="flex items-center justify-between sm:justify-end gap-6 border-t sm:border-transparent border-slate-100 pt-3 sm:pt-0 shrink-0">
                   <div className="text-left sm:text-right space-y-0.5">
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Contract Valuation</p>
-                    <p className="text-base font-mono font-bold text-slate-900 tracking-tight">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-base font-sans font-extrabold text-slate-900 tracking-tight">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                   </div>
                   <button 
                     type="button" 
@@ -138,7 +138,7 @@ export default function ContractorDashboard() {
           {projects.length === 0 && (
             <div className="bg-white border border-slate-200/80 p-12 text-center text-xs text-slate-400 font-medium rounded-xl shadow-sm">
               No active pipeline workflow profiles configured. Seed a template matrix to populate the backlog.
-              <div className="mt-1 font-mono text-[10px] text-slate-300">TABLE_STATE_EMPTY</div>
+              <div className="mt-1 font-sans text-[10px] font-bold text-slate-300">TABLE_STATE_EMPTY</div>
             </div>
           )}
         </div>
