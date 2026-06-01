@@ -317,13 +317,13 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* ONBOARDING GUIDANCE INSTRUCTION BLOCK */}
+            {/* HUMAN-FRIENDLY ONBOARDING INSTRUCTION BLOCK */}
             <div className="bg-slate-100/70 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.01)] select-none">
               <span className="text-blue-500 text-sm">💡</span>
-              <p>Click the <span className="font-black text-slate-800 bg-white border border-slate-200 px-1 py-0.2 rounded">+</span> icon next to any milestone row item below to expand detailed scopes and technical criteria logs.</p>
+              <p>Click the <span className="font-black text-slate-800 bg-white border border-slate-200 px-1 py-0.2 rounded">+</span> button on any milestone line item to see the full details and project descriptions.</p>
             </div>
 
-            {/* CONDENSED AND CLEAN COMPACT LINE ITEMS FEED ROW PANELS */}
+            {/* CONDENSED LINE ITEMS FEED ROW PANELS */}
             <div className="space-y-2 bg-transparent">
               {masterItems.map((item: any, idx: number) => {
                 const isActive = activeIndices.includes(idx);
@@ -336,7 +336,6 @@ export default function HomeownerPortal() {
                       !isActive ? 'opacity-30 select-none border-dashed bg-slate-50/50' : 'hover:border-slate-300'
                     }`}
                   >
-                    {/* Synchronized layout grid mapping everything inside a tight, clean baseline */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 flex-1 min-w-0">
                         <button
@@ -426,11 +425,11 @@ export default function HomeownerPortal() {
           {/* RIGHT SIDEBAR COMPONENT PANEL: FIXED CHECKOUT VALUE HUB */}
           <div className="space-y-4 sticky top-20">
             
-            {/* LIVING COMPACT SIDEBAR HUB */}
+            {/* COMPACT CLEAN SIDEBAR VALUE HUB */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.02)] space-y-5 text-left relative overflow-hidden">
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Total</p>
-                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
+                <h2 className="text-3xl font-black text-slate-955 mt-1 tracking-tight">
                   ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
@@ -463,6 +462,29 @@ export default function HomeownerPortal() {
               </div>
               
               <p className="text-[9px] text-slate-400 font-semibold italic leading-normal px-0.5">* Timelines and milestone sequencing execute immediately following initial deposit clearance log signatures.</p>
+            </div>
+
+            {/* CONCISE REARRANGED SIGNATURE MODULE PANEL */}
+            <div className="border-t pt-1 border-slate-200/40">
+              {isLocked ? (
+                <div className="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md relative overflow-hidden border border-slate-800">
+                  <p className="text-emerald-400 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">✓ Contract Execution Bound & Sealed</p>
+                  <p className="text-[11px] text-slate-400 mt-1 font-medium">Digital signature verification matching: <span className="font-sans font-extrabold text-white underline tracking-tight">{invoice.signature_name}</span></p>
+                  <p className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5">Timestamp: {new Date(invoice.signed_at || "").toLocaleString()}</p>
+                </div>
+              ) : (
+                <form onSubmit={handleApprove} className="bg-white border border-slate-200/80 rounded-xl p-5 space-y-3 shadow-md">
+                  <div className="text-left">
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all shadow-inner placeholder:text-slate-400" />
+                    <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all shadow-md shadow-blue-900/10 outline-none">
+                      Accept Proposal
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
 
             {/* DRAW PHASES MATRIX */}
@@ -558,30 +580,6 @@ export default function HomeownerPortal() {
                 </p>
               </div>
             )}
-
-            {/* CLEAN, REAL-WORLD BINDING SIGNATURE PANEL */}
-            <div className="border-t pt-2 border-slate-200/40">
-              {isLocked ? (
-                <div className="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md relative overflow-hidden border border-slate-800">
-                  <p className="text-emerald-400 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">✓ Contract Execution Bound & Sealed</p>
-                  <p className="text-[11px] text-slate-400 mt-1 font-medium">Digital signature verification matching: <span className="font-sans font-extrabold text-white underline tracking-tight">{invoice.signature_name}</span></p>
-                  <p className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5">Timestamp: {new Date(invoice.signed_at || "").toLocaleString()}</p>
-                </div>
-              ) : (
-                <form onSubmit={handleApprove} className="bg-white border border-slate-200/80 rounded-xl p-5 space-y-3 shadow-md">
-                  <div className="text-left space-y-1">
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
-                    <p className="text-[11px] text-slate-400 font-medium leading-relaxed">Please type your full name below to accept this proposal and authorize the project scope and payment schedule.</p>
-                  </div>
-                  <div className="space-y-2 pt-1">
-                    <input type="text" required placeholder="Type your name to sign..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all shadow-inner placeholder:text-slate-400" />
-                    <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all shadow-md shadow-blue-900/10 outline-none">
-                      Accept Proposal
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
 
             {/* LEGAL TERMS ACCORDION */}
             <div className="border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm text-left">
