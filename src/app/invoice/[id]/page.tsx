@@ -219,7 +219,15 @@ export default function HomeownerPortal() {
 
   if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
 
-  const isProposalApproved = invoice.status === "approved";
+  let dynamicTimelineIndex = 0;
+  if (isLocked) {
+    if (invoice.deposit_cleared) {
+      dynamicTimelineIndex = 1 + (invoice.current_phase_index || 0);
+    } else {
+      dynamicTimelineIndex = 1;
+    }
+  }
+
   const standardMilestones = [
     { title: "Proposal", subtitle: "Locked" },
     { title: "Deposit", subtitle: "Initiated" },
@@ -588,7 +596,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* INTEGRATED POST-SIGN-OFF REMITTANCE DOCK */}
+            {/* REMITTANCE DOCK */}
             {isLocked && !invoice.deposit_cleared && (
               <div className="border border-slate-200 rounded-xl bg-white p-5 text-left space-y-3 shadow-sm animate-fadeIn">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Deposit Remittance Channel</h3>
