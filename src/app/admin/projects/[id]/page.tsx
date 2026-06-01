@@ -65,6 +65,39 @@ export default function ProjectDetailPanel() {
     setLoading(false);
   }
 
+  // CONTROLLER: Live sync baseline line item adjustments back to database array logs
+  const handleUpdateMainContractItemField = async (itemIdx: number, subField: string, nextValue: any) => {
+    const freshItems = [...(project.items || [])];
+    
+    // Parse numeric fields cleanly if updating baseline cost columns
+    let evaluatedValue = nextValue;
+    if (subField === 'mid_cost' || subField === 'high_cost') {
+      evaluatedValue = parseFloat(nextValue) || 0;
+    }
+
+    freshItems[itemIdx] = {
+      ...freshItems[itemIdx],
+      [subField]: evaluatedValue
+    };
+
+    // Calculate recalculated total pool values dynamically to save network cycles
+    const computedTotal = freshItems.reduce((sum: number, item: any) => sum + (item.mid_cost || 0), 0);
+
+    // Dynamic silent background synchronization broadcast block
+    const { error } = await supabase
+      .from("invoices")
+      .update({ 
+        items: freshItems,
+        amount: computedTotal // Dynamically updates total value synchronously
+      })
+      .eq("id", id);
+
+    if (!error) {
+      // Local snapshot updates to avoid UI redraw lag or cursor jumps
+      setProject({ ...project, items: freshItems, amount: computedTotal });
+    }
+  };
+
   const toggleDeposit = async () => {
     const { error } = await supabase
       .from("invoices")
@@ -281,7 +314,7 @@ export default function ProjectDetailPanel() {
                 copied ? 'bg-emerald-600 text-white border-transparent' : 'bg-white text-slate-900 hover:bg-slate-50 border-slate-200'
               }`}
             >
-              {copied ? "✓ Portal URL Copied" : "Copy Live Portal Link"}
+              {copied ? "✓ Live URL Copied" : "Copy Live Portal Link"}
             </button>
           </div>
         </div>
@@ -297,11 +330,10 @@ export default function ProjectDetailPanel() {
           </div>
           
           <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Base Contract Valuation</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Total Project Valuation Pool</p>
             <div className="flex items-center justify-between">
               <span className="font-mono font-black text-slate-900 text-lg">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               
-              {/* Integrated Micro Pill Switch for Mobilization Deposits */}
               <div className="flex items-center gap-1.5 bg-slate-50 border px-2 py-1 rounded-lg">
                 <span className="text-[8px] font-black uppercase text-slate-400">Deposit Paid</span>
                 <button
@@ -321,7 +353,6 @@ export default function ProjectDetailPanel() {
             </div>
           </div>
 
-          {/* TELEMETRY READ TRACKER LOG PANEL */}
           <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
             <div className="flex justify-between items-center border-b pb-1 border-slate-100 mb-1.5">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Client Engagement Views</p>
@@ -344,6 +375,67 @@ export default function ProjectDetailPanel() {
           </div>
         </div>
 
+        {/* NEW SYSTEM INTERFACE COMPONENT: THE INTERACTIVE INLINE MASTER INVOICE EDITOR CONTAINER */}
+        <div className="bg-white border border-slate-200/60 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-slate-50 px-5 py-4 border-b">
+            <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest text-left">Live Contract Line-Item Editor Hub</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify names descriptions, or costs inline. All keyboard edits auto-save directly to the database and refresh the homeowner portal instantly.</p>
+          </div>
+          
+          <div className="divide-y divide-slate-100 bg-white text-xs">
+            {project.items && project.items.map((item: any, idx: number) => (
+              <div key={idx} className="p-4 bg-white flex flex-col md:flex-row justify-between items-start gap-4 hover:bg-slate-50/40 transition-colors">
+                
+                {/* Inputs Left-Column Stack Container */}
+                <div className="space-y-2 text-left flex-1 w-full">
+                  <div className="flex gap-2 items-center">
+                    <span className="font-mono font-bold text-slate-300 text-[10px]">#{idx + 1}</span>
+                    <input 
+                      type="text" 
+                      value={item.title || ""} 
+                      onChange={(e) => handleUpdateMainContractItemField(idx, "title", e.target.value)}
+                      className="font-extrabold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-900 outline-none w-full pb-0.5 text-sm"
+                      placeholder="Line item title string..."
+                    />
+                  </div>
+                  <textarea 
+                    rows={2}
+                    value={item.mid_description || ""} 
+                    onChange={(e) => handleUpdateMainContractItemField(idx, "mid_description", e.target.value)}
+                    className="text-slate-500 font-medium leading-relaxed bg-transparent border border-transparent hover:border-slate-200/60 focus:bg-white focus:border-slate-300 p-1 rounded-lg w-full outline-none resize-none"
+                    placeholder="Provide line description context logs..."
+                  />
+                </div>
+
+                {/* Pricing Inputs Right-Column Matrix Group */}
+                <div className="flex items-center gap-4 w-full md:w-auto md:shrink-0 justify-between md:justify-end border-t md:border-transparent border-slate-100 pt-2 md:pt-0">
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wide">Base Cost ($):</label>
+                    <input 
+                      type="number" 
+                      value={item.mid_cost === 0 ? "" : item.mid_cost} 
+                      onChange={(e) => handleUpdateMainContractItemField(idx, "mid_cost", e.target.value)}
+                      className="font-mono font-black text-slate-800 bg-slate-50 border hover:border-slate-300 focus:border-slate-900 focus:bg-white outline-none p-1.5 rounded-lg text-right w-24"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wide">High Upgrade ($):</label>
+                    <input 
+                      type="number" 
+                      value={item.high_cost === 0 ? "" : item.high_cost} 
+                      onChange={(e) => handleUpdateMainContractItemField(idx, "high_cost", e.target.value)}
+                      className="font-mono font-black text-slate-500 bg-slate-50 border hover:border-slate-300 focus:border-slate-900 focus:bg-white outline-none p-1.5 rounded-lg text-right w-24"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* MASTER GANTT CALENDAR OPERATION COMPONENT WORKSPACE */}
         <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-sm space-y-4">
           <div>
@@ -354,7 +446,7 @@ export default function ProjectDetailPanel() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <form onSubmit={handlePublishScheduleTask} className="space-y-2 border p-4 rounded-xl bg-slate-50/50 shadow-inner h-fit text-xs">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Publish Schedule Milestone:</p>
-              <input type="text" placeholder="Task Title (e.g., Framing Framework)" required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2.5 bg-white border rounded-lg outline-none focus:border-slate-500 shadow-sm font-semibold text-slate-800" />
+              <input type="text" placeholder="Task Title..." required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2.5 bg-white border rounded-lg outline-none focus:border-slate-500 shadow-sm font-semibold text-slate-800" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[8px] font-black text-slate-400 uppercase block mb-0.5">Start window:</label>
@@ -436,7 +528,6 @@ export default function ProjectDetailPanel() {
                         <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.deposit_cleared ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700'}`}>{co.deposit_cleared ? "Paid" : "Unpaid"}</span>
                       </div>
                       
-                      {/* Sub-Pill Toggle for Child records */}
                       {co.status === "approved" && (
                         <div className="flex items-center gap-1.5 scale-90 origin-right">
                           <button
@@ -492,12 +583,12 @@ export default function ProjectDetailPanel() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <input type="text" value={item.mid_cost} onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)} className="font-mono font-bold text-right text-slate-800 w-14 bg-transparent border-b border-transparent focus:border-slate-300 outline-none" />
-                        <button type="button" onClick={() => handleDeleteCoLineItem(idx)} className="text-red-400 hover:text-red-600 font-bold px-1 transition-colors" >✕</button>
+                        <button type="button" onClick={() => handleDeleteCoLineItem(idx)} className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase px-1" >✕</button>
                       </div>
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={deployChangeOrderToPortal} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition shadow-md shadow-slate-950/20" >Broadcast Change Order Supplement</button>
+                <button type="button" onClick={deployChangeOrderToPortal} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition shadow-md" >Broadcast Change Order Supplement</button>
               </div>
             )}
 
