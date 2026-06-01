@@ -17,6 +17,10 @@ export default function ProjectDetailPanel() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Editable items state copy
+  const [editableItems, setEditableItems] = useState<any[]>([]);
+  const [isUpdatingItems, setIsUpdatingItems] = useState(false);
+
   // Material selection state variables
   const [category, setCategory] = useState("");
   const [choicesText, setChoicesText] = useState("");
@@ -52,6 +56,7 @@ export default function ProjectDetailPanel() {
 
       if (mainProject) {
         setProject(mainProject);
+        setEditableItems(Array.isArray(mainProject.items) ? mainProject.items : []);
         
         const { data: children } = await supabase
           .from("invoices")
@@ -73,6 +78,66 @@ export default function ProjectDetailPanel() {
       setLoading(false);
     }
   }
+
+  // Handle local state modification for main scope rows
+  const handleItemFieldChange = (index: number, field: string, value: any) => {
+    const updated = [...editableItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditableItems(updated);
+  };
+
+  // Push main scope structural modifications to Supabase database
+  const saveProjectScopeModifications = async () => {
+    if (!project) return;
+    setIsUpdatingItems(true);
+
+    // Dynamic clean summation of calculated fields inside the array loop matrix
+    const strictRecalculatedTotal = editableItems.reduce((sum, item) => {
+      const activeCostField = parseFloat(item.mid_cost) || parseFloat(item.cost) || 0;
+      return sum + activeCostField;
+    }, 0);
+
+    const { error } = await supabase
+      .from("invoices")
+      .update({ 
+        items: editableItems,
+        amount: strictRecalculatedTotal 
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert("Error processing save operational execution updates: " + error.message);
+    } else {
+      alert("Project contract parameters synchronized successfully!");
+      fetchProjectDetail();
+    }
+    setIsUpdatingItems(false);
+  };
+
+  // Drop single active block row target matrix item
+  const removeScopeItemRow = async (index: number) => {
+    if (!confirm("Are you sure you want to permanently delete this line item phase?")) return;
+    const filteredItems = editableItems.filter((_, i) => i !== index);
+    
+    // Auto recalculate live value arrays immediately on deletion action drop
+    const newRecalculatedTotal = filteredItems.reduce((sum, item) => {
+      const activeCostField = parseFloat(item.mid_cost) || parseFloat(item.cost) || 0;
+      return sum + activeCostField;
+    }, 0);
+
+    const { error } = await supabase
+      .from("invoices")
+      .update({ 
+        items: filteredItems,
+        amount: newRecalculatedTotal 
+      })
+      .eq("id", id);
+
+    if (!error) {
+      alert("Phase item removed.");
+      fetchProjectDetail();
+    }
+  };
 
   const toggleDeposit = async () => {
     if (!project) return;
@@ -267,7 +332,6 @@ export default function ProjectDetailPanel() {
   );
   if (!project) return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center text-slate-700 font-bold">Workspace ledger file not found.</div>;
 
-  const projectItemsList = Array.isArray(project.items) ? project.items : [];
   const baseContractAmount = typeof project.amount === "number" ? project.amount : 0;
 
   return (
@@ -362,28 +426,77 @@ export default function ProjectDetailPanel() {
           </div>
         </div>
 
-        {/* COMPACT ITEMS VIEWER BLOCK WITH SAFETY FALLBACKS */}
-        <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-sm space-y-3">
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">📋 Active Project Scope Line Items</h3>
-          <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto text-xs pr-1">
-            {projectItemsList.map((item: any, idx: number) => {
-              const itemCost = typeof item.mid_cost === "number" ? item.mid_cost : (typeof item.cost === "number" ? item.cost : 0);
+        {/* FULLY EDITABLE INTERACTIVE CONTRACT BUILDER WORKSPACE */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-100">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">📋 Live Contract Scope Editor</h3>
+              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify text descriptions, update phase prices inline, or delete milestones from the live project.</p>
+            </div>
+            <button
+              type="button"
+              disabled={isUpdatingItems || editableItems.length === 0}
+              onClick={saveProjectScopeModifications}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-4 py-2 rounded-lg tracking-wider uppercase transition shadow-sm outline-none"
+            >
+              {isUpdatingItems ? "Saving..." : "Save Project Changes"}
+            </button>
+          </div>
+
+          <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1">
+            {editableItems.map((item: any, idx: number) => {
+              // Parse fallback structural keys dynamically
+              const currentCostValue = item.mid_cost !== undefined ? item.mid_cost : (item.cost !== undefined ? item.cost : "");
+              const currentDescValue = item.mid_description !== undefined ? item.mid_description : (item.description !== undefined ? item.description : "");
+              const isMidKeyUsed = item.mid_cost !== undefined;
+
               return (
-                <div key={idx} className="py-3 flex justify-between items-start gap-4 text-left">
-                  <div className="space-y-0.5 flex-1">
-                    <p className="font-extrabold text-slate-900">{item.title || "Untitled Milestone Row"}</p>
-                    <p className="text-slate-500 text-[11px] leading-relaxed font-medium">
-                      {item.mid_description || item.description || "No specification criteria mapped."}
-                    </p>
+                <div key={idx} className="p-4 border border-slate-200 bg-slate-50/40 rounded-xl text-xs space-y-2 relative group hover:border-slate-300 transition-colors">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-1">
+                      <span className="font-mono font-bold text-slate-300 text-[10px] bg-white border px-1.5 py-0.5 rounded">#{idx + 1}</span>
+                      <input 
+                        type="text"
+                        value={item.title || ""}
+                        onChange={(e) => handleItemFieldChange(idx, "title", e.target.value)}
+                        placeholder="Phase Title (e.g., Basement Framing)"
+                        className="font-extrabold text-slate-900 text-sm bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg px-2.5 py-1 flex-1 shadow-sm"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-slate-400">$</span>
+                      <input 
+                        type="text"
+                        value={currentCostValue}
+                        onChange={(e) => handleItemFieldChange(idx, isMidKeyUsed ? "mid_cost" : "cost", e.target.value)}
+                        placeholder="0.00"
+                        className="font-sans font-bold text-slate-800 bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg px-2 py-1 w-24 text-right shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeScopeItemRow(idx)}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white transition-all font-sans font-bold text-xs shadow-sm outline-none"
+                        title="Delete Phase"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
-                  <span className="font-sans font-black text-slate-950 bg-slate-50 px-2 py-0.5 border rounded-md">
-                    ${itemCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
+
+                  <textarea 
+                    rows={2}
+                    value={currentDescValue}
+                    onChange={(e) => handleItemFieldChange(idx, isMidKeyUsed ? "mid_description" : "description", e.target.value)}
+                    placeholder="Provide exact project specifications, lumber grades, compliance metrics..."
+                    className="w-full font-medium text-slate-600 bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg p-2.5 shadow-sm resize-none leading-relaxed"
+                  />
                 </div>
               );
             })}
-            {projectItemsList.length === 0 && (
-              <p className="py-4 italic text-slate-400 text-center font-medium">No scope rows appended to database file context yet.</p>
+            
+            {editableItems.length === 0 && (
+              <p className="py-8 italic text-slate-400 text-center font-medium border border-dashed rounded-xl bg-slate-50/50">No scope phases configuration records generated yet.</p>
             )}
           </div>
         </div>
@@ -433,7 +546,7 @@ export default function ProjectDetailPanel() {
                       <span className={`w-1.5 h-1.5 rounded-full ${task.status === 'completed' ? 'bg-emerald-500' : task.status === 'in_progress' ? 'bg-blue-500 animate-pulse' : 'bg-slate-300'}`} />
                       Metric: <span className="font-sans font-bold text-slate-900">{task.progress_percent}%</span>
                     </button>
-                    <button type="button" onClick={(() => handleDropScheduleTask(task.id))} className="text-slate-300 hover:text-red-500 font-extrabold px-1 text-sm outline-none transition-colors">✕</button>
+                    <button type="button" onClick={() => handleDropScheduleTask(task.id)} className="text-slate-300 hover:text-red-500 font-extrabold px-1 text-sm outline-none transition-colors">✕</button>
                   </div>
                 </div>
               ))}
@@ -495,7 +608,7 @@ export default function ProjectDetailPanel() {
                               <span
                                 className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
                                   co.deposit_cleared ? 'translate-x-3' : 'translate-x-0'
-                               }`}
+                                }`}
                               />
                             </button>
                           </div>
