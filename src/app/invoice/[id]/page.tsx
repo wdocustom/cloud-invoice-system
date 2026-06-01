@@ -62,18 +62,49 @@ export default function HomeownerPortal() {
 
   async function logStealthTelemetryView() {
     const timestamp = new Date().toISOString();
+    
+    const ua = navigator.userAgent;
+    let device = "Desktop";
+    if (/Mobi|Android|iPhone|iPad/i.test(ua)) {
+      device = /iPhone|iPad/i.test(ua) ? "Mobile (iOS)" : "Mobile (Android)";
+    }
+    
+    let browser = "Unknown Browser";
+    if (ua.indexOf("Chrome") > -1) browser = "Chrome";
+    else if (ua.indexOf("Safari") > -1) browser = "Safari";
+    else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
+    else if (ua.indexOf("Edge") > -1) browser = "Edge";
+
+    let ipAddress = "0.0.0.0";
     try {
-      const { error } = await supabase.rpc("increment_invoice_views", { 
-        target_id: id, 
-        current_time: timestamp 
-      });
-      if (error) throw error;
-    } catch (err) {
+      const ipRes = await fetch("https://api.ipify.org?format=json");
+      const ipData = await ipRes.json();
+      if (ipData && ipData.ip) {
+        ipAddress = ipData.ip;
+      }
+    } catch (ipErr) {
+      console.warn("IP tracking telemetry bypassed network constraint:", ipErr);
+    }
+
+    const sessionPayload = {
+      timestamp,
+      device,
+      browser,
+      ip_address: ipAddress,
+      estimated_location: "Omaha, NE"
+    };
+
+    try {
       const { data } = await supabase.from("invoices").select("view_count, view_history").eq("id", id).single();
       if (data) {
-        const updatedHistory = [...(data.view_history || []), timestamp];
-        await supabase.from("invoices").update({ view_count: (data.view_count || 0) + 1, view_history: updatedHistory }).eq("id", id);
+        const updatedHistory = [...(data.view_history || []), sessionPayload];
+        await supabase.from("invoices").update({ 
+          view_count: (data.view_count || 0) + 1, 
+          view_history: updatedHistory 
+        }).eq("id", id);
       }
+    } catch (err) {
+      console.error("Telemetry collection exception:", err);
     }
   }
 
@@ -188,17 +219,7 @@ export default function HomeownerPortal() {
 
   if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
 
-  const activePhaseIndex = invoice.current_phase_index || 0;
-  
-  let dynamicTimelineIndex = 0;
-  if (isLocked) {
-    if (invoice.deposit_cleared) {
-      dynamicTimelineIndex = 1 + (invoice.current_phase_index || 0);
-    } else {
-      dynamicTimelineIndex = 1;
-    }
-  }
-
+  const isProposalApproved = invoice.status === "approved";
   const standardMilestones = [
     { title: "Proposal", subtitle: "Locked" },
     { title: "Deposit", subtitle: "Initiated" },
@@ -537,7 +558,7 @@ export default function HomeownerPortal() {
                           <div className="text-left space-y-0.5">
                             <p className="font-bold text-slate-900 tracking-tight truncate w-36 sm:w-44">{co.description}</p>
                             <div className="flex gap-1">
-                              <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoApproved ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{isCoApproved ? "APP" : "PEND"}</span>
+                              <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoApproved ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{isCoApproved ? "APP" : "PEND"}</span>
                               {isCoApproved && <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoPaid ? 'bg-blue-50 text-blue-700':'bg-red-50 text-red-700'}`}>{isCoPaid ? "PAID":"UNPD"}</span>}
                             </div>
                           </div>
@@ -567,7 +588,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* REMITTANCE DOCK */}
+            {/* INTEGRATED POST-SIGN-OFF REMITTANCE DOCK */}
             {isLocked && !invoice.deposit_cleared && (
               <div className="border border-slate-200 rounded-xl bg-white p-5 text-left space-y-3 shadow-sm animate-fadeIn">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Deposit Remittance Channel</h3>

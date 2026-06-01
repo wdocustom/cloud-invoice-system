@@ -333,6 +333,7 @@ export default function ProjectDetailPanel() {
   if (!project) return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center text-slate-700 font-bold">Workspace ledger file not found.</div>;
 
   const baseContractAmount = typeof project.amount === "number" ? project.amount : 0;
+  const rawViewHistory = Array.isArray(project.view_history) ? project.view_history : [];
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
@@ -368,14 +369,15 @@ export default function ProjectDetailPanel() {
       <div className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
         
         {/* TOP COMPACT METRICS GRID ROWS */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Jobsite Framework Address</p>
-            <p className="font-bold text-slate-800 text-sm leading-normal">Project Address</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs space-y-1">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Jobsite Destination</p>
+            <p className="font-bold text-slate-800 text-sm">Project Address</p>
+            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Client: {project.homeowner_email || "No Email Associated"}</p>
           </div>
           
           <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Base Contract Valuation</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Base Valuation Matrix</p>
             <div className="flex items-center justify-between">
               <span className="font-sans font-extrabold text-slate-900 text-xl tracking-tight">
                 ${baseContractAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -401,26 +403,42 @@ export default function ProjectDetailPanel() {
             </div>
           </div>
 
-          {/* TELEMETRY READ TRACKER LOG PANEL */}
-          <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
+          {/* ADVANCED RICH METADATA PORTAL VIEW TRACKER */}
+          <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
             <div className="flex justify-between items-center border-b pb-1 border-slate-100 mb-1.5">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Client Engagement Views</p>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Live Portal Analytics Feed</p>
               <span className="font-sans font-bold text-[11px] text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
                 Total hits: {project.view_count || 0}
               </span>
             </div>
-            <div className="divide-y divide-slate-100 max-h-12 overflow-y-auto pr-0.5 text-[10px] font-medium text-slate-500">
-              {project.view_history && project.view_history.length > 0 ? (
-                project.view_history.map((timeStr: string, tIdx: number) => (
-                  <div key={tIdx} className="py-0.5 flex justify-between items-center">
-                    <span>Session #{tIdx + 1}</span>
-                    <span className="font-sans text-[9px] font-bold text-slate-700">
-                      {isNaN(Date.parse(timeStr)) ? "Invalid Date" : new Date(timeStr).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
-                    </span>
-                  </div>
-                )).reverse()
+            
+            <div className="divide-y divide-slate-100 max-h-24 overflow-y-auto pr-0.5 text-[10px] font-medium text-slate-500 space-y-1">
+              {rawViewHistory.length > 0 ? (
+                rawViewHistory.map((session: any, tIdx: number) => {
+                  const isLegacyFormat = typeof session === "string";
+                  const rawTimeString = isLegacyFormat ? session : (session.timestamp || "");
+                  const deviceLabel = isLegacyFormat ? "Legacy Link Click" : (session.device || "Unknown Device");
+                  const browserLabel = isLegacyFormat ? "Direct Link" : (session.browser || "Webview");
+                  const locationLabel = isLegacyFormat ? "Omaha, NE" : (session.estimated_location || "Omaha, NE");
+                  const loggedIp = isLegacyFormat ? "No Trace Hash" : (session.ip_address || "0.0.0.0");
+
+                  return (
+                    <div key={tIdx} className="py-1 text-left space-y-0.5">
+                      <div className="flex justify-between items-center font-bold text-slate-800">
+                        <span>Session #{tIdx + 1} • {deviceLabel}</span>
+                        <span className="font-sans text-[9px] text-slate-500 font-medium">
+                          {isNaN(Date.parse(rawTimeString)) ? "Invalid Date" : new Date(rawTimeString).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
+                        <span>Browser: {browserLabel}</span>
+                        <span className="font-mono text-[9px] text-slate-500 lowercase">IP: {loggedIp}</span>
+                      </div>
+                    </div>
+                  );
+                }).reverse()
               ) : (
-                <p className="text-center italic text-slate-300 py-1">Dispatched link, awaiting client first-open log...</p>
+                <p className="text-center italic text-slate-300 py-2">No access telemetry recorded in link parameters yet.</p>
               )}
             </div>
           </div>
@@ -445,7 +463,6 @@ export default function ProjectDetailPanel() {
 
           <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1">
             {editableItems.map((item: any, idx: number) => {
-              // Parse fallback structural keys dynamically
               const currentCostValue = item.mid_cost !== undefined ? item.mid_cost : (item.cost !== undefined ? item.cost : "");
               const currentDescValue = item.mid_description !== undefined ? item.mid_description : (item.description !== undefined ? item.description : "");
               const isMidKeyUsed = item.mid_cost !== undefined;
@@ -550,9 +567,6 @@ export default function ProjectDetailPanel() {
                   </div>
                 </div>
               ))}
-              {scheduleTasks.length === 0 && (
-                <p className="p-8 text-center text-slate-400 italic font-medium">No schedule tracks deployed inside calendar sub-systems yet.</p>
-              )}
             </div>
           </div>
         </div>
@@ -617,9 +631,6 @@ export default function ProjectDetailPanel() {
                     </div>
                   );
                 })}
-                {changeOrders.length === 0 && (
-                  <p className="p-6 text-center text-slate-400 text-xs italic font-medium">No modifications appended to project parameters yet.</p>
-                )}
               </div>
             </div>
           </div>
