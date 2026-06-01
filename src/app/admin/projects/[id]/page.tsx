@@ -34,38 +34,48 @@ export default function ProjectDetailPanel() {
   const [isPublishingTask, setIsPublishingTask] = useState(false);
 
   useEffect(() => {
-    fetchProjectDetail();
+    if (id) {
+      fetchProjectDetail();
+    }
   }, [id]);
 
   async function fetchProjectDetail() {
     setLoading(true);
-    const { data: mainProject } = await supabase
-      .from("invoices")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (mainProject) {
-      setProject(mainProject);
-      
-      const { data: children } = await supabase
+    try {
+      const { data: mainProject, error: projectError } = await supabase
         .from("invoices")
         .select("*")
-        .eq("parent_id", id)
-        .order("created_at", { ascending: true });
-      if (children) setChangeOrders(children);
+        .eq("id", id)
+        .single();
 
-      const { data: schedule } = await supabase
-        .from("project_schedules")
-        .select("*")
-        .eq("project_id", id)
-        .order("target_start_date", { ascending: true });
-      if (schedule) setScheduleTasks(schedule);
+      if (projectError) throw projectError;
+
+      if (mainProject) {
+        setProject(mainProject);
+        
+        const { data: children } = await supabase
+          .from("invoices")
+          .select("*")
+          .eq("parent_id", id)
+          .order("created_at", { ascending: true });
+        if (children) setChangeOrders(children);
+
+        const { data: schedule } = await supabase
+          .from("project_schedules")
+          .select("*")
+          .eq("project_id", id)
+          .order("target_start_date", { ascending: true });
+        if (schedule) setScheduleTasks(schedule);
+      }
+    } catch (err) {
+      console.error("Supabase ledger retrieval exception:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   const toggleDeposit = async () => {
+    if (!project) return;
     const { error } = await supabase
       .from("invoices")
       .update({ deposit_cleared: !project.deposit_cleared })
@@ -83,6 +93,7 @@ export default function ProjectDetailPanel() {
   };
 
   const shiftPhase = async (increment: boolean) => {
+    if (!project) return;
     const curr = project.current_phase_index || 0;
     const nextIdx = increment ? curr + 1 : curr - 1;
     const { error } = await supabase
@@ -143,7 +154,7 @@ export default function ProjectDetailPanel() {
 
   const handlePushOptionGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!category.trim() || !choicesText.trim()) return;
+    if (!project || !category.trim() || !choicesText.trim()) return;
 
     const choicesArray = choicesText.split(",").map(c => c.trim()).filter(Boolean);
     const currentOptions = project.homeowner_options || [];
@@ -211,12 +222,12 @@ export default function ProjectDetailPanel() {
   };
 
   const deployChangeOrderToPortal = async () => {
-    if (coLineItems.length === 0) return alert("Generate or customize scope items before broadcasting.");
+    if (!project || coLineItems.length === 0) return alert("Generate or customize scope items before broadcasting.");
     
     const coTotalCost = coLineItems.reduce((sum, item) => sum + (parseFloat(item.mid_cost) || 0), 0);
     const flattenedItems = coLineItems.map(item => ({
-      title: item.title,
-      description: item.mid_description,
+      title: item.title || "Change Order Item",
+      description: item.mid_description || item.description || "",
       cost: parseFloat(item.mid_cost) || 0
     }));
 
@@ -256,6 +267,9 @@ export default function ProjectDetailPanel() {
   );
   if (!project) return <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center text-slate-700 font-bold">Workspace ledger file not found.</div>;
 
+  const projectItemsList = Array.isArray(project.items) ? project.items : [];
+  const baseContractAmount = typeof project.amount === "number" ? project.amount : 0;
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
       
@@ -266,13 +280,13 @@ export default function ProjectDetailPanel() {
             <button type="button" onClick={() => router.push("/admin/projects")} className="text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition-colors">
               ← Back to Project Index Ledger
             </button>
-            <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100 mt-1">{project.homeowner_name} Operational Workspace</h1>
+            <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100 mt-1">{project.homeowner_name || "Unknown Client"} Operational Workspace</h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded border shadow-sm ${
-              project.status === 'approved' ? 'bg-emerald-600 border-transparent text-white' : 'bg-amber-500 border-transparent text-white'
+              project.status === 'approved' ? 'bg-emerald-600 border-transparent text-white' : 'bg-amber-50 border-transparent text-white'
             }`}>
-              • Proposal State: {project.status}
+              • Proposal State: {project.status || "pending"}
             </span>
             <button
               type="button"
@@ -299,7 +313,9 @@ export default function ProjectDetailPanel() {
           <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Base Contract Valuation</p>
             <div className="flex items-center justify-between">
-              <span className="font-sans font-extrabold text-slate-900 text-xl tracking-tight">${project.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span className="font-sans font-extrabold text-slate-900 text-xl tracking-tight">
+                ${baseContractAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
               
               {/* Integrated Micro Pill Switch for Mobilization Deposits */}
               <div className="flex items-center gap-1.5 bg-slate-50 border px-2 py-1 rounded-lg">
@@ -334,13 +350,41 @@ export default function ProjectDetailPanel() {
                 project.view_history.map((timeStr: string, tIdx: number) => (
                   <div key={tIdx} className="py-0.5 flex justify-between items-center">
                     <span>Session #{tIdx + 1}</span>
-                    <span className="font-sans text-[9px] font-bold text-slate-700">{new Date(timeStr).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+                    <span className="font-sans text-[9px] font-bold text-slate-700">
+                      {isNaN(Date.parse(timeStr)) ? "Invalid Date" : new Date(timeStr).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
+                    </span>
                   </div>
                 )).reverse()
               ) : (
                 <p className="text-center italic text-slate-300 py-1">Dispatched link, awaiting client first-open log...</p>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* COMPACT ITEMS VIEWER BLOCK WITH SAFETY FALLBACKS */}
+        <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-sm space-y-3">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">📋 Active Project Scope Line Items</h3>
+          <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto text-xs pr-1">
+            {projectItemsList.map((item: any, idx: number) => {
+              const itemCost = typeof item.mid_cost === "number" ? item.mid_cost : (typeof item.cost === "number" ? item.cost : 0);
+              return (
+                <div key={idx} className="py-3 flex justify-between items-start gap-4 text-left">
+                  <div className="space-y-0.5 flex-1">
+                    <p className="font-extrabold text-slate-900">{item.title || "Untitled Milestone Row"}</p>
+                    <p className="text-slate-500 text-[11px] leading-relaxed font-medium">
+                      {item.mid_description || item.description || "No specification criteria mapped."}
+                    </p>
+                  </div>
+                  <span className="font-sans font-black text-slate-950 bg-slate-50 px-2 py-0.5 border rounded-md">
+                    ${itemCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              );
+            })}
+            {projectItemsList.length === 0 && (
+              <p className="py-4 italic text-slate-400 text-center font-medium">No scope rows appended to database file context yet.</p>
+            )}
           </div>
         </div>
 
@@ -389,7 +433,7 @@ export default function ProjectDetailPanel() {
                       <span className={`w-1.5 h-1.5 rounded-full ${task.status === 'completed' ? 'bg-emerald-500' : task.status === 'in_progress' ? 'bg-blue-500 animate-pulse' : 'bg-slate-300'}`} />
                       Metric: <span className="font-sans font-bold text-slate-900">{task.progress_percent}%</span>
                     </button>
-                    <button type="button" onClick={() => handleDropScheduleTask(task.id)} className="text-slate-300 hover:text-red-500 font-extrabold px-1 text-sm outline-none transition-colors">✕</button>
+                    <button type="button" onClick={(() => handleDropScheduleTask(task.id))} className="text-slate-300 hover:text-red-500 font-extrabold px-1 text-sm outline-none transition-colors">✕</button>
                   </div>
                 </div>
               ))}
@@ -420,43 +464,46 @@ export default function ProjectDetailPanel() {
             <div className="p-5 bg-white border border-slate-200/60 rounded-xl space-y-3 shadow-sm">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">Project Change Orders Log</h3>
               <div className="divide-y divide-slate-100 border bg-slate-50 rounded-xl max-h-48 overflow-y-auto shadow-inner text-xs">
-                {changeOrders.map((co) => (
-                  <div key={co.id} className="p-3 space-y-2 bg-white/40">
-                    <div className="flex justify-between items-start">
-                      <div className="text-left space-y-0.5">
-                        <p className="font-extrabold text-slate-900">{co.description}</p>
-                        <p className="text-[9px] text-slate-400 font-bold">Reference hash: #{co.id.slice(0,6)}</p>
-                      </div>
-                      <span className="font-sans font-extrabold text-slate-900 text-base tracking-tight">${co.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
-                      <div className="flex items-center gap-1">
-                        <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{co.status}</span>
-                        <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.deposit_cleared ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700'}`}>{co.deposit_cleared ? "Paid" : "Unpaid"}</span>
+                {changeOrders.map((co) => {
+                  const coAmount = typeof co.amount === "number" ? co.amount : 0;
+                  return (
+                    <div key={co.id} className="p-3 space-y-2 bg-white/40">
+                      <div className="flex justify-between items-start">
+                        <div className="text-left space-y-0.5">
+                          <p className="font-extrabold text-slate-900">{co.description || "Modification Row"}</p>
+                          <p className="text-[9px] text-slate-400 font-bold">Reference hash: #{co.id ? co.id.slice(0,6) : "xxxxxx"}</p>
+                        </div>
+                        <span className="font-sans font-extrabold text-slate-900 text-base tracking-tight">${coAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                       </div>
                       
-                      {/* Sub-Pill Toggle for Child records */}
-                      {co.status === "approved" && (
-                        <div className="flex items-center gap-1.5 scale-90 origin-right">
-                          <button
-                            type="button"
-                            onClick={() => toggleChangeOrderPaymentStatus(co)}
-                            className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-inner ${
-                              co.deposit_cleared ? 'bg-slate-900' : 'bg-slate-200'
-                            }`}
-                          >
-                            <span
-                              className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                                co.deposit_cleared ? 'translate-x-3' : 'translate-x-0'
-                              }`}
-                            />
-                          </button>
+                      <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{co.status || "pending"}</span>
+                          <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.deposit_cleared ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700'}`}>{co.deposit_cleared ? "Paid" : "Unpaid"}</span>
                         </div>
-                      )}
+                        
+                        {/* Sub-Pill Toggle for Child records */}
+                        {co.status === "approved" && (
+                          <div className="flex items-center gap-1.5 scale-90 origin-right">
+                            <button
+                              type="button"
+                              onClick={() => toggleChangeOrderPaymentStatus(co)}
+                              className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-inner ${
+                                co.deposit_cleared ? 'bg-slate-900' : 'bg-slate-200'
+                              }`}
+                            >
+                              <span
+                                className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                  co.deposit_cleared ? 'translate-x-3' : 'translate-x-0'
+                               }`}
+                              />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {changeOrders.length === 0 && (
                   <p className="p-6 text-center text-slate-400 text-xs italic font-medium">No modifications appended to project parameters yet.</p>
                 )}
@@ -487,11 +534,11 @@ export default function ProjectDetailPanel() {
                   {coLineItems.map((item, idx) => (
                     <div key={idx} className="p-2.5 flex justify-between gap-3 items-start bg-white hover:bg-slate-50/20 transition-colors">
                       <div className="space-y-0.5 text-left flex-1">
-                        <input type="text" value={item.title} onChange={(e) => handleUpdateCoField(idx, "title", e.target.value)} className="font-bold text-slate-900 w-full bg-transparent border-b border-transparent focus:border-slate-300 outline-none" />
-                        <textarea rows={1} value={item.mid_description} onChange={(e) => handleUpdateCoField(idx, "mid_description", e.target.value)} className="text-[11px] text-slate-500 w-full bg-transparent outline-none resize-none font-medium" />
+                        <input type="text" value={item.title || ""} onChange={(e) => handleUpdateCoField(idx, "title", e.target.value)} className="font-bold text-slate-900 w-full bg-transparent border-b border-transparent focus:border-slate-300 outline-none" />
+                        <textarea rows={1} value={item.mid_description || ""} onChange={(e) => handleUpdateCoField(idx, "mid_description", e.target.value)} className="text-[11px] text-slate-500 w-full bg-transparent outline-none resize-none font-medium" />
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <input type="text" value={item.mid_cost} onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)} className="font-sans font-bold text-right text-slate-800 w-16 bg-transparent border-b border-transparent focus:border-slate-300 outline-none tracking-tight" />
+                        <input type="text" value={item.mid_cost || ""} onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)} className="font-sans font-bold text-right text-slate-800 w-16 bg-transparent border-b border-transparent focus:border-slate-300 outline-none tracking-tight" />
                         <button type="button" onClick={() => handleDeleteCoLineItem(idx)} className="text-red-400 hover:text-red-600 font-bold px-1 transition-colors" >✕</button>
                       </div>
                     </div>
@@ -508,20 +555,23 @@ export default function ProjectDetailPanel() {
                 {project.homeowner_options?.length > 0 && <button type="button" onClick={handleClearAllOptions} className="text-[10px] text-red-500 hover:underline font-bold uppercase tracking-wide">Wipe Sheet</button>}
               </div>
               <div className="divide-y border border-slate-200/80 bg-white rounded-xl max-h-28 overflow-y-auto text-xs shadow-sm">
-                {project.homeowner_options?.map((group: any, idx: number) => (
-                  <div key={idx} className="p-2.5 flex flex-col text-left bg-white font-medium text-slate-600">
-                    <p className="font-black text-slate-400 text-[8px] uppercase tracking-wider mb-0.5">📦 {group.category}:</p>
-                    <p className="text-slate-800 font-semibold text-[11px] leading-tight">{group.choices.join("  |  ")}</p>
-                    {project.homeowner_selections?.[group.category] && (
-                      <p className="text-[9px] text-blue-700 font-extrabold mt-1 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md inline-block self-start uppercase tracking-wider">✓ Choice: {project.homeowner_selections[group.category]}</p>
-                    )}
-                  </div>
-                ))}
+                {project.homeowner_options?.map((group: any, idx: number) => {
+                  const chosen = project.homeowner_selections?.[group.category];
+                  return (
+                    <div key={idx} className="p-2.5 flex flex-col text-left bg-white font-medium text-slate-600">
+                      <p className="font-black text-slate-400 text-[8px] uppercase tracking-wider mb-0.5">📦 {group.category}:</p>
+                      <p className="text-slate-800 font-semibold text-[11px] leading-tight">{group.choices ? group.choices.join("  |  ") : ""}</p>
+                      {chosen && (
+                        <p className="text-[9px] text-blue-700 font-extrabold mt-1 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md inline-block self-start uppercase tracking-wider">✓ Choice: {chosen}</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <form onSubmit={handlePushOptionGroup} className="space-y-1">
                 <input type="text" placeholder="Selection Name Category..." required value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none font-semibold text-slate-800" />
                 <input type="text" placeholder="Choices (separated by comma)..." required value={choicesText} onChange={(e) => setChoicesText(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none font-semibold text-slate-800" />
-                <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2 rounded-xl uppercase tracking-wider transition shadow-sm">Inject Option Matrix Row</button>
+                <input type="submit" value="Inject Option Matrix Row" className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2 rounded-xl uppercase tracking-wider transition shadow-sm cursor-pointer" />
               </form>
             </div>
 
