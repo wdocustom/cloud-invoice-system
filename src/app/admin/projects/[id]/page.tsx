@@ -3,23 +3,25 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 
-interface OptionGroup {
-  category: string;
-  choices: string[];
-}
-
 export default function ProjectDetailPanel() {
   const { id } = useParams();
   const router = useRouter();
   const [project, setProject] = useState<any>(null);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
   const [scheduleTasks, setScheduleTasks] = useState<any[]>([]);
+  const [dailyLogs, setDailyLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
   // Editable items state copy
   const [editableItems, setEditableItems] = useState<any[]>([]);
   const [isUpdatingItems, setIsUpdatingItems] = useState(false);
+
+  // Daily Log state variables
+  const [logText, setLogText] = useState("");
+  const [photoUrlInput, setPhotoUrlInput] = useState("");
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [isSubmittingLog, setIsSubmittingLog] = useState(false);
 
   // Material selection state variables
   const [category, setCategory] = useState("");
@@ -71,6 +73,13 @@ export default function ProjectDetailPanel() {
           .eq("project_id", id)
           .order("target_start_date", { ascending: true });
         if (schedule) setScheduleTasks(schedule);
+
+        const { data: logs } = await supabase
+          .from("project_logs")
+          .select("*")
+          .eq("project_id", id)
+          .order("created_at", { ascending: false });
+        if (logs) setDailyLogs(logs);
       }
     } catch (err) {
       console.error("Supabase ledger retrieval exception:", err);
@@ -79,19 +88,16 @@ export default function ProjectDetailPanel() {
     }
   }
 
-  // Handle local state modification for main scope rows
   const handleItemFieldChange = (index: number, field: string, value: any) => {
     const updated = [...editableItems];
     updated[index] = { ...updated[index], [field]: value };
     setEditableItems(updated);
   };
 
-  // Push main scope structural modifications to Supabase database
   const saveProjectScopeModifications = async () => {
     if (!project) return;
     setIsUpdatingItems(true);
 
-    // Dynamic clean summation of calculated fields inside the array loop matrix
     const strictRecalculatedTotal = editableItems.reduce((sum, item) => {
       const activeCostField = parseFloat(item.mid_cost) || parseFloat(item.cost) || 0;
       return sum + activeCostField;
@@ -106,7 +112,7 @@ export default function ProjectDetailPanel() {
       .eq("id", id);
 
     if (error) {
-      alert("Error processing save operational execution updates: " + error.message);
+      alert("Error processing save operational updates: " + error.message);
     } else {
       alert("Project contract parameters synchronized successfully!");
       fetchProjectDetail();
@@ -114,12 +120,10 @@ export default function ProjectDetailPanel() {
     setIsUpdatingItems(false);
   };
 
-  // Drop single active block row target matrix item
   const removeScopeItemRow = async (index: number) => {
     if (!confirm("Are you sure you want to permanently delete this line item phase?")) return;
     const filteredItems = editableItems.filter((_, i) => i !== index);
     
-    // Auto recalculate live value arrays immediately on deletion action drop
     const newRecalculatedTotal = filteredItems.reduce((sum, item) => {
       const activeCostField = parseFloat(item.mid_cost) || parseFloat(item.cost) || 0;
       return sum + activeCostField;
@@ -137,6 +141,41 @@ export default function ProjectDetailPanel() {
       alert("Phase item removed.");
       fetchProjectDetail();
     }
+  };
+
+  const handleAddPhotoUrl = () => {
+    if (!photoUrlInput.trim()) return;
+    setUploadedPhotos([...uploadedPhotos, photoUrlInput.trim()]);
+    setPhotoUrlInput("");
+  };
+
+  const handleClearPhotos = () => {
+    setUploadedPhotos([]);
+  };
+
+  const handlePublishDailyLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!logText.trim()) return;
+    setIsSubmittingLog(true);
+
+    const { error } = await supabase
+      .from("project_logs")
+      .insert([
+        {
+          project_id: id,
+          log_text: logText.trim(),
+          photo_urls: uploadedPhotos
+        }
+      ]);
+
+    if (error) {
+      alert("Error publishing site update logs: " + error.message);
+    } else {
+      setLogText("");
+      setUploadedPhotos([]);
+      fetchProjectDetail();
+    }
+    setIsSubmittingLog(false);
   };
 
   const toggleDeposit = async () => {
@@ -262,7 +301,7 @@ export default function ProjectDetailPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           prompt: `Change Order modification: ${coPrompt}`, 
-          address: "Project Address", 
+          address: project.job_address || "Project Address", 
           zipcode: "Omaha" 
         }),
       });
@@ -303,7 +342,7 @@ export default function ProjectDetailPanel() {
           parent_id: id,
           homeowner_name: project.homeowner_name,
           homeowner_email: project.homeowner_email,
-          job_address: "Project Address",
+          job_address: project.job_address || "Project Address",
           amount: coTotalCost,
           description: coTitle.trim(),
           items: flattenedItems,
@@ -368,24 +407,25 @@ export default function ProjectDetailPanel() {
 
       <div className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
         
-        {/* TOP COMPACT METRICS GRID ROWS */}
+        {/* CONDENSED & BALANCED ANALYTICS METRICS ROW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs space-y-1">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Jobsite Destination</p>
-            <p className="font-bold text-slate-800 text-sm">Project Address</p>
-            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Client: {project.homeowner_email || "No Email Associated"}</p>
+          <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Project Address</p>
+              <p className="font-extrabold text-slate-800 text-sm leading-snug">{project.job_address && project.job_address.trim() !== "" ? project.job_address : "No Address Listed"}</p>
+            </div>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-2">Client: {project.homeowner_email || "No Email Mapped"}</p>
           </div>
           
-          <div className="bg-white border border-slate-200/60 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Base Valuation Matrix</p>
-            <div className="flex items-center justify-between">
-              <span className="font-sans font-extrabold text-slate-900 text-xl tracking-tight">
+          <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 border-slate-100 mb-2">Project Cost</p>
+            <div className="flex items-center justify-between mt-1">
+              <span className="font-sans font-black text-slate-900 text-2xl tracking-tight">
                 ${baseContractAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </span>
               
-              {/* Integrated Micro Pill Switch for Mobilization Deposits */}
               <div className="flex items-center gap-1.5 bg-slate-50 border px-2 py-1 rounded-lg">
-                <span className="text-[8px] font-black uppercase text-slate-400">Deposit Paid</span>
+                <span className="text-[8px] font-black uppercase text-slate-400">Paid</span>
                 <button
                   type="button"
                   onClick={toggleDeposit}
@@ -403,48 +443,40 @@ export default function ProjectDetailPanel() {
             </div>
           </div>
 
-          {/* ADVANCED RICH METADATA PORTAL VIEW TRACKER */}
           <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)] text-xs flex flex-col justify-between">
             <div className="flex justify-between items-center border-b pb-1 border-slate-100 mb-1.5">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Live Portal Analytics Feed</p>
-              <span className="font-sans font-bold text-[11px] text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
-                Total hits: {project.view_count || 0}
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Portal Analytics Feed</p>
+              <span className="font-sans font-bold text-[10px] text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
+                Hits: {project.view_count || 0}
               </span>
             </div>
             
-            <div className="divide-y divide-slate-100 max-h-24 overflow-y-auto pr-0.5 text-[10px] font-medium text-slate-500 space-y-1">
+            <div className="divide-y divide-slate-100 max-h-16 overflow-y-auto pr-0.5 text-[10px] font-medium text-slate-500 space-y-1">
               {rawViewHistory.length > 0 ? (
                 rawViewHistory.map((session: any, tIdx: number) => {
                   const isLegacyFormat = typeof session === "string";
                   const rawTimeString = isLegacyFormat ? session : (session.timestamp || "");
-                  const deviceLabel = isLegacyFormat ? "Legacy Link Click" : (session.device || "Unknown Device");
-                  const browserLabel = isLegacyFormat ? "Direct Link" : (session.browser || "Webview");
-                  const locationLabel = isLegacyFormat ? "Omaha, NE" : (session.estimated_location || "Omaha, NE");
-                  const loggedIp = isLegacyFormat ? "No Trace Hash" : (session.ip_address || "0.0.0.0");
+                  const deviceLabel = isLegacyFormat ? "Link Hit" : (session.device || "Device Unknown");
+                  const loggedIp = isLegacyFormat ? "No Trace" : (session.ip_address || "0.0.0.0");
 
                   return (
-                    <div key={tIdx} className="py-1 text-left space-y-0.5">
-                      <div className="flex justify-between items-center font-bold text-slate-800">
-                        <span>Session #{tIdx + 1} • {deviceLabel}</span>
-                        <span className="font-sans text-[9px] text-slate-500 font-medium">
-                          {isNaN(Date.parse(rawTimeString)) ? "Invalid Date" : new Date(rawTimeString).toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-[9px] text-slate-400 font-semibold uppercase tracking-wider">
-                        <span>Browser: {browserLabel}</span>
-                        <span className="font-mono text-[9px] text-slate-500 lowercase">IP: {loggedIp}</span>
-                      </div>
+                    <div key={tIdx} className="py-0.5 text-left flex justify-between items-center text-[9px]">
+                      <span className="font-bold text-slate-700 truncate max-w-[110px]">#{tIdx + 1} • {deviceLabel}</span>
+                      <span className="font-mono text-slate-400 scale-90">({loggedIp})</span>
+                      <span className="font-sans font-medium text-slate-500">
+                        {isNaN(Date.parse(rawTimeString)) ? "Invalid" : new Date(rawTimeString).toLocaleDateString(undefined, {month:'short', day:'numeric'})} {new Date(rawTimeString).toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit', hour12:false})}
+                      </span>
                     </div>
                   );
                 }).reverse()
               ) : (
-                <p className="text-center italic text-slate-300 py-2">No access telemetry recorded in link parameters yet.</p>
+                <p className="text-center italic text-slate-300 py-1">No telemetry recorded yet.</p>
               )}
             </div>
           </div>
         </div>
 
-        {/* FULLY EDITABLE INTERACTIVE CONTRACT BUILDER WORKSPACE */}
+        {/* LIVE EDITABLE CONTRACT BUILDER WORKSPACE */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-100">
             <div>
@@ -476,7 +508,7 @@ export default function ProjectDetailPanel() {
                         type="text"
                         value={item.title || ""}
                         onChange={(e) => handleItemFieldChange(idx, "title", e.target.value)}
-                        placeholder="Phase Title (e.g., Basement Framing)"
+                        placeholder="Phase Title"
                         className="font-extrabold text-slate-900 text-sm bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg px-2.5 py-1 flex-1 shadow-sm"
                       />
                     </div>
@@ -505,16 +537,112 @@ export default function ProjectDetailPanel() {
                     rows={2}
                     value={currentDescValue}
                     onChange={(e) => handleItemFieldChange(idx, isMidKeyUsed ? "mid_description" : "description", e.target.value)}
-                    placeholder="Provide exact project specifications, lumber grades, compliance metrics..."
+                    placeholder="Provide exact project specifications..."
                     className="w-full font-medium text-slate-600 bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg p-2.5 shadow-sm resize-none leading-relaxed"
                   />
                 </div>
               );
             })}
-            
-            {editableItems.length === 0 && (
-              <p className="py-8 italic text-slate-400 text-center font-medium border border-dashed rounded-xl bg-slate-50/50">No scope phases configuration records generated yet.</p>
-            )}
+          </div>
+        </div>
+
+        {/* PRODUCTION MANAGER SITE DAILY LOG CARD SECTION */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="border-b pb-2 border-slate-100">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">📸 Field Operations Daily Log</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Record construction notes, site progress logs, and append layout photos directly to the homeowner dashboard timeline channels.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+            <form onSubmit={handlePublishDailyLog} className="space-y-3 border p-4 rounded-xl bg-slate-50/50 shadow-inner h-fit">
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Log Site Progress Notes:</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={logText}
+                  onChange={(e) => setLogText(e.target.value)}
+                  placeholder="Describe trade workflow status, structural inspections cleared, layout tasks achieved today..."
+                  className="w-full p-2.5 bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg shadow-sm font-semibold text-slate-800 resize-none leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Append Photo Assets (URL Link):</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={photoUrlInput}
+                    onChange={(e) => setPhotoUrlInput(e.target.value)}
+                    placeholder="https://example.com/site-photo.jpg"
+                    className="flex-1 p-2 bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg shadow-sm font-semibold text-slate-800"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddPhotoUrl}
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] px-3 rounded-lg uppercase transition shadow-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {uploadedPhotos.length > 0 && (
+                <div className="bg-white border border-slate-200 p-2.5 rounded-lg space-y-1.5 shadow-sm">
+                  <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400 border-b pb-1">
+                    <span>Queue: {uploadedPhotos.length} Images Added</span>
+                    <button type="button" onClick={handleClearPhotos} className="text-red-500 hover:underline">Clear</button>
+                  </div>
+                  <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                    {uploadedPhotos.map((url, uIdx) => (
+                      <span key={uIdx} className="text-[9px] font-mono font-bold text-slate-600 bg-slate-50 border px-1.5 py-0.5 rounded truncate max-w-[130px]" title={url}>
+                        Photo #{uIdx + 1}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmittingLog || !logText.trim()}
+                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm"
+              >
+                {isSubmittingLog ? "Uploading log..." : "Publish Daily Operations Log"}
+              </button>
+            </form>
+
+            {/* LIVE DAILY LOG DISPLAY AREA FRAME */}
+            <div className="md:col-span-2 divide-y divide-slate-100 border bg-white rounded-xl max-h-[290px] overflow-y-auto shadow-sm p-1">
+              {dailyLogs.map((log) => (
+                <div key={log.id} className="p-4 space-y-2.5 bg-white">
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 border-b pb-1.5 border-slate-100">
+                    <span className="font-extrabold uppercase tracking-wide text-slate-700">👷 Field Log Entry Deployed</span>
+                    <span className="font-sans font-bold text-slate-500">
+                      {new Date(log.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <p className="text-slate-700 font-medium leading-relaxed text-left text-xs whitespace-pre-line">{log.log_text}</p>
+                  
+                  {log.photo_urls && log.photo_urls.length > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
+                      {log.photo_urls.map((photoUrl: string, pIdx: number) => (
+                        <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block relative aspect-video border rounded-lg overflow-hidden bg-slate-50 shadow-sm hover:scale-102 transition-transform duration-150">
+                          <img src={photoUrl} alt="Construction site update log visual asset" className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                          <div className="absolute bottom-0 left-0 right-0 bg-slate-950/60 text-[8px] font-black text-white text-center py-0.2 uppercase tracking-wide">View Image</div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {dailyLogs.length === 0 && (
+                <div className="p-12 text-center text-slate-400 italic font-medium space-y-1">
+                  <p className="text-sm">📭 Daily operations log ledger empty.</p>
+                  <p className="text-[10px] text-slate-300 not-italic">Site progress inputs and trade photo uploads will print sequentially here when published.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -571,11 +699,9 @@ export default function ProjectDetailPanel() {
           </div>
         </div>
 
-        {/* SPLIT WORKBENCH CONTAINER GRID BLOCK */}
+        {/* BOTTOM WORKBENCH PANELS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          
           <div className="space-y-4">
-            {/* Draw Matrix Staging Component Box */}
             <div className="p-5 bg-white border border-slate-200/60 rounded-xl space-y-4 shadow-sm">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">Draw Tracker</h3>
               <div className="space-y-0.5 text-left">
@@ -587,7 +713,6 @@ export default function ProjectDetailPanel() {
               </div>
             </div>
 
-            {/* Active Change Orders History ledger log */}
             <div className="p-5 bg-white border border-slate-200/60 rounded-xl space-y-3 shadow-sm">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">Project Change Orders Log</h3>
               <div className="divide-y divide-slate-100 border bg-slate-50 rounded-xl max-h-48 overflow-y-auto shadow-inner text-xs">
@@ -608,8 +733,6 @@ export default function ProjectDetailPanel() {
                           <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{co.status || "pending"}</span>
                           <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.deposit_cleared ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-red-50 text-red-700'}`}>{co.deposit_cleared ? "Paid" : "Unpaid"}</span>
                         </div>
-                        
-                        {/* Sub-Pill Toggle for Child records */}
                         {co.status === "approved" && (
                           <div className="flex items-center gap-1.5 scale-90 origin-right">
                             <button
@@ -619,11 +742,7 @@ export default function ProjectDetailPanel() {
                                 co.deposit_cleared ? 'bg-slate-900' : 'bg-slate-200'
                               }`}
                             >
-                              <span
-                                className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                                  co.deposit_cleared ? 'translate-x-3' : 'translate-x-0'
-                                }`}
-                              />
+                              <span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${co.deposit_cleared ? 'translate-x-3' : 'translate-x-0'}`} />
                             </button>
                           </div>
                         )}
@@ -635,20 +754,15 @@ export default function ProjectDetailPanel() {
             </div>
           </div>
 
-          {/* Right Column Pane container: AI Worksheet Estimator Drawer Panel */}
           <div className="p-5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-4 text-left shadow-inner">
             <div className="border-b border-slate-200 pb-2">
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">⚡ AI Change Order Worksheet Builder</h3>
-              <p className="text-[11px] text-slate-400 mt-1">Describe variations dynamically to generate instant localized target estimates.</p>
             </div>
-
             <div className="space-y-2">
               <input type="text" placeholder="Change Order Supplement Title Label..." value={coTitle} onChange={(e) => setCoTitle(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 rounded-xl text-xs outline-none shadow-sm font-bold text-slate-800" />
               <div className="flex gap-1.5">
                 <input type="text" placeholder="Describe modification parameter extensions..." value={coPrompt} onChange={(e) => setCoPrompt(e.target.value)} className="flex-1 p-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:border-slate-900 rounded-xl text-xs outline-none shadow-sm text-slate-800 font-semibold" />
-                <button type="button" onClick={runAiChangeOrderEstimator} disabled={isGeneratingCO} className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[10px] px-3.5 rounded-xl uppercase tracking-wider transition outline-none shadow-sm" >
-                  {isGeneratingCO ? "..." : "AI"}
-                </button>
+                <button type="button" onClick={runAiChangeOrderEstimator} className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[10px] px-3.5 rounded-xl uppercase tracking-wider transition outline-none shadow-sm">{isGeneratingCO ? "..." : "AI"}</button>
               </div>
             </div>
 
@@ -663,16 +777,15 @@ export default function ProjectDetailPanel() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <input type="text" value={item.mid_cost || ""} onChange={(e) => handleUpdateCoField(idx, "mid_cost", e.target.value)} className="font-sans font-bold text-right text-slate-800 w-16 bg-transparent border-b border-transparent focus:border-slate-300 outline-none tracking-tight" />
-                        <button type="button" onClick={() => handleDeleteCoLineItem(idx)} className="text-red-400 hover:text-red-600 font-bold px-1 transition-colors" >✕</button>
+                        <button type="button" onClick={() => handleDeleteCoLineItem(idx)} className="text-red-400 hover:text-red-600 font-bold px-1 transition-colors">✕</button>
                       </div>
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={deployChangeOrderToPortal} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition shadow-md shadow-slate-950/20" >Broadcast Change Order Supplement</button>
+                <button type="button" onClick={deployChangeOrderToPortal} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition shadow-md shadow-slate-950/20">Broadcast Change Order Supplement</button>
               </div>
             )}
 
-            {/* Materials Selections Log Section */}
             <div className="border-t border-slate-200/60 pt-4 space-y-3">
               <div className="flex justify-between items-center">
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Material Choice Boards</h4>
@@ -692,13 +805,7 @@ export default function ProjectDetailPanel() {
                   );
                 })}
               </div>
-              <form onSubmit={handlePushOptionGroup} className="space-y-1">
-                <input type="text" placeholder="Selection Name Category..." required value={category} onChange={(e) => setCategory(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none font-semibold text-slate-800" />
-                <input type="text" placeholder="Choices (separated by comma)..." required value={choicesText} onChange={(e) => setChoicesText(e.target.value)} className="w-full p-2 bg-white border rounded-xl text-xs outline-none font-semibold text-slate-800" />
-                <input type="submit" value="Inject Option Matrix Row" className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2 rounded-xl uppercase tracking-wider transition shadow-sm cursor-pointer" />
-              </form>
             </div>
-
           </div>
         </div>
 

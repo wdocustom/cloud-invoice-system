@@ -42,6 +42,7 @@ export default function HomeownerPortal() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
   const [scheduleTasks, setScheduleTasks] = useState<any[]>([]);
+  const [dailyLogs, setDailyLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [tier, setTier] = useState<"mid" | "high">("mid");
@@ -134,6 +135,13 @@ export default function HomeownerPortal() {
         .eq("project_id", id)
         .order("target_start_date", { ascending: true });
       if (schedule) setScheduleTasks(schedule);
+
+      const { data: logs } = await supabase
+        .from("project_logs")
+        .select("*")
+        .eq("project_id", id)
+        .order("created_at", { ascending: false });
+      if (logs) setDailyLogs(logs);
     }
     setLoading(false);
   }
@@ -219,7 +227,6 @@ export default function HomeownerPortal() {
 
   if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
 
-  // RE-INJECTED STRUCTURAL METRIC CALCULATION LOOP FOR MILESTONES PROGRESS LINES
   let dynamicTimelineIndex = 0;
   if (isLocked) {
     if (invoice.deposit_cleared) {
@@ -343,6 +350,33 @@ export default function HomeownerPortal() {
                       <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/40 shadow-inner">
                         <div className="h-full bg-slate-900 transition-all duration-500 rounded-full" style={{ width: `${task.progress_percent}%` }} />
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* HOMEOWNER ACCORDION LOG COMPONENT BLOCK */}
+            {isLocked && dailyLogs.length > 0 && (
+              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b pb-2 border-slate-100">📸 Field Progress Updates & Logs</h3>
+                <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto pr-1 text-xs">
+                  {dailyLogs.map((log) => (
+                    <div key={log.id} className="py-3 space-y-2 first:pt-0">
+                      <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold">
+                        <span className="uppercase text-slate-600">Daily Log Entry Deployed</span>
+                        <span>{new Date(log.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</span>
+                      </div>
+                      <p className="text-slate-600 font-medium leading-relaxed whitespace-pre-line text-left">{log.log_text}</p>
+                      {log.photo_urls && log.photo_urls.length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
+                          {log.photo_urls.map((photoUrl: string, pIdx: number) => (
+                            <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block relative aspect-video border rounded-lg overflow-hidden bg-slate-50 shadow-sm transition-transform duration-150 hover:scale-102">
+                              <img src={photoUrl} alt="Field construction report attachment" className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
