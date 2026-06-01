@@ -19,9 +19,9 @@ export default function ProjectDetailPanel() {
 
   // Daily Log state variables
   const [logText, setLogText] = useState("");
-  const [photoUrlInput, setPhotoUrlInput] = useState("");
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [isSubmittingLog, setIsSubmittingLog] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // Material selection state variables
   const [category, setCategory] = useState("");
@@ -143,10 +143,37 @@ export default function ProjectDetailPanel() {
     }
   };
 
-  const handleAddPhotoUrl = () => {
-    if (!photoUrlInput.trim()) return;
-    setUploadedPhotos([...uploadedPhotos, photoUrlInput.trim()]);
-    setPhotoUrlInput("");
+  // Device storage pipeline engine
+  const handleDevicePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const fileExtension = file.name.split(".").pop();
+      const uniqueFileName = `${id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from("project_photos")
+        .upload(uniqueFileName, file, {
+          cacheControl: "3600",
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("project_photos")
+        .getPublicUrl(uniqueFileName);
+
+      if (publicUrlData && publicUrlData.publicUrl) {
+        setUploadedPhotos((prev) => [...prev, publicUrlData.publicUrl]);
+      }
+    } catch (err: any) {
+      alert("Photo asset upload error: " + err.message);
+    } finally {
+      setIsUploadingPhoto(false);
+    }
   };
 
   const handleClearPhotos = () => {
@@ -384,7 +411,7 @@ export default function ProjectDetailPanel() {
             <button type="button" onClick={() => router.push("/admin/projects")} className="text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition-colors">
               ← Back to Project Index Ledger
             </button>
-            <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100 mt-1">{project.homeowner_name || "Unknown Client"} Operational Workspace</h1>
+            <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100 mt-1">{project.homeowner_name || "Unknown Client"} Workspace</h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded border shadow-sm ${
@@ -546,11 +573,11 @@ export default function ProjectDetailPanel() {
           </div>
         </div>
 
-        {/* PRODUCTION MANAGER SITE DAILY LOG CARD SECTION */}
+        {/* PRODUCTION MANAGER SITE DAILY LOG CARD SECTION WITH DIRECT PHOTO STORAGE UPLOAD */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
           <div className="border-b pb-2 border-slate-100">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">📸 Field Operations Daily Log</h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Record construction notes, site progress logs, and append layout photos directly to the homeowner dashboard timeline channels.</p>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Record construction notes, site progress logs, and snap layout photos straight from your device camera into the client portal.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
@@ -568,36 +595,37 @@ export default function ProjectDetailPanel() {
               </div>
 
               <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Append Photo Assets (URL Link):</label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={photoUrlInput}
-                    onChange={(e) => setPhotoUrlInput(e.target.value)}
-                    placeholder="https://example.com/site-photo.jpg"
-                    className="flex-1 p-2 bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg shadow-sm font-semibold text-slate-800"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddPhotoUrl}
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] px-3 rounded-lg uppercase transition shadow-sm"
-                  >
-                    Add
-                  </button>
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Upload Progress Photo:</label>
+                <div className="relative flex items-center justify-center w-full">
+                  <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-white hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-3 pb-3">
+                      <p className="mb-0.5 text-xs font-bold text-slate-600">
+                        {isUploadingPhoto ? "⚡ Syncing File..." : "📷 Tap to Camera / Files"}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-medium">JPEG, PNG up to 10MB</p>
+                    </div>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      disabled={isUploadingPhoto}
+                      onChange={handleDevicePhotoUpload}
+                      className="hidden" 
+                    />
+                  </label>
                 </div>
               </div>
 
               {uploadedPhotos.length > 0 && (
                 <div className="bg-white border border-slate-200 p-2.5 rounded-lg space-y-1.5 shadow-sm">
                   <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400 border-b pb-1">
-                    <span>Queue: {uploadedPhotos.length} Images Added</span>
+                    <span>Queue: {uploadedPhotos.length} Images Uploaded</span>
                     <button type="button" onClick={handleClearPhotos} className="text-red-500 hover:underline">Clear</button>
                   </div>
-                  <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                  <div className="grid grid-cols-4 gap-1 max-h-14 overflow-y-auto">
                     {uploadedPhotos.map((url, uIdx) => (
-                      <span key={uIdx} className="text-[9px] font-mono font-bold text-slate-600 bg-slate-50 border px-1.5 py-0.5 rounded truncate max-w-[130px]" title={url}>
-                        Photo #{uIdx + 1}
-                      </span>
+                      <div key={uIdx} className="aspect-square rounded border overflow-hidden bg-slate-100 relative group">
+                        <img src={url} className="w-full h-full object-cover" />
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -605,7 +633,7 @@ export default function ProjectDetailPanel() {
 
               <button
                 type="submit"
-                disabled={isSubmittingLog || !logText.trim()}
+                disabled={isSubmittingLog || isUploadingPhoto || !logText.trim()}
                 className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm"
               >
                 {isSubmittingLog ? "Uploading log..." : "Publish Daily Operations Log"}
@@ -617,7 +645,7 @@ export default function ProjectDetailPanel() {
               {dailyLogs.map((log) => (
                 <div key={log.id} className="p-4 space-y-2.5 bg-white">
                   <div className="flex justify-between items-center text-[10px] text-slate-400 border-b pb-1.5 border-slate-100">
-                    <span className="font-extrabold uppercase tracking-wide text-slate-700">👷 Field Log Entry Deployed</span>
+                    <span className="font-extrabold uppercase tracking-wide text-slate-700"> Locker Update Deployed</span>
                     <span className="font-sans font-bold text-slate-500">
                       {new Date(log.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -628,8 +656,8 @@ export default function ProjectDetailPanel() {
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
                       {log.photo_urls.map((photoUrl: string, pIdx: number) => (
                         <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block relative aspect-video border rounded-lg overflow-hidden bg-slate-50 shadow-sm hover:scale-102 transition-transform duration-150">
-                          <img src={photoUrl} alt="Construction site update log visual asset" className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
-                          <div className="absolute bottom-0 left-0 right-0 bg-slate-950/60 text-[8px] font-black text-white text-center py-0.2 uppercase tracking-wide">View Image</div>
+                          <img src={photoUrl} alt="Construction report log attachment" className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                          <div className="absolute bottom-0 left-0 right-0 bg-slate-950/60 text-[8px] font-black text-white text-center py-0.2 uppercase tracking-wide">Expand Photo</div>
                         </a>
                       ))}
                     </div>
@@ -656,7 +684,7 @@ export default function ProjectDetailPanel() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <form onSubmit={handlePublishScheduleTask} className="space-y-2 border p-4 rounded-xl bg-slate-50/50 shadow-inner h-fit text-xs">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Publish Schedule Milestone:</p>
-              <input type="text" placeholder="Task Title (e.g., Framing Framework)" required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2.5 bg-white border rounded-lg outline-none focus:border-slate-500 shadow-sm font-semibold text-slate-800" />
+              <input type="text" placeholder="Task Title" required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2.5 bg-white border rounded-lg outline-none focus:border-slate-500 shadow-sm font-semibold text-slate-800" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[8px] font-black text-slate-400 uppercase block mb-0.5">Start window:</label>
