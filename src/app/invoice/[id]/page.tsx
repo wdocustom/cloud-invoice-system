@@ -261,7 +261,7 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* PROGRESS PROGRESS PROGRESS RIBBON TRAIL */}
+        {/* SYNCHRONIZED PROGRESS TIMELINE TRACK RIBBON */}
         {isLocked && (
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <div className="text-left border-b border-slate-100 pb-2 flex justify-between items-center">
@@ -484,13 +484,25 @@ export default function HomeownerPortal() {
                       <h4 className="font-bold text-slate-900">{isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}</h4>
                       <p className="text-slate-500 text-[11px] leading-relaxed max-w-2xl">{isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}</p>
                     </div>
-                    <div className="text-right flex flex-col items-end gap-1 shrink-0">
+                    <div className="text-right flex flex-col items-end gap-2 shrink-0">
                       <span className="font-mono font-bold text-slate-800">${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       {!isLocked && (
                         isActive ? (
-                          <button type="button" onClick={() => handleRemoveIndex(idx)} className="text-red-500 font-bold text-[10px] hover:underline uppercase">Omit</button>
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveIndex(idx)} 
+                            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase shadow-sm transition-all"
+                          >
+                            Remove
+                          </button>
                         ) : (
-                          <button type="button" onClick={() => handleReinstateIndex(idx)} className="text-emerald-600 font-bold text-[10px] hover:underline uppercase">Reinstate</button>
+                          <button 
+                            type="button" 
+                            onClick={() => handleReinstateIndex(idx)} 
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-extrabold text-[10px] px-3 py-1.5 rounded-lg uppercase shadow-sm transition-all"
+                          >
+                            Reinstate
+                          </button>
                         )
                       )}
                     </div>
@@ -553,7 +565,7 @@ export default function HomeownerPortal() {
               <button type="button" onClick={() => setPaymentMethod("check")} className={`p-3 border rounded-xl text-xs font-bold text-left transition-all ${paymentMethod === 'check' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Physical Check</button>
             </div>
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 leading-relaxed">
-              {paymentMethod === 'stripe' ? "🔒 Stripe Processing Active. Digital wire clearing verification tokens are wired to the project sub-ledgers automatically." : <div>💵 Check payable exactly to: <span className="underline font-bold text-slate-950">WDO Custom</span>. Manager will clear balance logging details upon arrival staging.</div>}
+              {paymentMethod === 'stripe' ? "🔒 Stripe Processing Activated." : <div>💵 Check payable exactly to: <span className="underline font-bold text-slate-950">WDO Custom</span>. Manager will clear balance logging details upon arrival staging.</div>}
             </div>
           </div>
         )}
@@ -571,7 +583,7 @@ export default function HomeownerPortal() {
           )}
         </div>
 
-        {/* Dynamic Approval Box Signature Form Layout */}
+        {/* Project Approval Signature */}
         <div className="pt-4 border-t border-slate-200">
           {isLocked ? (
             <div className="bg-slate-900 text-white rounded-xl p-5 text-center shadow-sm text-xs font-medium">
@@ -582,14 +594,11 @@ export default function HomeownerPortal() {
           ) : (
             <form onSubmit={handleApprove} className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 space-y-3 shadow-sm">
               <div className="text-left space-y-0.5">
-                {/* Reworked Area Title Label */}
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
                 <p className="text-xs text-slate-400 font-medium">Type name to authorize digital contract execution and lock construction bounds.</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="flex-1 px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all" />
-                
-                {/* Reworked Action Button Text */}
                 <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white font-bold text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm">
                   Accept Proposal
                 </button>
