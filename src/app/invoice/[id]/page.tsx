@@ -172,7 +172,7 @@ export default function HomeownerPortal() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-2">
         <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-        <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Premium Workspace...</p>
+        <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Workspace Securely...</p>
       </div>
     </div>
   );
@@ -201,7 +201,7 @@ export default function HomeownerPortal() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-32 text-left selection:bg-slate-900/10">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10">
       
       {/* Top Professional Accent Header Bar */}
       <div className="bg-slate-900 text-white shadow-sm border-b border-slate-800">
@@ -220,13 +220,13 @@ export default function HomeownerPortal() {
 
       <div className="max-w-6xl mx-auto px-4 pt-6">
         
-        {/* Dynamic High-Impact Responsive Split Layout Blueprint Grid */}
+        {/* Dynamic Responsive Split Layout Blueprint Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
-          {/* LEFT CONTAINER COMPONENT FRAME: THE ACTIVE VALUATION SCOPE WORKSHEET */}
+          {/* LEFT CONTAINER COMPONENT FRAME */}
           <div className="lg:col-span-2 space-y-5">
             
-            {/* Global Tier Option Selector Card (High Sales Focus Placement) */}
+            {/* Global Tier Option Selector Card */}
             {!isLocked && (
               <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="space-y-0.5 text-left">
@@ -255,7 +255,7 @@ export default function HomeownerPortal() {
               <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)] space-y-4">
                 <div className="text-left border-b pb-2.5 border-slate-100 flex justify-between items-center">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Construction Stage Progress Tracker</p>
-                  <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md border ${invoice.deposit_cleared ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                  <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md border ${invoice.deposit_cleared ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
                     {invoice.deposit_cleared ? `Active: ${invoice.payment_phases?.[invoice.current_phase_index || 0]?.name || "Staging"}` : "Staging: Awaiting Clearance"}
                   </span>
                 </div>
@@ -310,13 +310,10 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* HIGH-CONVERSION STREAMLINED SCOPE SPECIFICATIONS CONTAINER ROW */}
+            {/* HIGH-CONVERSION CLEAN ITEMS LEDGER */}
             <div className="bg-white border border-slate-200/60 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.01)] overflow-hidden">
-              <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex justify-between items-center">
-                <div className="space-y-0.5 text-left">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">📋 Project Operations Specifications Grid</h3>
-                  <p className="text-[10px] text-slate-400 font-medium">Itemized overview of structural scope dimensions, allowances, and finish trades parameters.</p>
-                </div>
+              <div className="bg-slate-50 border-b border-slate-100 px-5 py-4">
+                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest text-left">Items</h3>
               </div>
 
               <div className="divide-y divide-slate-100 bg-white">
@@ -327,14 +324,11 @@ export default function HomeownerPortal() {
                     <div key={idx} className={`p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-all duration-150 ${!isActive ? 'bg-slate-50/50 opacity-25':''}`}>
                       <div className="text-left space-y-1 flex-1">
                         <h4 className="font-extrabold text-slate-950 text-sm tracking-tight">{isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}</h4>
-                        
-                        {/* Streamlined Details Layout: Hides descriptions unless matching selected variants to control whitespace heights */}
                         <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-medium">
                           {isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}
                         </p>
                       </div>
                       <div className="text-right flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-transparent border-slate-100">
-                        {/* FIXED CORES: Strict currency validation cent formatting */}
                         <span className="font-mono font-black text-slate-900 text-sm tracking-tight">
                           ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
@@ -389,7 +383,7 @@ export default function HomeownerPortal() {
 
           </div>
 
-          {/* RIGHT SIDEBAR COMPONENT PANEL: FIXED CHECKOUT VALUE HUB (SALES FORCE ARCHITECTURE) */}
+          {/* RIGHT SIDEBAR COMPONENT PANEL: FIXED CHECKOUT VALUE HUB */}
           <div className="space-y-4 sticky top-20">
             
             {/* LIVING TRANSACTIONAL METRICS TILE */}
@@ -434,7 +428,6 @@ export default function HomeownerPortal() {
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Contract Payments</h3>
               <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
-                  // CORRECTED CORES: Fix string fraction trailing float bugs via strict two-digit multiplier parameters
                   const phaseVal = baseTotal * (phase.percentage / 100);
                   const activePhaseIdx = invoice.current_phase_index || 0;
                   
@@ -464,7 +457,7 @@ export default function HomeownerPortal() {
               </div>
             </div>
 
-            {/* PENDING CHANGE ORDERS DROP COMPONENT (ONE-CLICK CONVERSION HOOK) */}
+            {/* PENDING CHANGE ORDERS MODULE */}
             {isLocked && changeOrders.length > 0 && (
               <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-2.5 text-left">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Scope Modifications</h3>
@@ -510,7 +503,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* INTEGRATED CORES POST-SIGN-OFF REMITTANCE DOCK */}
+            {/* INTEGRATED POST-SIGN-OFF REMITTANCE DOCK */}
             {isLocked && !invoice.deposit_cleared && (
               <div className="border border-slate-200 rounded-xl bg-white p-5 text-left space-y-3 shadow-sm animate-fadeIn">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Deposit Remittance Channel</h3>
@@ -524,7 +517,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* BINDING SIGNATURE SUBMISSION COMPONENT BLOCK (HIGHEST CHECKOUT VALUE) */}
+            {/* BINDING SIGNATURE SUBMISSION COMPONENT BLOCK */}
             <div className="border-t pt-2 border-slate-200/40">
               {isLocked ? (
                 <div className="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md relative overflow-hidden border border-slate-800">
@@ -540,9 +533,7 @@ export default function HomeownerPortal() {
                   </div>
                   <div className="space-y-2 pt-1">
                     <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all shadow-inner placeholder:text-slate-400" />
-                    
-                    {/* HIGH CLOSING sales conversion target checkout text button */}
-                    <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-30 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all shadow-md shadow-blue-900/10 outline-none">
+                    <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all shadow-md shadow-blue-900/10 outline-none">
                       Accept Proposal
                     </button>
                   </div>
