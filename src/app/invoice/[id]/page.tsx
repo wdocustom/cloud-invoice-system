@@ -70,7 +70,6 @@ export default function HomeownerPortal() {
         setActiveIndices(mainProject.items.map((_: any, idx: number) => idx));
       }
 
-      // Query Change Orders
       const { data: children } = await supabase
         .from("invoices")
         .select("*")
@@ -78,7 +77,6 @@ export default function HomeownerPortal() {
         .order("created_at", { ascending: true });
       if (children) setChangeOrders(children);
 
-      // Query Project Production Schedule Milestones
       const { data: schedule } = await supabase
         .from("project_schedules")
         .select("*")
@@ -263,7 +261,7 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* SYNCHRONIZED PROGRESS TIMELINE TRACK RIBBON */}
+        {/* PROGRESS PROGRESS PROGRESS RIBBON TRAIL */}
         {isLocked && (
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <div className="text-left border-b border-slate-100 pb-2 flex justify-between items-center">
@@ -300,7 +298,7 @@ export default function HomeownerPortal() {
           </div>
         )}
 
-        {/* NEW COMPONENT: CLIENT-FACING ACTIVE LIVE Gantt MAP SCHEDULE (ONLY VISIBLE ON APPROVED CONTRACTS) */}
+        {/* CLIENT-FACING ACTIVE LIVE Gantt MAP SCHEDULE */}
         {isLocked && scheduleTasks.length > 0 && (
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3 text-left">
             <div>
@@ -324,8 +322,6 @@ export default function HomeownerPortal() {
                       'bg-slate-100 text-slate-500'
                     }`}>{task.status.replace('_', ' ')}</span>
                   </div>
-
-                  {/* Horizontal progress percentage fill rail */}
                   <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border">
                     <div 
                       className={`h-full transition-all duration-500 ${
@@ -545,19 +541,19 @@ export default function HomeownerPortal() {
           </div>
         </div>
 
-        {/* Deposit Remittance Section Panel */}
-        {!isLocked && (
-          <div className="border border-slate-200 bg-white rounded-xl p-5 text-left space-y-3 shadow-sm">
+        {/* REWORKED CONDITIONAL REMITTANCE (ONLY RENDERS POST-APPROVAL) */}
+        {isLocked && !invoice.deposit_cleared && (
+          <div className="border border-slate-200 bg-white rounded-xl p-5 text-left space-y-3 shadow-sm animate-fadeIn">
             <div>
-              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Deposit Information to start your project</h3>
-              <p className="text-xs text-slate-500">Remit mobilization funds total of <span className="font-mono font-bold text-slate-900">${depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>.</p>
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Deposit Remittance Channel</h3>
+              <p className="text-xs text-slate-500">Please route your project mobilization deposit of <span className="font-mono font-bold text-slate-900">${depositAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span> to initiate on-site framing operations.</p>
             </div>
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button type="button" onClick={() => setPaymentMethod("stripe")} className={`p-3 border rounded-xl text-xs font-bold text-left transition-all ${paymentMethod === 'stripe' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Card / ACH Wire</button>
               <button type="button" onClick={() => setPaymentMethod("check")} className={`p-3 border rounded-xl text-xs font-bold text-left transition-all ${paymentMethod === 'check' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Physical Check</button>
             </div>
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 leading-relaxed">
-              {paymentMethod === 'stripe' ? "🔒 Stripe Processing Activated." : <div>💵 Check payable exactly to: <span className="underline font-bold text-slate-950">WDO Custom</span>. Manager will clear balance logging details upon arrival staging.</div>}
+              {paymentMethod === 'stripe' ? "🔒 Stripe Processing Active. Digital wire clearing verification tokens are wired to the project sub-ledgers automatically." : <div>💵 Check payable exactly to: <span className="underline font-bold text-slate-950">WDO Custom</span>. Manager will clear balance logging details upon arrival staging.</div>}
             </div>
           </div>
         )}
@@ -586,12 +582,17 @@ export default function HomeownerPortal() {
           ) : (
             <form onSubmit={handleApprove} className="bg-white border border-slate-200 rounded-xl p-5 sm:p-6 space-y-3 shadow-sm">
               <div className="text-left space-y-0.5">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Dynamic Client Signature Authorization Panel</h3>
+                {/* Reworked Area Title Label */}
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
                 <p className="text-xs text-slate-400 font-medium">Type name to authorize digital contract execution and lock construction bounds.</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="flex-1 px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all" />
-                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white font-bold text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm">Lock & Execute Proposal</button>
+                
+                {/* Reworked Action Button Text */}
+                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white font-bold text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm">
+                  Accept Proposal
+                </button>
               </div>
             </form>
           )}
