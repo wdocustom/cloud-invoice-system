@@ -46,6 +46,7 @@ export default function HomeownerPortal() {
   
   const [tier, setTier] = useState<"mid" | "high">("mid");
   const [activeIndices, setActiveIndices] = useState<number[]>([]);
+  const [expandedIndices, setExpandedIndices] = useState<number[]>([]);
   const [showTerms, setShowTerms] = useState(false);
   const [typedSignature, setTypedSignature] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,6 +123,14 @@ export default function HomeownerPortal() {
   const handleReinstateIndex = (idx: number) => {
     if (isLocked) return;
     setActiveIndices([...activeIndices, idx].sort((a: number, b: number) => a - b));
+  };
+
+  const toggleExpandDescription = (idx: number) => {
+    if (expandedIndices.includes(idx)) {
+      setExpandedIndices(expandedIndices.filter((i) => i !== idx));
+    } else {
+      setExpandedIndices([...expandedIndices, idx]);
+    }
   };
 
   const handleSelectMaterialChoice = async (category: string, value: string) => {
@@ -308,10 +317,11 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* PSYCHOLOGICALLY OPTIMIZED LINE ITEM FEED ARCHITECTURE */}
+            {/* CLEAN LINE ITEMS ARCHITECTURE WITH ACCORDION DROPDOWNS AND UTILITY RED X TRIGGER BUTTONS */}
             <div className="space-y-4 bg-transparent">
               {masterItems.map((item: any, idx: number) => {
                 const isActive = activeIndices.includes(idx);
+                const isExpanded = expandedIndices.includes(idx);
                 if (isLocked && !isActive) return null;
                 return (
                   <div 
@@ -321,12 +331,24 @@ export default function HomeownerPortal() {
                     }`}
                   >
                     <div className="text-left space-y-2 flex-1">
-                      <h4 className="font-extrabold text-slate-900 text-base tracking-tight">
-                        {isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}
-                      </h4>
-                      <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-medium">
-                        {isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpandDescription(idx)}
+                          className="flex items-center justify-center w-5 h-5 rounded border border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-300 transition-all font-sans font-bold text-xs bg-slate-50/50"
+                        >
+                          {isExpanded ? "−" : "+"}
+                        </button>
+                        <h4 className="font-extrabold text-slate-900 text-base tracking-tight">
+                          {isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}
+                        </h4>
+                      </div>
+                      
+                      {isExpanded && (
+                        <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-medium pl-7 animate-fadeIn">
+                          {isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}
+                        </p>
+                      )}
                     </div>
                     
                     <div className="text-right flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-transparent border-slate-100 min-w-[140px]">
@@ -334,17 +356,24 @@ export default function HomeownerPortal() {
                         ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                       {!isLocked && (
-                        <button 
-                          type="button" 
-                          onClick={() => isActive ? handleRemoveIndex(idx) : handleReinstateIndex(idx)} 
-                          className={`text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all outline-none border ${
-                            isActive 
-                              ? 'bg-white border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200' 
-                              : 'bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100'
-                          }`}
-                        >
-                          {isActive ? "Omit Phase" : "Include Phase"}
-                        </button>
+                        isActive ? (
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveIndex(idx)} 
+                            title="Omit Phase"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white border border-red-200/60 transition-all duration-150 shadow-sm outline-none font-sans font-black text-xs"
+                          >
+                            ✕
+                          </button>
+                        ) : (
+                          <button 
+                            type="button" 
+                            onClick={() => handleReinstateIndex(idx)} 
+                            className="bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm transition-all outline-none"
+                          >
+                            Reinstate
+                          </button>
+                        )
                       )}
                     </div>
                   </div>
@@ -388,11 +417,11 @@ export default function HomeownerPortal() {
           {/* RIGHT SIDEBAR COMPONENT PANEL: FIXED CHECKOUT VALUE HUB */}
           <div className="space-y-4 sticky top-20">
             
-            {/* VALUATION CONVERSION CARD */}
+            {/* COMPACT CLEAN SIDEBAR VALUE HUB */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.02)] space-y-5 text-left relative overflow-hidden">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Investment Valuation</p>
-                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Total</p>
+                <h2 className="text-3xl font-black text-slate-955 mt-1 tracking-tight">
                   ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
@@ -409,7 +438,7 @@ export default function HomeownerPortal() {
 
               <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-4 text-xs text-slate-600 space-y-2.5 font-semibold">
                 <div className="flex justify-between items-center border-b border-slate-200/40 pb-2">
-                  <span className="text-slate-500 font-medium">Staging Authorization Deposit ({invoice.deposit_percentage}%):</span>
+                  <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage}%):</span>
                   <span className="font-sans font-black text-slate-950 text-sm">${depositAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-slate-500">
@@ -417,7 +446,7 @@ export default function HomeownerPortal() {
                   <span className="font-extrabold text-slate-800 uppercase tracking-wide">{invoice.project_length || "9 Weeks"}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-slate-500">
-                  <span className="text-slate-500 font-medium">Target Groundbreak Date*:</span>
+                  <span className="text-slate-500 font-medium">Start Date*:</span>
                   <span className="font-extrabold text-slate-800">
                     {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
                   </span>
