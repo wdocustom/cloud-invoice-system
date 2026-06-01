@@ -279,7 +279,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/*¼ TIMELINE SCHEDULE ROADMAP */}
+            {/* TIMELINE SCHEDULE ROADMAP */}
             {isLocked && scheduleTasks.length > 0 && (
               <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">🗓️ Project Production Schedule Roadmap</h3>
@@ -308,44 +308,48 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* ITEMS LEDGER */}
-            <div className="bg-white border border-slate-200/60 rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.01)] overflow-hidden">
-              <div className="bg-slate-50 border-b border-slate-100 px-5 py-4">
-                <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest text-left">Items</h3>
-              </div>
-
-              <div className="divide-y divide-slate-100 bg-white">
-                {masterItems.map((item: any, idx: number) => {
-                  const isActive = activeIndices.includes(idx);
-                  if (isLocked && !isActive) return null;
-                  return (
-                    <div key={idx} className={`p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 transition-all duration-150 ${!isActive ? 'bg-slate-50/50 opacity-25':''}`}>
-                      <div className="text-left space-y-1 flex-1">
-                        <h4 className="font-extrabold text-slate-950 text-sm tracking-tight">{isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}</h4>
-                        <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-medium">
-                          {isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}
-                        </p>
-                      </div>
-                      <div className="text-right flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-transparent border-slate-100">
-                        <span className="font-sans font-extrabold text-slate-900 text-sm tracking-tight">
-                          ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                        {!isLocked && (
-                          isActive ? (
-                            <button type="button" onClick={() => handleRemoveIndex(idx)} className="bg-slate-50 border border-slate-200 hover:border-red-200 hover:bg-red-50 hover:text-red-700 text-slate-500 font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wide shadow-sm transition-all outline-none">
-                              Remove
-                            </button>
-                          ) : (
-                            <button type="button" onClick={() => handleReinstateIndex(idx)} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wide shadow-sm transition-all outline-none">
-                              Reinstate
-                            </button>
-                          )
-                        )}
-                      </div>
+            {/* PSYCHOLOGICALLY OPTIMIZED LINE ITEM FEED ARCHITECTURE */}
+            <div className="space-y-4 bg-transparent">
+              {masterItems.map((item: any, idx: number) => {
+                const isActive = activeIndices.includes(idx);
+                if (isLocked && !isActive) return null;
+                return (
+                  <div 
+                    key={idx} 
+                    className={`p-6 flex flex-col sm:flex-row justify-between sm:items-start gap-4 transition-all duration-200 rounded-xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.01)] ${
+                      !isActive ? 'opacity-30 select-none border-dashed bg-slate-50/50' : 'hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="text-left space-y-2 flex-1">
+                      <h4 className="font-extrabold text-slate-900 text-base tracking-tight">
+                        {isLocked ? item.title : (tier === 'mid' ? item.title : item.high_title)}
+                      </h4>
+                      <p className="text-slate-500 text-xs leading-relaxed max-w-2xl font-medium">
+                        {isLocked ? item.description : (tier === 'mid' ? item.mid_description : item.high_description)}
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
+                    
+                    <div className="text-right flex sm:flex-col items-center sm:items-end justify-between gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-transparent border-slate-100 min-w-[140px]">
+                      <span className="font-sans font-extrabold text-slate-950 text-base tracking-tight block">
+                        ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      {!isLocked && (
+                        <button 
+                          type="button" 
+                          onClick={() => isActive ? handleRemoveIndex(idx) : handleReinstateIndex(idx)} 
+                          className={`text-[10px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition-all outline-none border ${
+                            isActive 
+                              ? 'bg-white border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200' 
+                              : 'bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100'
+                          }`}
+                        >
+                          {isActive ? "Omit Phase" : "Include Phase"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* DYNAMIC DESIGN CHOICE BOARD MODULE */}
@@ -384,46 +388,46 @@ export default function HomeownerPortal() {
           {/* RIGHT SIDEBAR COMPONENT PANEL: FIXED CHECKOUT VALUE HUB */}
           <div className="space-y-4 sticky top-20">
             
-            {/* LIVING TRANSACTIONAL METRICS TILE */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-4 text-left">
+            {/* VALUATION CONVERSION CARD */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.02)] space-y-5 text-left relative overflow-hidden">
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Project Cost</p>
-                <h2 className="text-3xl font-extrabold text-slate-900 mt-1 tracking-tight">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Investment Valuation</p>
+                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
                   ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
-                <div className="mt-2 flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
-                  <span className="text-[9px] font-bold text-slate-500 bg-slate-100 border px-2 py-0.5 rounded-md">
-                    Base Contract: ${baseTotal.toLocaleString(undefined, {minimumFractionDigits:2})}
+                <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
+                  <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md">
+                    Contract Base: ${baseTotal.toLocaleString(undefined, {minimumFractionDigits:2})}
                   </span>
                   {approvedCoTotal > 0 && (
-                    <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md">
-                      CO Changes: +${approvedCoTotal.toLocaleString(undefined, {minimumFractionDigits:2})}
+                    <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-md shadow-sm">
+                      Appended Variations: +${approvedCoTotal.toLocaleString(undefined, {minimumFractionDigits:2})}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-xl border border-slate-200/50 p-3.5 text-xs text-slate-600 space-y-2 font-semibold">
-                <div className="flex justify-between items-center">
-                  <span>Construction Deposit ({invoice.deposit_percentage}%):</span>
-                  <span className="font-sans font-extrabold text-slate-900">${depositAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+              <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-4 text-xs text-slate-600 space-y-2.5 font-semibold">
+                <div className="flex justify-between items-center border-b border-slate-200/40 pb-2">
+                  <span className="text-slate-500 font-medium">Staging Authorization Deposit ({invoice.deposit_percentage}%):</span>
+                  <span className="font-sans font-black text-slate-950 text-sm">${depositAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-500">
-                  <span>Estimated Work Length:</span>
-                  <span className="font-bold text-slate-700 uppercase tracking-wide">{invoice.project_length || "9 Weeks"}</span>
+                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                  <span className="text-slate-500 font-medium">Estimated Build Timeline:</span>
+                  <span className="font-extrabold text-slate-800 uppercase tracking-wide">{invoice.project_length || "9 Weeks"}</span>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-500">
-                  <span>Start Date*:</span>
-                  <span className="font-bold text-slate-700">
+                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                  <span className="text-slate-500 font-medium">Target Groundbreak Date*:</span>
+                  <span className="font-extrabold text-slate-800">
                     {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
                   </span>
                 </div>
               </div>
               
-              <p className="text-[9px] text-slate-400 font-semibold italic leading-normal px-0.5">* Dates are tentative and subject to change based on scheduling and clearance parameters.</p>
+              <p className="text-[9px] text-slate-400 font-semibold italic leading-normal px-0.5">* Timelines and milestone sequencing execute immediately following initial deposit clearance log signatures.</p>
             </div>
 
-            {/* DYNAMIC CONTRACT DRAW PHASES MATRIX */}
+            {/* DRAW PHASES MATRIX */}
             <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm text-left space-y-3">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
@@ -490,7 +494,7 @@ export default function HomeownerPortal() {
                               ))}
                             </div>
                             {!isCoApproved && (
-                              <button type="button" onClick={() => executeOneClickCoApproval(co.id)} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2 rounded-lg tracking-wider uppercase transition shadow-sm outline-none">
+                              <button type="button" onClick={() => executeOneClickCoApproval(co.id)} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl tracking-wider uppercase transition shadow-sm outline-none">
                                 🔒 Execute Change Order Supplement
                               </button>
                             )}
@@ -503,7 +507,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* INTEGRATED POST-SIGN-OFF REMITTANCE DOCK */}
+            {/* REMITTANCE DOCK */}
             {isLocked && !invoice.deposit_cleared && (
               <div className="border border-slate-200 rounded-xl bg-white p-5 text-left space-y-3 shadow-sm animate-fadeIn">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Deposit Remittance Channel</h3>
@@ -517,7 +521,7 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* BINDING SIGNATURE SUBMISSION COMPONENT BLOCK */}
+            {/* SIGNATURE MATRIX SUBMISSION */}
             <div className="border-t pt-2 border-slate-200/40">
               {isLocked ? (
                 <div className="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md relative overflow-hidden border border-slate-800">
@@ -541,7 +545,7 @@ export default function HomeownerPortal() {
               )}
             </div>
 
-            {/* Legal Accordion Terms Footer Link card */}
+            {/* LEGAL TERMS ACCORDION */}
             <div className="border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm text-left">
               <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-50 px-4 py-2.5 font-bold text-[10px] uppercase tracking-wider flex justify-between items-center text-slate-400 hover:text-slate-700 transition-all outline-none border-0"  >
                 <span>⚖️ Binding Terms (Omaha Law Standard)</span>
