@@ -172,7 +172,7 @@ export default function HomeownerPortal() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-2">
         <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-        <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Workspace Securely...</p>
+        <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Premium Workspace...</p>
       </div>
     </div>
   );
@@ -389,7 +389,8 @@ export default function HomeownerPortal() {
             {/* LIVING TRANSACTIONAL METRICS TILE */}
             <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-4 text-left">
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Living Project Valuation</p>
+                {/* REWORKED: "Total Project Cost" */}
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Project Cost</p>
                 <h2 className="text-3xl font-black font-mono text-slate-900 mt-1 tracking-tight">
                   ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
@@ -407,25 +408,31 @@ export default function HomeownerPortal() {
 
               <div className="bg-slate-50 rounded-xl border border-slate-200/50 p-3.5 text-xs text-slate-600 space-y-2 font-medium">
                 <div className="flex justify-between items-center">
-                  <span>Upfront Setup Draw ({invoice.deposit_percentage}%):</span>
+                  {/* REWORKED: "Construction Deposit" */}
+                  <span>Construction Deposit ({invoice.deposit_percentage}%):</span>
                   <span className="font-mono font-bold text-slate-900">${depositAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-slate-400">
                   <span>Estimated Work Length:</span>
-                  <span className="font-bold text-slate-700 uppercase tracking-wide">{invoice.project_length || "TBD"}</span>
+                  <span className="font-bold text-slate-700 uppercase tracking-wide">{invoice.project_length || "9 Weeks"}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-slate-400">
-                  <span>Target Framing Start:</span>
+                  {/* REWORKED: "Start Date" with Asterisk */}
+                  <span>Start Date*:</span>
                   <span className="font-bold text-slate-700">
-                    {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Pending Schedule"}
+                    {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
                   </span>
                 </div>
               </div>
+              
+              {/* Footnote note validating asterisk framework context logic */}
+              <p className="text-[9px] text-slate-400 font-medium italic leading-normal px-0.5">* Dates are tentative and subject to change based on scheduling and clearance parameters.</p>
             </div>
 
             {/* DYNAMIC CONTRACT DRAW PHASES MATRIX */}
             <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm text-left space-y-3">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Contract Payments</h3>
+              {/* REWORKED: "Payment Schedule" */}
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
                   const phaseVal = baseTotal * (phase.percentage / 100);
@@ -450,7 +457,7 @@ export default function HomeownerPortal() {
                         </div>
                         <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {phase.percentage}%</p>
                       </div>
-                      <span className="font-mono font-bold text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-mono font-black text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   );
                 })}
