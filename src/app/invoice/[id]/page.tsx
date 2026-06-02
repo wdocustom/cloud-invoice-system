@@ -39,6 +39,7 @@ interface Invoice {
 
 export default function HomeownerPortal() {
   const { id } = useParams();
+  const router = useParams();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
   const [scheduleTasks, setScheduleTasks] = useState<any[]>([]);
@@ -133,6 +134,7 @@ export default function HomeownerPortal() {
         .from("project_schedules")
         .select("*")
         .eq("project_id", id)
+        .order("sort_order", { ascending: true })
         .order("target_start_date", { ascending: true });
       if (schedule) setScheduleTasks(schedule);
 
@@ -204,12 +206,51 @@ export default function HomeownerPortal() {
       cost: tier === "mid" ? item.mid_cost : item.high_cost
     }));
 
+    // 1. Core update to finalize proposal state parameters
     const { error } = await supabase
       .from("invoices")
       .update({ status: "approved", amount: baseTotal, items: finalizedItems, signature_name: typedSignature, signed_at: timestamp })
       .eq("id", id);
 
     if (!error) {
+      try {
+        // 2. Clear out older flat temporary scheduler placeholder rows if any exist
+        await supabase.from("project_schedules").delete().eq("project_id", id);
+
+        // 3. Automated Gantt timeline generator parser mapping sequence
+        const fallbackProjectStart = invoice?.estimated_start_date || new Date().toISOString().split("T")[0];
+        let runningDateTracker = new Date(fallbackProjectStart + 'T00:00:00');
+
+        const schedulesToInsert = finalizedItems.map((item: any, orderIndex: number) => {
+          const taskStartStr = runningDateTracker.toISOString().split("T")[0];
+          
+          // Increment calendar windows iteratively by exactly 4 days per phase to stagger rows nicely
+          runningDateTracker.setDate(runningDateTracker.getDate() + 4);
+          const taskEndStr = runningDateTracker.toISOString().split("T")[0];
+          
+          // Step spacer padding to separate master components
+          runningDateTracker.setDate(runningDateTracker.getDate() + 1);
+
+          return {
+            project_id: id,
+            task_name: item.title,
+            target_start_date: taskStartStr,
+            target_end_date: taskEndStr,
+            parent_id: null, // Deployed straight into root headers matrix levels
+            progress_percent: 0,
+            status: "scheduled",
+            sort_order: orderIndex * 10,
+            color_theme: "bg-amber-400/20 text-amber-800 border-amber-300"
+          };
+        });
+
+        if (schedulesToInsert.length > 0) {
+          await supabase.from("project_schedules").insert(schedulesToInsert);
+        }
+      } catch (ganttErr) {
+        console.error("Auto-Gantt orchestration failure:", ganttErr);
+      }
+
       fetchInvoiceData();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -243,6 +284,9 @@ export default function HomeownerPortal() {
     { title: "Finishes", subtitle: "Trim Out" },
     { title: "Hand-off", subtitle: "Turnover" }
   ];
+
+  const masterMilestones = scheduleTasks.filter(t => !t.parent_id);
+  const getSubTasksForMilestone = (parentId: string) => scheduleTasks.filter(t => t.parent_id === parentId);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
@@ -327,31 +371,52 @@ export default function HomeownerPortal() {
               </div>
             )}
 
-            {/* TIMELINE SCHEDULE ROADMAP */}
+            {/* SOPHISTICATED AUTOMATED NESTED GANTT CHART VIEW FOR CLIENT VIEW */}
             {isLocked && scheduleTasks.length > 0 && (
-              <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-3">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">🗓️ Project Production Schedule Roadmap</h3>
-                <div className="border rounded-xl bg-slate-50 p-3 space-y-2.5 shadow-inner">
-                  {scheduleTasks.map((task) => (
-                    <div key={task.id} className="bg-white border border-slate-200/60 p-3 rounded-lg shadow-sm space-y-2 text-xs">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-extrabold text-slate-900">{task.task_name}</p>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-wide">
-                            Window: {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}
-                          </p>
+              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">🗓️ Live Construction Timeline Gantt Grid</h3>
+                <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 text-xs shadow-inner">
+                  {masterMilestones.map((milestone) => {
+                    const subTasks = getSubTasksForMilestone(milestone.id);
+                    return (
+                      <div key={milestone.id} className="bg-white">
+                        
+                        <div className="p-3 bg-slate-50/40 flex justify-between items-center text-left font-black text-slate-900 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span>🔼</span>
+                            <span>{milestone.task_name}</span>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className="text-[9px] font-bold text-slate-400 bg-white border px-1.5 py-0.2 rounded-md font-sans">
+                              {new Date(milestone.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} - {new Date(milestone.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                            </span>
+                            <span className="font-sans font-black text-blue-600 text-[10px]">{milestone.progress_percent}%</span>
+                          </div>
                         </div>
-                        <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
-                          task.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                          task.status === 'in_progress' ? 'bg-blue-50 text-blue-700 border-blue-100 animate-pulse' :
-                          'bg-slate-50 text-slate-400'
-                        }`}>{task.status.replace('_', ' ')}</span>
+
+                        <div className="divide-y divide-slate-50 pl-6">
+                          {subTasks.map((task) => (
+                            <div key={task.id} className="p-2.5 flex justify-between items-center gap-4 hover:bg-slate-50/30 transition-colors">
+                              <div className="flex items-center gap-2.5 text-left min-w-0 flex-1">
+                                <span className="text-slate-300 font-bold">↳</span>
+                                <span className="font-bold text-slate-800 truncate">{task.task_name}</span>
+                                <div className={`px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider shrink-0 ${task.color_theme}`}>
+                                  {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/40 shadow-inner">
+                                  <div className="h-full bg-slate-900 transition-all duration-300" style={{ width: `${task.progress_percent}%` }} />
+                                </div>
+                                <span className="font-sans font-bold text-slate-500 text-[10px] min-w-[24px] text-right">{task.progress_percent}%</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
                       </div>
-                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/40 shadow-inner">
-                        <div className="h-full bg-slate-900 transition-all duration-500 rounded-full" style={{ width: `${task.progress_percent}%` }} />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -359,7 +424,7 @@ export default function HomeownerPortal() {
             {/* HOMEOWNER ACCORDION LOG COMPONENT BLOCK */}
             {isLocked && dailyLogs.length > 0 && (
               <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-b pb-2 border-slate-100">📸 Field Progress Updates & Logs</h3>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">📸 Field Progress Updates & Logs</h3>
                 <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto pr-1 text-xs">
                   {dailyLogs.map((log) => (
                     <div key={log.id} className="py-3 space-y-2 first:pt-0">
@@ -372,7 +437,7 @@ export default function HomeownerPortal() {
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
                           {log.photo_urls.map((photoUrl: string, pIdx: number) => (
                             <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block relative aspect-video border rounded-lg overflow-hidden bg-slate-50 shadow-sm transition-transform duration-150 hover:scale-102">
-                              <img src={photoUrl} alt="Field construction report attachment" className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                              <img src={photoUrl} className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                             </a>
                           ))}
                         </div>

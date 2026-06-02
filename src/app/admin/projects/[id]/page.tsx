@@ -13,7 +13,7 @@ export default function ProjectDetailPanel() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // Editable items state copy
+  // Editable main invoice items state copy
   const [editableItems, setEditableItems] = useState<any[]>([]);
   const [isUpdatingItems, setIsUpdatingItems] = useState(false);
 
@@ -22,6 +22,14 @@ export default function ProjectDetailPanel() {
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
   const [isSubmittingLog, setIsSubmittingLog] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  // Advanced Sophisticated Gantt Scheduler Workspace State Variables
+  const [taskName, setTaskName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [selectedParentId, setSelectedParentId] = useState<string>("master");
+  const [selectedColor, setSelectedColor] = useState("bg-amber-400/20 text-amber-800 border-amber-300");
+  const [isPublishingTask, setIsPublishingTask] = useState(false);
 
   // Material selection state variables
   const [category, setCategory] = useState("");
@@ -32,12 +40,6 @@ export default function ProjectDetailPanel() {
   const [isGeneratingCO, setIsGeneratingCO] = useState(false);
   const [coLineItems, setCoLineItems] = useState<any[]>([]);
   const [coTitle, setCoTitle] = useState("Change Order Supplement");
-
-  // Scheduling engine state variables
-  const [taskName, setTaskName] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [isPublishingTask, setIsPublishingTask] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -71,6 +73,7 @@ export default function ProjectDetailPanel() {
           .from("project_schedules")
           .select("*")
           .eq("project_id", id)
+          .order("sort_order", { ascending: true })
           .order("target_start_date", { ascending: true });
         if (schedule) setScheduleTasks(schedule);
 
@@ -143,7 +146,6 @@ export default function ProjectDetailPanel() {
     }
   };
 
-  // Device storage pipeline engine
   const handleDevicePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -153,7 +155,7 @@ export default function ProjectDetailPanel() {
       const fileExtension = file.name.split(".").pop();
       const uniqueFileName = `${id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
 
-      const { data, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("project_photos")
         .upload(uniqueFileName, file, {
           cacheControl: "3600",
@@ -174,10 +176,6 @@ export default function ProjectDetailPanel() {
     } finally {
       setIsUploadingPhoto(false);
     }
-  };
-
-  const handleClearPhotos = () => {
-    setUploadedPhotos([]);
   };
 
   const handlePublishDailyLog = async (e: React.FormEvent) => {
@@ -203,6 +201,71 @@ export default function ProjectDetailPanel() {
       fetchProjectDetail();
     }
     setIsSubmittingLog(false);
+  };
+
+  const handlePublishGanttTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!taskName.trim() || !startDate || !endDate) return;
+    setIsPublishingTask(true);
+
+    const isSubTask = selectedParentId !== "master";
+    const nextSortOrder = scheduleTasks.length * 10;
+
+    const { error } = await supabase
+      .from("project_schedules")
+      .insert([
+        {
+          project_id: id,
+          task_name: taskName.trim(),
+          target_start_date: startDate,
+          target_end_date: endDate,
+          parent_id: isSubTask ? selectedParentId : null,
+          color_theme: selectedColor,
+          progress_percent: 0,
+          status: "scheduled",
+          sort_order: nextSortOrder
+        }
+      ]);
+
+    if (error) {
+      alert("Scheduler insertion exception: " + error.message);
+    } else {
+      setTaskName("");
+      setStartDate("");
+      setEndDate("");
+      setSelectedParentId("master");
+      fetchProjectDetail();
+    }
+    setIsPublishingTask(false);
+  };
+
+  const handleUpdateTaskSlider = async (taskId: string, percentVal: number) => {
+    let nextStatus = "scheduled";
+    if (percentVal > 0 && percentVal < 100) nextStatus = "in_progress";
+    if (percentVal === 100) nextStatus = "completed";
+
+    await supabase
+      .from("project_schedules")
+      .update({ progress_percent: percentVal, status: nextStatus })
+      .eq("id", taskId);
+
+    const { data: refreshed } = await supabase
+      .from("project_schedules")
+      .select("*")
+      .eq("project_id", id)
+      .order("sort_order", { ascending: true })
+      .order("target_start_date", { ascending: true });
+    if (refreshed) setScheduleTasks(refreshed);
+  };
+
+  const handleDropScheduleTask = async (taskId: string) => {
+    if (!confirm("Permanently strip this timeline row block from the project calendar?")) return;
+    await supabase.from("project_schedules").delete().eq("id", taskId);
+    fetchProjectDetail();
+  };
+
+  const handleClearPhotos = () => {
+    setUploadedPhotos([]);
   };
 
   const toggleDeposit = async () => {
@@ -232,55 +295,6 @@ export default function ProjectDetailPanel() {
       .update({ current_phase_index: nextIdx })
       .eq("id", id);
     if (!error) fetchProjectDetail();
-  };
-
-  const handlePublishScheduleTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!taskName.trim() || !startDate || !endDate) return;
-    setIsPublishingTask(true);
-
-    const { error } = await supabase
-      .from("project_schedules")
-      .insert([
-        {
-          project_id: id,
-          task_name: taskName.trim(),
-          target_start_date: startDate,
-          target_end_date: endDate,
-          progress_percent: 0,
-          status: "scheduled"
-        }
-      ]);
-
-    if (!error) {
-      setTaskName("");
-      setStartDate("");
-      setEndDate("");
-      fetchProjectDetail();
-    }
-    setIsPublishingTask(false);
-  };
-
-  const handleUpdateTaskProgress = async (taskId: string, currentPercent: number) => {
-    let nextPercent = currentPercent + 25;
-    if (nextPercent > 100) nextPercent = 0;
-
-    let nextStatus = "scheduled";
-    if (nextPercent > 0 && nextPercent < 100) nextStatus = "in_progress";
-    if (nextPercent === 100) nextStatus = "completed";
-
-    await supabase
-      .from("project_schedules")
-      .update({ progress_percent: nextPercent, status: nextStatus })
-      .eq("id", taskId);
-
-    fetchProjectDetail();
-  };
-
-  const handleDropScheduleTask = async (taskId: string) => {
-    if (!confirm("Remove this target schedule task block?")) return;
-    await supabase.from("project_schedules").delete().eq("id", taskId);
-    fetchProjectDetail();
   };
 
   const handlePushOptionGroup = async (e: React.FormEvent) => {
@@ -401,12 +415,15 @@ export default function ProjectDetailPanel() {
   const baseContractAmount = typeof project.amount === "number" ? project.amount : 0;
   const rawViewHistory = Array.isArray(project.view_history) ? project.view_history : [];
 
+  const masterMilestones = scheduleTasks.filter(t => !t.parent_id);
+  const getSubTasksForMilestone = (parentId: string) => scheduleTasks.filter(t => t.parent_id === parentId);
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
       
       {/* Premium Sticky Control Banner */}
       <div className="bg-slate-900 text-white border-b border-slate-800 shadow-sm sticky top-0 z-50 backdrop-blur-md bg-slate-900/95">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div className="space-y-0.5">
             <button type="button" onClick={() => router.push("/admin/projects")} className="text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition-colors">
               ← Back to Project Index Ledger
@@ -432,7 +449,7 @@ export default function ProjectDetailPanel() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 pt-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 pt-6 space-y-6">
         
         {/* CONDENSED & BALANCED ANALYTICS METRICS ROW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -491,7 +508,7 @@ export default function ProjectDetailPanel() {
                       <span className="font-bold text-slate-700 truncate max-w-[110px]">#{tIdx + 1} • {deviceLabel}</span>
                       <span className="font-mono text-slate-400 scale-90">({loggedIp})</span>
                       <span className="font-sans font-medium text-slate-500">
-                        {isNaN(Date.parse(rawTimeString)) ? "Invalid" : new Date(rawTimeString).toLocaleDateString(undefined, {month:'short', day:'numeric'})} {new Date(rawTimeString).toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit', hour12:false})}
+                        {isNaN(Date.parse(rawTimeString)) ? "Invalid" : new Date(rawTimeString).toLocaleDateString(undefined, {month:'short', day:'numeric'})}
                       </span>
                     </div>
                   );
@@ -503,7 +520,133 @@ export default function ProjectDetailPanel() {
           </div>
         </div>
 
-        {/* LIVE EDITABLE CONTRACT BUILDER WORKSPACE */}
+        {/* HIGH-END INTERACTIVE NESTED GANTT CHARTS SYSTEM MODULE */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="border-b pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">📅 Production Phase Gantt Blueprint Scheduler</h3>
+              <p className="text-[11px] text-slate-400 font-medium">Construct sub-tasks, nest trade rows, and update operational progress margins directly into live streams charts grids.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <form onSubmit={handlePublishGanttTask} className="space-y-3 border p-4 rounded-xl bg-slate-50/50 shadow-inner text-xs h-fit">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Publish Timeline Row Component:</p>
+              
+              <div className="space-y-1">
+                <label className="text-[8px] font-black text-slate-400 uppercase block">Task Name Label:</label>
+                <input type="text" placeholder="Title (e.g. Electrical Layout)" required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2 bg-white border rounded-lg outline-none text-slate-800 font-semibold shadow-sm" />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[8px] font-black text-slate-400 uppercase block">Parent Nest Layer Architecture:</label>
+                <select value={selectedParentId} onChange={(e) => setSelectedParentId(e.target.value)} className="w-full p-2 bg-white border rounded-lg outline-none font-semibold text-slate-700 shadow-sm">
+                  <option value="master">✦ Create Main Group Heading (Parent)</option>
+                  {masterMilestones.map(m => (
+                    <option key={m.id} value={m.id}>↳ Nest Inside: {m.task_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[8px] font-black text-slate-400 uppercase block">Start Day:</label>
+                  <input type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800 font-bold" />
+                </div>
+                <div>
+                  <label className="text-[8px] font-black text-slate-400 uppercase block">End Day:</label>
+                  <input type="date" required value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800 font-bold" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[8px] font-black text-slate-400 uppercase block">Gantt Visual Color Profile Marker:</label>
+                <select value={selectedColor} onChange={(e) => setSelectedColor(e.target.value)} className="w-full p-2 bg-white border rounded-lg outline-none font-semibold text-slate-700 shadow-sm">
+                  <option value="bg-amber-400/20 text-amber-800 border-amber-300">🟡 Amber Finish Theme Accent</option>
+                  <option value="bg-blue-400/20 text-blue-800 border-blue-300">🔵 Blue Utility Utilities Accent</option>
+                  <option value="bg-rose-400/20 text-rose-800 border-rose-300">🔴 Rose Structural Framing Accent</option>
+                  <option value="bg-emerald-400/20 text-emerald-800 border-emerald-300">🟢 Emerald Trim Turnover Accent</option>
+                </select>
+              </div>
+
+              <button type="submit" disabled={isPublishingTask} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm mt-1">
+                Inject Production Row Block
+              </button>
+            </form>
+
+            <div className="lg:col-span-3 border rounded-xl bg-white overflow-hidden shadow-sm flex flex-col text-xs">
+              <div className="bg-slate-50 border-b p-3 flex justify-between items-center font-black text-[10px] text-slate-400 uppercase tracking-widest select-none">
+                <span>Phase Workspace Management Track</span>
+                <span className="font-sans font-bold text-slate-800">Operational Horizon Calendar Grid View</span>
+              </div>
+
+              <div className="divide-y divide-slate-100 overflow-y-auto max-h-[340px] pr-0.5">
+                {masterMilestones.map((milestone) => {
+                  const subTasks = getSubTasksForMilestone(milestone.id);
+                  return (
+                    <div key={milestone.id} className="bg-white">
+                      
+                      <div className="p-3 bg-slate-50/40 flex justify-between items-center gap-4 group/master">
+                        <div className="flex items-center gap-2 text-left flex-1 min-w-0">
+                          <span className="text-slate-400 text-sm">🔼</span>
+                          <span className="font-black text-slate-900 text-sm tracking-tight truncate">{milestone.task_name}</span>
+                          <span className="text-[9px] font-bold text-slate-400 bg-white border px-1.5 py-0.2 rounded-md shrink-0">
+                            {new Date(milestone.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} - {new Date(milestone.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 shrink-0">
+                          <div className="flex items-center gap-2">
+                            <input 
+                              type="range" min="0" max="100" step="25"
+                              value={milestone.progress_percent}
+                              onChange={(e) => handleUpdateTaskSlider(milestone.id, parseInt(e.target.value))}
+                              className="w-16 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900 shadow-inner"
+                            />
+                            <span className="font-sans font-black text-slate-900 text-[10px] text-right min-w-[28px]">{milestone.progress_percent}%</span>
+                          </div>
+                          <button type="button" onClick={() => handleDropScheduleTask(milestone.id)} className="text-slate-300 hover:text-red-500 font-bold px-1 transition-colors outline-none text-xs">✕</button>
+                        </div>
+                      </div>
+
+                      <div className="bg-white divide-y divide-slate-50 pl-7">
+                        {subTasks.map((task) => (
+                          <div key={task.id} className="p-2.5 flex justify-between items-center gap-4 group/sub hover:bg-slate-50/30 transition-colors">
+                            <div className="flex items-center gap-2.5 text-left min-w-0 flex-1">
+                              <span className="text-slate-300 font-bold">↳</span>
+                              <span className="font-bold text-slate-800 truncate text-xs">{task.task_name}</span>
+                              <div className={`px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider shrink-0 ${task.color_theme}`}>
+                                {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 shrink-0">
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="range" min="0" max="100" step="25"
+                                  value={task.progress_percent}
+                                  onChange={(e) => handleUpdateTaskSlider(task.id, parseInt(e.target.value))}
+                                  className="w-16 h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600 shadow-inner"
+                                />
+                                <span className="font-sans font-bold text-slate-600 text-[10px] text-right min-w-[28px]">{task.progress_percent}%</span>
+                              </div>
+                              <button type="button" onClick={() => handleDropScheduleTask(task.id)} className="text-slate-300 hover:text-red-500 font-bold px-1 transition-colors outline-none text-xs">✕</button>
+                            </div>
+                          </div>
+                        ))}
+                        {subTasks.length === 0 && (
+                          <p className="py-2 text-left italic text-slate-300 text-[10px] font-medium pl-6">No child specs nested inside this milestone layer block.</p>
+                        )}
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* LIVE EDITABLE CONTRACT SCOPE EDITOR */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 border-slate-100">
             <div>
@@ -573,7 +716,7 @@ export default function ProjectDetailPanel() {
           </div>
         </div>
 
-        {/* PRODUCTION MANAGER SITE DAILY LOG CARD SECTION WITH DIRECT PHOTO STORAGE UPLOAD */}
+        {/* FIELD OPERATIONS DAILY LOG WORKBENCH */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
           <div className="border-b pb-2 border-slate-100">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">📸 Field Operations Daily Log</h3>
@@ -589,7 +732,7 @@ export default function ProjectDetailPanel() {
                   rows={3}
                   value={logText}
                   onChange={(e) => setLogText(e.target.value)}
-                  placeholder="Describe trade workflow status, structural inspections cleared, layout tasks achieved today..."
+                  placeholder="Describe trade workflow status..."
                   className="w-full p-2.5 bg-white border border-slate-200 focus:border-slate-400 outline-none rounded-lg shadow-sm font-semibold text-slate-800 resize-none leading-relaxed"
                 />
               </div>
@@ -604,13 +747,7 @@ export default function ProjectDetailPanel() {
                       </p>
                       <p className="text-[9px] text-slate-400 font-medium">JPEG, PNG up to 10MB</p>
                     </div>
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      disabled={isUploadingPhoto}
-                      onChange={handleDevicePhotoUpload}
-                      className="hidden" 
-                    />
+                    <input type="file" accept="image/*" disabled={isUploadingPhoto} onChange={handleDevicePhotoUpload} className="hidden" />
                   </label>
                 </div>
               </div>
@@ -618,12 +755,12 @@ export default function ProjectDetailPanel() {
               {uploadedPhotos.length > 0 && (
                 <div className="bg-white border border-slate-200 p-2.5 rounded-lg space-y-1.5 shadow-sm">
                   <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400 border-b pb-1">
-                    <span>Queue: {uploadedPhotos.length} Images Uploaded</span>
+                    <span>Queue: {uploadedPhotos.length} Images</span>
                     <button type="button" onClick={handleClearPhotos} className="text-red-500 hover:underline">Clear</button>
                   </div>
                   <div className="grid grid-cols-4 gap-1 max-h-14 overflow-y-auto">
                     {uploadedPhotos.map((url, uIdx) => (
-                      <div key={uIdx} className="aspect-square rounded border overflow-hidden bg-slate-100 relative group">
+                      <div key={uIdx} className="aspect-square rounded border overflow-hidden bg-slate-100 relative">
                         <img src={url} className="w-full h-full object-cover" />
                       </div>
                     ))}
@@ -631,103 +768,35 @@ export default function ProjectDetailPanel() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={isSubmittingLog || isUploadingPhoto || !logText.trim()}
-                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm"
-              >
-                {isSubmittingLog ? "Uploading log..." : "Publish Daily Operations Log"}
+              <button type="submit" disabled={isSubmittingLog || isUploadingPhoto || !logText.trim()} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm">
+                Publish Daily Operations Log
               </button>
             </form>
 
-            {/* LIVE DAILY LOG DISPLAY AREA FRAME */}
             <div className="md:col-span-2 divide-y divide-slate-100 border bg-white rounded-xl max-h-[290px] overflow-y-auto shadow-sm p-1">
               {dailyLogs.map((log) => (
                 <div key={log.id} className="p-4 space-y-2.5 bg-white">
                   <div className="flex justify-between items-center text-[10px] text-slate-400 border-b pb-1.5 border-slate-100">
-                    <span className="font-extrabold uppercase tracking-wide text-slate-700"> Locker Update Deployed</span>
-                    <span className="font-sans font-bold text-slate-500">
-                      {new Date(log.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    <span className="font-extrabold uppercase tracking-wide text-slate-700">Locker Update Deployed</span>
+                    <span className="font-sans font-bold text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
                   </div>
                   <p className="text-slate-700 font-medium leading-relaxed text-left text-xs whitespace-pre-line">{log.log_text}</p>
-                  
                   {log.photo_urls && log.photo_urls.length > 0 && (
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
                       {log.photo_urls.map((photoUrl: string, pIdx: number) => (
-                        <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block relative aspect-video border rounded-lg overflow-hidden bg-slate-50 shadow-sm hover:scale-102 transition-transform duration-150">
-                          <img src={photoUrl} alt="Construction report log attachment" className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
-                          <div className="absolute bottom-0 left-0 right-0 bg-slate-950/60 text-[8px] font-black text-white text-center py-0.2 uppercase tracking-wide">Expand Photo</div>
+                        <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block relative aspect-video border rounded-lg overflow-hidden bg-slate-50 shadow-sm hover:scale-102 transition-transform">
+                          <img src={photoUrl} className="object-cover w-full h-full" />
                         </a>
                       ))}
                     </div>
                   )}
                 </div>
               ))}
-              {dailyLogs.length === 0 && (
-                <div className="p-12 text-center text-slate-400 italic font-medium space-y-1">
-                  <p className="text-sm">📭 Daily operations log ledger empty.</p>
-                  <p className="text-[10px] text-slate-300 not-italic">Site progress inputs and trade photo uploads will print sequentially here when published.</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        {/* MASTER GANTT CALENDAR OPERATION COMPONENT WORKSPACE */}
-        <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-sm space-y-4">
-          <div>
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">📅 Master Construction Production Scheduler</h3>
-            <p className="text-[11px] text-slate-500 mt-1">Plot field milestones and update tasks. This Gantt framework unlocks automatically on the homeowner's screen after signoff.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <form onSubmit={handlePublishScheduleTask} className="space-y-2 border p-4 rounded-xl bg-slate-50/50 shadow-inner h-fit text-xs">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Publish Schedule Milestone:</p>
-              <input type="text" placeholder="Task Title" required value={taskName} onChange={(e) => setTaskName(e.target.value)} className="w-full p-2.5 bg-white border rounded-lg outline-none focus:border-slate-500 shadow-sm font-semibold text-slate-800" />
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[8px] font-black text-slate-400 uppercase block mb-0.5">Start window:</label>
-                  <input type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800 font-semibold" />
-                </div>
-                <div>
-                  <label className="text-[8px] font-black text-slate-400 uppercase block mb-0.5">End window:</label>
-                  <input type="date" required value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full p-1.5 bg-white border rounded-lg outline-none text-slate-800 font-semibold" />
-                </div>
-              </div>
-              <button type="submit" disabled={isPublishingTask} className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm mt-1">
-                Deploy Schedule Target Row
-              </button>
-            </form>
-
-            <div className="md:col-span-2 divide-y divide-slate-100 border bg-white rounded-xl max-h-48 overflow-y-auto shadow-sm text-xs">
-              {scheduleTasks.map((task) => (
-                <div key={task.id} className="p-3 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white hover:bg-slate-50/40 transition-colors">
-                  <div className="text-left space-y-0.5">
-                    <p className="font-extrabold text-slate-900">{task.task_name}</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase">
-                      ⏱ Window: {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-transparent pt-2 sm:pt-0 border-slate-100 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateTaskProgress(task.id, task.progress_percent)}
-                      className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border p-1.5 rounded-lg text-[10px] transition font-black tracking-wide uppercase text-slate-600 outline-none shadow-sm"
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${task.status === 'completed' ? 'bg-emerald-500' : task.status === 'in_progress' ? 'bg-blue-500 animate-pulse' : 'bg-slate-300'}`} />
-                      Metric: <span className="font-sans font-bold text-slate-900">{task.progress_percent}%</span>
-                    </button>
-                    <button type="button" onClick={() => handleDropScheduleTask(task.id)} className="text-slate-300 hover:text-red-500 font-extrabold px-1 text-sm outline-none transition-colors">✕</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* BOTTOM WORKBENCH PANELS */}
+        {/* BOTTOM METRICS CHECKOUT DRAW WORKBENCH PANELS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           <div className="space-y-4">
             <div className="p-5 bg-white border border-slate-200/60 rounded-xl space-y-4 shadow-sm">
@@ -755,7 +824,6 @@ export default function ProjectDetailPanel() {
                         </div>
                         <span className="font-sans font-extrabold text-slate-900 text-base tracking-tight">${coAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                       </div>
-                      
                       <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
                         <div className="flex items-center gap-1">
                           <span className={`text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{co.status || "pending"}</span>
@@ -766,9 +834,7 @@ export default function ProjectDetailPanel() {
                             <button
                               type="button"
                               onClick={() => toggleChangeOrderPaymentStatus(co)}
-                              className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-inner ${
-                                co.deposit_cleared ? 'bg-slate-900' : 'bg-slate-200'
-                              }`}
+                              className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-inner ${co.deposit_cleared ? 'bg-slate-900' : 'bg-slate-200'}`}
                             >
                               <span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${co.deposit_cleared ? 'translate-x-3' : 'translate-x-0'}`} />
                             </button>
@@ -813,27 +879,6 @@ export default function ProjectDetailPanel() {
                 <button type="button" onClick={deployChangeOrderToPortal} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition shadow-md shadow-slate-950/20">Broadcast Change Order Supplement</button>
               </div>
             )}
-
-            <div className="border-t border-slate-200/60 pt-4 space-y-3">
-              <div className="flex justify-between items-center">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Material Choice Boards</h4>
-                {project.homeowner_options?.length > 0 && <button type="button" onClick={handleClearAllOptions} className="text-[10px] text-red-500 hover:underline font-bold uppercase tracking-wide">Wipe Sheet</button>}
-              </div>
-              <div className="divide-y border border-slate-200/80 bg-white rounded-xl max-h-28 overflow-y-auto text-xs shadow-sm">
-                {project.homeowner_options?.map((group: any, idx: number) => {
-                  const chosen = project.homeowner_selections?.[group.category];
-                  return (
-                    <div key={idx} className="p-2.5 flex flex-col text-left bg-white font-medium text-slate-600">
-                      <p className="font-black text-slate-400 text-[8px] uppercase tracking-wider mb-0.5">📦 {group.category}:</p>
-                      <p className="text-slate-800 font-semibold text-[11px] leading-tight">{group.choices ? group.choices.join("  |  ") : ""}</p>
-                      {chosen && (
-                        <p className="text-[9px] text-blue-700 font-extrabold mt-1 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md inline-block self-start uppercase tracking-wider">✓ Choice: {chosen}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </div>
 
