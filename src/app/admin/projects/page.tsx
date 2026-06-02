@@ -47,13 +47,13 @@ export default function ProjectsIndexLedger() {
             <p className="text-[10px] font-sans font-bold tracking-widest text-slate-400 uppercase">Operational Workspaces</p>
           </div>
           
-          {/* New Smooth Navigation Link Element to Root Dashboard */}
+          {/* Fixed Navigation Trigger Routing Back to /admin */}
           <button
             type="button"
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/admin")}
             className="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-black text-[10px] px-4 py-2.5 rounded-xl border border-slate-700 uppercase tracking-wider transition shadow-sm outline-none"
           >
-            ← Estimator Core
+            ← Estimator
           </button>
         </div>
       </div>
