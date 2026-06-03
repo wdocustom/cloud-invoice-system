@@ -21,7 +21,6 @@ export default function MultiTierEstimatorCreator() {
   const [generatedItems, setGeneratedItems] = useState<any[]>([]);
   const [proposalLink, setProposalLink] = useState("");
 
-  // Process the layout specs directly on the user's device
   const handleClientSideFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -31,16 +30,12 @@ export default function MultiTierEstimatorCreator() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const fullResultText = event.target?.result as string;
-      
-      // Clean up common encoding data streams to isolate plain text strings cleanly
       const normalizedText = fullResultText
         .replace(/[^\x20-\x7E\n\r\t]/g, " ")
         .replace(/\s+/g, " ");
       
       setExtractedFileText(normalizedText);
     };
-    
-    // Read the package details safely without overloading network memory bounds
     reader.readAsText(file);
   };
 
@@ -51,7 +46,6 @@ export default function MultiTierEstimatorCreator() {
     setIsGenerating(true);
     
     try {
-      // Stream as a clean, standardized JSON body request rather than a heavy multi-part stream
       const res = await fetch("/api/generate-scope", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,6 +88,9 @@ export default function MultiTierEstimatorCreator() {
       { name: "Flawless Properties turnover handoff", percentage: 100 - (depositPercent + 24 + 24) }
     ];
 
+    // Generate a fallback string to satisfy the database constraint rule
+    const primaryDatabaseSummaryText = goalsPrompt.trim() || `Residential renovation project scope manifest for ${clientName}.`;
+
     try {
       const { data, error } = await supabase
         .from("invoices")
@@ -102,6 +99,7 @@ export default function MultiTierEstimatorCreator() {
             homeowner_name: clientName.trim(),
             homeowner_email: clientEmail.trim(),
             job_address: `${streetAddress.trim()}, Omaha, NE ${zipCode.trim()}`,
+            description: primaryDatabaseSummaryText, // Added to fix the database constraint error
             amount: calculatedBaseTotal,
             status: "pending",
             deposit_percentage: depositPercent,
