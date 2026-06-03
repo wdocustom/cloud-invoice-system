@@ -28,6 +28,8 @@ export default function ProjectWorkspaceControlHub() {
 
   // Field Operations Log States
   const [dailyNotes, setDailyNotes] = useState("");
+  const [attachedPhotoBase64, setAttachedPhotoBase64] = useState("");
+  const [attachedPhotoName, setAttachedPhotoName] = useState("");
   const [isLogging, setIsLogging] = useState(false);
 
   useEffect(() => {
@@ -152,14 +154,28 @@ export default function ProjectWorkspaceControlHub() {
     saveGlobalScopeItemChanges(currentItems);
   };
 
+  // Convert image upload to base64 format right inside the log stream state
+  const handleDailyLogPhotoLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAttachedPhotoName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setAttachedPhotoBase64(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const submitDailyOperationsLog = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dailyNotes.trim()) return;
+    if (!dailyNotes.trim() && !attachedPhotoBase64) return;
     setIsLogging(true);
 
     const newLogEntry = {
       timestamp: new Date().toISOString(),
       notes: dailyNotes.trim(),
+      photo: attachedPhotoBase64 || null, // Appends base64 camera image directly to Supabase array entry
       author: "Contractor Workspace"
     };
 
@@ -175,7 +191,9 @@ export default function ProjectWorkspaceControlHub() {
       if (error) throw error;
       setProject((prev: any) => ({ ...prev, daily_logs: updatedLogs }));
       setDailyNotes("");
-      alert("Daily operations log filed successfully!");
+      setAttachedPhotoBase64("");
+      setAttachedPhotoName("");
+      alert("Daily operations log with image snapshot filed successfully!");
     } catch (err: any) {
       alert("Failed to submit field log entry: " + err.message);
     } finally {
@@ -287,7 +305,7 @@ export default function ProjectWorkspaceControlHub() {
             🗓️ PRODUCTION PHASE GANTT BLUEPRINT SCHEDULER
           </h3>
           <p className="text-[11px] text-slate-400 font-medium -mt-2">Construct sub-tasks, nest trade rows, and update operational progress margins directly into live streams charts grids.</p>
-          <div className="h-40 border border-slate-200 rounded-xl bg-slate-50/50 flex flex-col items-center justify-between p-4">
+          <div className="h-32 border border-slate-200 rounded-xl bg-slate-50/50 flex flex-col items-center justify-between p-4">
             <div className="w-full flex justify-between text-[10px] font-black text-slate-400 border-b pb-2 uppercase tracking-wider">
               <span>PHASE WORKSPACE MANAGEMENT TRACK</span>
               <span>OPERATIONAL HORIZON CALENDAR GRID VIEW</span>
@@ -387,7 +405,7 @@ export default function ProjectWorkspaceControlHub() {
         </div>
       </div>
 
-      {/* RESTORED FIELD OPERATIONS DAILY LOG WORKBENCH */}
+      {/* FIELD OPERATIONS DAILY LOG WORKBENCH WITH CAMERA ATTACHMENTS RESTORED */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
           <div className="border-b pb-3 border-slate-100">
@@ -396,37 +414,50 @@ export default function ProjectWorkspaceControlHub() {
           </div>
 
           <form onSubmit={submitDailyOperationsLog} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-slate-50 border p-4 rounded-2xl flex flex-col justify-between gap-4">
+            <div className="bg-slate-50 border p-4 rounded-2xl flex flex-col gap-4">
               <div>
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">LOG SITE PROGRESS NOTES:</label>
                 <textarea 
                   value={dailyNotes}
                   onChange={(e) => setDailyNotes(e.target.value)}
                   placeholder="Describe trade workflow status..." 
-                  className="w-full bg-white border p-3 rounded-xl text-xs font-semibold outline-none focus:border-slate-300 min-h-[90px] shadow-sm"
+                  className="w-full bg-white border p-3 rounded-xl text-xs font-semibold outline-none focus:border-slate-300 min-h-[90px] shadow-sm mb-2"
                 />
+
+                {/* IMAGE DROPZONE FIELD INPUT SYSTEM */}
+                <label className="w-full block bg-white border border-slate-200 hover:border-slate-400 px-3 py-2.5 rounded-xl shadow-sm text-center font-bold text-[11px] text-slate-600 cursor-pointer transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
+                  {attachedPhotoName ? `📷 ${attachedPhotoName.slice(0, 20)}...` : "📸 Capture Site Progress Photo"}
+                  <input type="file" accept="image/*" capture="environment" onChange={handleDailyLogPhotoLoad} className="hidden" />
+                </label>
               </div>
               <button 
                 type="submit"
-                disabled={isLogging || !dailyNotes.trim()}
-                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition"
+                disabled={isLogging || (!dailyNotes.trim() && !attachedPhotoBase64)}
+                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition shadow-sm"
               >
                 {isLogging ? "SAVING LOG..." : "SUBMIT FIELD LOG"}
               </button>
             </div>
             
-            <div className="lg:col-span-2 border border-slate-100 rounded-2xl p-4 max-h-[180px] overflow-y-auto space-y-3 bg-white divide-y divide-slate-100">
+            <div className="lg:col-span-2 border border-slate-100 rounded-2xl p-4 max-h-[250px] overflow-y-auto space-y-4 bg-white divide-y divide-slate-100">
               {Array.isArray(project?.daily_logs) && project.daily_logs.map((log: any, i: number) => (
                 <div key={i} className="text-xs pt-3 first:pt-0">
-                  <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                  <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
                     <span>👷‍♂️ {log.author || "Site Superintendent"}</span>
                     <span>{new Date(log.timestamp).toLocaleString()}</span>
                   </div>
-                  <p className="text-slate-700 font-medium leading-relaxed bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">{log.notes}</p>
+                  <div className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 space-y-3">
+                    {log.notes && <p className="text-slate-700 font-medium leading-relaxed">{log.notes}</p>}
+                    {log.photo && (
+                      <div className="max-w-xs border rounded-lg overflow-hidden bg-white shadow-sm">
+                        <img src={log.photo} alt="Site Progress attachment data stream" className="w-full h-auto object-cover max-h-40" />
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               {(!project?.daily_logs || project.daily_logs.length === 0) && (
-                <p className="text-center italic text-slate-400 text-xs pt-12">No field records submitted to the ledger index timeline yet.</p>
+                <p className="text-center italic text-slate-400 text-xs pt-16">No field records submitted to the ledger index timeline yet.</p>
               )}
             </div>
           </form>
