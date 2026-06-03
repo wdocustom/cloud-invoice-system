@@ -122,19 +122,18 @@ export default function ProjectWorkspaceControlHub() {
           amount: calculatedNewTotal
         })
         .eq("id", projectId)
-        .select()
-        .single();
+        .select();
 
       if (error) throw error;
 
-      if (!data) {
-        throw new Error("Write confirmed but no row returned — check Supabase RLS policies.");
+      if (!data || data.length === 0) {
+        throw new Error("Update affected 0 rows — RLS may be blocking writes. Check Supabase RLS policies on the invoices table.");
       }
 
       setProject((prev: any) => ({
         ...prev,
-        items: data.items,
-        amount: data.amount
+        items: data[0].items,
+        amount: data[0].amount
       }));
     } catch (err: any) {
       alert("Error saving: " + err.message);
