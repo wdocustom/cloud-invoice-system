@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { toNum } from "@/lib/utils";
 
 export default function MultiTierEstimatorCreator() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export default function MultiTierEstimatorCreator() {
     }
     setIsDeploying(true);
 
-    const calculatedBaseTotal = generatedItems.reduce((sum, item) => sum + (parseFloat(item.mid_cost) || 0), 0);
+    const calculatedBaseTotal = generatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0);
 
     const standardPhasesArray = [
       { name: "Initial Deposit / Mobilization", percentage: depositPercent },
@@ -215,7 +216,7 @@ export default function MultiTierEstimatorCreator() {
                   <span className="font-extrabold text-slate-800 block text-xs">{item.title}</span>
                   <span className="text-[10px] text-slate-400 font-medium block mt-0.5">{item.mid_description || item.description}</span>
                 </div>
-                <span className="font-sans font-black text-slate-900 text-sm shrink-0">${(parseFloat(item.mid_cost) || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span className="font-sans font-black text-slate-900 text-sm shrink-0">${toNum(item.mid_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
             ))}
           </div>

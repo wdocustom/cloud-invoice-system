@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { toNum } from "@/lib/utils";
 
 interface MultiTierItem {
   title: string;
@@ -152,10 +153,10 @@ export default function HomeownerPortal() {
   
   // Explicitly force number types inside the calculation loop to prevent text string joining bugs
   const baseTotal = isLocked 
-    ? (Number(invoice.amount) || 0)
+    ? toNum(invoice.amount)
     : masterItems.reduce((sum: number, item: any, idx: number) => {
         if (activeIndices.includes(idx)) {
-          const costValue = tier === "mid" ? parseFloat(item.mid_cost) : parseFloat(item.high_cost);
+          const costValue = tier === "mid" ? toNum(item.mid_cost) : toNum(item.high_cost);
           return sum + (costValue || 0);
         }
         return sum;
@@ -163,7 +164,7 @@ export default function HomeownerPortal() {
 
   const approvedCoTotal = changeOrders
     .filter((co: any) => co.status === "approved")
-    .reduce((sum: number, co: any) => sum + (parseFloat(co.amount) || 0), 0);
+    .reduce((sum: number, co: any) => sum + toNum(co.amount), 0);
 
   const combinedProjectTotal = baseTotal + approvedCoTotal;
   const depositAmount = baseTotal * ((invoice?.deposit_percentage || 20) / 100);
@@ -215,7 +216,7 @@ export default function HomeownerPortal() {
     const finalizedItems = masterItems.filter((_: any, idx: number) => activeIndices.includes(idx)).map((item: any) => ({
       title: tier === "mid" ? item.title : (item.high_title || `${item.title} Upgrade`),
       description: tier === "mid" ? item.mid_description : item.high_description,
-      cost: tier === "mid" ? parseFloat(item.mid_cost) : parseFloat(item.high_cost)
+      cost: tier === "mid" ? toNum(item.mid_cost) : toNum(item.high_cost)
     }));
 
     const { error } = await supabase
@@ -488,7 +489,7 @@ export default function HomeownerPortal() {
                       
                       <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 sm:pt-0">
                         <span className="font-sans font-extrabold text-slate-950 text-sm tracking-tight">
-                          ${(isLocked ? Number(item.cost) : (tier === 'mid' ? Number(item.mid_cost) : Number(item.high_cost))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ${(isLocked ? toNum(item.cost) : (tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                         {!isLocked && (
                           isActive ? (
@@ -567,15 +568,15 @@ export default function HomeownerPortal() {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJECT TOTAL</p>
                 <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
                   {/* Strict multi-tier type sanitization wrapper loop fixes the $088500 string rendering bug completely */}
-                  ${(Number(combinedProjectTotal) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
                   <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md">
-                    Contract Base: ${(Number(baseTotal) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+                    Contract Base: ${toNum(baseTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                   </span>
                   {approvedCoTotal > 0 && (
                     <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-md shadow-sm">
-                      Appended Variations: +${(Number(approvedCoTotal) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+                      Appended Variations: +${toNum(approvedCoTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                     </span>
                   )}
                 </div>
@@ -584,7 +585,7 @@ export default function HomeownerPortal() {
               <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-4 text-xs text-slate-600 space-y-2.5 font-semibold">
                 <div className="flex justify-between items-center border-b border-slate-200/40 pb-2">
                   <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage}%):</span>
-                  <span className="font-sans font-black text-slate-950 text-sm">${(Number(depositAmount) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                  <span className="font-sans font-black text-slate-950 text-sm">${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-slate-500">
                   <span className="text-slate-500 font-medium">Estimated Build Timeline:</span>
@@ -651,7 +652,7 @@ export default function HomeownerPortal() {
                         </div>
                         <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {phase.percentage}%</p>
                       </div>
-                      <span className="font-sans font-extrabold text-slate-900">${(Number(phaseVal) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-sans font-extrabold text-slate-900">${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   );
                 })}
@@ -678,7 +679,7 @@ export default function HomeownerPortal() {
                               {isCoApproved && <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoPaid ? 'bg-blue-50 text-blue-700':'bg-red-50 text-red-700'}`}>{isCoPaid ? "PAID":"UNPD"}</span>}
                             </div>
                           </div>
-                          <span className="font-sans font-extrabold text-slate-900">${(Number(co.amount) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                          <span className="font-sans font-extrabold text-slate-900">${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                         </div>
                         {isExpanded && (
                           <div className="p-2.5 bg-slate-50 border-t space-y-2.5 animate-fadeIn">
@@ -686,7 +687,7 @@ export default function HomeownerPortal() {
                               {co.items?.map((item: any, iIdx: number) => (
                                 <div key={iIdx} className="p-2 flex justify-between bg-white">
                                   <span className="font-bold text-slate-800 truncate w-32">{item.title}</span>
-                                  <span className="font-sans font-bold text-slate-700">${(Number(item.cost) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                  <span className="font-sans font-bold text-slate-700">${toNum(item.cost).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                                 </div>
                               ))}
                             </div>
