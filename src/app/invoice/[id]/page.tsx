@@ -3,40 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
-
-interface MultiTierItem {
-  title: string;
-  mid_description: string;
-  mid_cost: number;
-  high_title: string;
-  high_description: string;
-  high_cost: number;
-}
-
-interface PaymentPhase {
-  name: string;
-  percentage: number;
-}
-
-interface Invoice {
-  id: string;
-  homeowner_name: string;
-  homeowner_email: string;
-  job_address: string;
-  amount: number;
-  items: MultiTierItem[];
-  deposit_percentage: number;
-  payment_phases: PaymentPhase[];
-  estimated_start_date?: string;
-  project_length?: string;
-  status: string;
-  signature_name?: string;
-  signed_at?: string;
-  current_phase_index?: number;
-  deposit_cleared?: boolean;
-  homeowner_options?: any[];
-  homeowner_selections?: any;
-}
+import type { Invoice, MultiTierItem, PaymentPhase } from "@/lib/types";
 
 export default function HomeownerPortal() {
   const { id } = useParams();
