@@ -23,8 +23,11 @@ export default function ProjectWorkspaceControlHub() {
 
   // Line Item Insertion States
   const [newTitle, setNewTitle] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [newCost, setNewCost] = useState("");
+  const [newMidDescription, setNewMidDescription] = useState("");
+  const [newMidCost, setNewMidCost] = useState("");
+  const [newHighTitle, setNewHighTitle] = useState("");
+  const [newHighDescription, setNewHighDescription] = useState("");
+  const [newHighCost, setNewHighCost] = useState("");
 
   // Field Operations Log States
   const [dailyNotes, setDailyNotes] = useState("");
@@ -92,6 +95,7 @@ export default function ProjectWorkspaceControlHub() {
   }
 
   async function saveGlobalScopeItemChanges(updatedItems: any[]) {
+    // Dynamically calculate dynamic project tracking sums across BOTH operational tier structures
     const calculatedNewTotal = updatedItems.reduce((sum, item) => sum + (parseFloat(item.mid_cost) || 0), 0);
     
     try {
@@ -117,23 +121,32 @@ export default function ProjectWorkspaceControlHub() {
 
   const insertNewLineRow = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newCost) return alert("Please fill out item title and baseline cost metric.");
+    if (!newTitle.trim() || !newMidCost) return alert("Please fill out item title and standard mid-cost parameters.");
 
     const currentItems = Array.isArray(project.items) ? [...project.items] : [];
+    
+    // Auto-calculate luxury parameters fallback values if left explicitly blank by operator
+    const fallbackHighTitle = newHighTitle.trim() || `${newTitle.trim()} Luxury Upgrade`;
+    const fallbackHighDescription = newHighDescription.trim() || newMidDescription.trim() || `Premium luxury grade installation upgrade tier parameters for ${newTitle.trim()}.`;
+    const fallbackHighCost = newHighCost ? parseFloat(newHighCost) : parseFloat(newMidCost) * 1.35;
+
     const payloadItem = {
       title: newTitle.trim(),
-      mid_description: newDescription.trim(),
-      mid_cost: parseFloat(newCost) || 0,
-      high_title: `${newTitle.trim()} Luxury Upgrade`,
-      high_description: `Premium materials upgrade matching structural configurations for ${newTitle.trim()}.`,
-      high_cost: (parseFloat(newCost) || 0) * 1.35
+      mid_description: newMidDescription.trim(),
+      mid_cost: parseFloat(newMidCost) || 0,
+      high_title: fallbackHighTitle,
+      high_description: fallbackHighDescription,
+      high_cost: fallbackHighCost || 0
     };
 
     const nextItemsArray = [...currentItems, payloadItem];
     
     setNewTitle("");
-    setNewDescription("");
-    setNewCost("");
+    setNewMidDescription("");
+    setNewMidCost("");
+    setNewHighTitle("");
+    setNewHighDescription("");
+    setNewHighCost("");
 
     saveGlobalScopeItemChanges(nextItemsArray);
   };
@@ -325,75 +338,143 @@ export default function ProjectWorkspaceControlHub() {
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify descriptions, values, or append new line scopes directly into the contract ledger structure.</p>
           </div>
 
-          {/* RENDERING ROW LOOP TRACKER */}
-          <div className="space-y-4">
+          {/* DUAL-TIER WORKSPACE INPUT ROW LOOPS */}
+          <div className="space-y-6">
             {Array.isArray(project?.items) && project.items.map((item: any, idx: number) => (
-              <div key={idx} className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3 relative group transition-all hover:border-slate-300">
+              <div key={idx} className="border border-slate-200 rounded-2xl p-5 bg-slate-50/30 space-y-4 relative group transition-all hover:border-slate-300">
                 <button 
                   type="button" 
                   onClick={() => removeLineRowItem(idx)}
-                  className="absolute top-4 right-4 bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-lg transition-colors border border-red-100"
+                  className="absolute top-5 right-5 bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-lg transition-colors border border-red-100 z-10"
                 >
                   ✕
                 </button>
-                <div className="flex gap-4 items-center">
-                  <span className="text-[10px] font-black text-slate-300 bg-white border px-2 py-1 rounded-md shadow-sm">#{idx + 1}</span>
+
+                {/* Primary Row Header Component */}
+                <div className="flex gap-4 items-center border-b pb-3">
+                  <span className="text-[10px] font-black text-slate-400 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-sm">LINE #{idx + 1}</span>
                   <input 
                     type="text" 
                     value={item.title || ""} 
                     onChange={(e) => updateInlineItemField(idx, "title", e.target.value)}
-                    className="flex-1 bg-white border p-2 rounded-xl text-xs font-extrabold text-slate-900 outline-none focus:border-slate-400 transition shadow-sm" 
+                    placeholder="Core Specification Group Title"
+                    className="flex-1 bg-white border p-2 rounded-xl text-xs font-black text-slate-900 outline-none focus:border-slate-400 transition shadow-sm" 
                   />
-                  <div className="flex items-center bg-white border rounded-xl shadow-sm px-3 gap-1 max-w-[140px]">
-                    <span className="text-xs font-bold text-slate-400">$</span>
-                    <input 
-                      type="number" 
-                      value={item.mid_cost || ""} 
-                      onChange={(e) => updateInlineItemField(idx, "mid_cost", parseFloat(e.target.value) || 0)}
-                      className="w-full bg-transparent p-2 text-xs font-black text-slate-900 outline-none text-right" 
+                </div>
+
+                {/* Dual Column Layout Matrix Split Tier */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Standard Mid Tier Configuration Box */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 shadow-sm">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">🛠️ Standard Mid-Tier Spec</span>
+                      <div className="flex items-center bg-slate-50 border rounded-lg px-2 gap-1 max-w-[120px]">
+                        <span className="text-[10px] font-bold text-slate-400">$</span>
+                        <input 
+                          type="number" 
+                          value={item.mid_cost || ""} 
+                          onChange={(e) => updateInlineItemField(idx, "mid_cost", parseFloat(e.target.value) || 0)}
+                          className="w-full bg-transparent py-1.5 text-xs font-black text-slate-900 outline-none text-right" 
+                        />
+                      </div>
+                    </div>
+                    <textarea 
+                      value={item.mid_description || item.description || ""} 
+                      onChange={(e) => updateInlineItemField(idx, "mid_description", e.target.value)}
+                      placeholder="Mid-tier grade specification materials context..."
+                      className="w-full bg-slate-50/50 border p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:border-slate-300 transition"
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Luxury High Tier Configuration Box */}
+                  <div className="bg-white p-4 rounded-xl border border-blue-100 space-y-2 shadow-sm">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[9px] font-black text-blue-500 uppercase tracking-wider">💎 Luxury High-Tier Upgrade</span>
+                      <div className="flex items-center bg-blue-50/30 border border-blue-100 rounded-lg px-2 gap-1 max-w-[120px]">
+                        <span className="text-[10px] font-bold text-blue-400">$</span>
+                        <input 
+                          type="number" 
+                          value={item.high_cost || ""} 
+                          onChange={(e) => updateInlineItemField(idx, "high_cost", parseFloat(e.target.value) || 0)}
+                          className="w-full bg-transparent py-1.5 text-xs font-black text-blue-900 outline-none text-right" 
+                        />
+                      </div>
+                    </div>
+                    <textarea 
+                      value={item.high_description || ""} 
+                      onChange={(e) => updateInlineItemField(idx, "high_description", e.target.value)}
+                      placeholder="High-tier luxury grade premium specification upgrade options..."
+                      className="w-full bg-blue-50/10 border border-blue-50 p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:border-blue-200 transition"
+                      rows={2}
                     />
                   </div>
                 </div>
-                <textarea 
-                  value={item.mid_description || item.description || ""} 
-                  onChange={(e) => updateInlineItemField(idx, "mid_description", e.target.value)}
-                  className="w-full bg-white border p-3 rounded-xl text-xs font-medium text-slate-600 leading-relaxed outline-none focus:border-slate-400 transition shadow-sm"
-                  rows={2}
-                />
+
               </div>
             ))}
           </div>
 
-          {/* CONTRACT SCOPE ENTRY CONTROLS BLOCK */}
+          {/* DUAL LAYER INTEGRATED ENTRY ROW INJECTOR COMPONENT FORM */}
           <form onSubmit={insertNewLineRow} className="border border-blue-100 bg-blue-50/20 p-5 rounded-2xl space-y-4">
             <div>
               <h4 className="font-black text-slate-900 uppercase tracking-wide text-[10px] text-blue-600">➕ Add Contract Line Item</h4>
-              <p className="text-slate-400 font-medium text-[10px] mt-0.5">Append an additional operational transaction row directly into the project portfolio catalog.</p>
+              <p className="text-slate-400 font-medium text-[10px] mt-0.5">Append an additional operational transaction row containing both tier matrix options directly into the system catalog.</p>
             </div>
+            
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <input 
                 type="text" 
-                placeholder="Item Scope Title (e.g., Electrical Core Layout)" 
+                placeholder="Core Specification Group Name (e.g., Backsplash Tile Install)" 
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 className="sm:col-span-3 p-2.5 bg-white border rounded-xl outline-none font-bold text-xs text-slate-800 shadow-sm focus:border-blue-300"
               />
               <input 
                 type="number" 
-                placeholder="Baseline Cost ($)" 
-                value={newCost}
-                onChange={(e) => setNewCost(e.target.value)}
+                placeholder="Standard Cost ($)" 
+                value={newMidCost}
+                onChange={(e) => setNewMidCost(e.target.value)}
                 className="p-2.5 bg-white border rounded-xl outline-none font-black text-xs text-slate-800 shadow-sm text-right focus:border-blue-300"
               />
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch gap-3">
-              <input 
-                type="text" 
-                placeholder="Provide detailed project specification task parameters, materials grade, and installation workflow metrics..." 
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                className="flex-1 p-2.5 bg-white border rounded-xl outline-none font-semibold text-xs text-slate-800 shadow-sm focus:border-blue-300"
-              />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
+              <div className="space-y-1.5">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wide pl-1">Standard Mid-Tier Description</span>
+                <input 
+                  type="text"
+                  placeholder="Standard grade materials specifications descriptions details..."
+                  value={newMidDescription}
+                  onChange={(e) => setNewMidDescription(e.target.value)}
+                  className="w-full p-2.5 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:border-slate-300"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-wide">Luxury High-Tier Upgrade Description</span>
+                  <span className="text-[8px] text-slate-400 font-bold italic">Leave blank to auto-calculate luxury cost tier (+35%)</span>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="text"
+                    placeholder="Premium luxury upgrade options data metrics description..."
+                    value={newHighDescription}
+                    onChange={(e) => setNewHighDescription(e.target.value)}
+                    className="flex-1 p-2.5 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:border-blue-200"
+                  />
+                  <input 
+                    type="number"
+                    placeholder="Luxury ($)"
+                    value={newHighCost}
+                    onChange={(e) => setNewHighCost(e.target.value)}
+                    className="w-24 p-2.5 bg-white border rounded-xl outline-none font-black text-right text-slate-800 shadow-sm focus:border-blue-200"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
               <button 
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition shadow-md shrink-0"
@@ -402,6 +483,7 @@ export default function ProjectWorkspaceControlHub() {
               </button>
             </div>
           </form>
+
         </div>
       </div>
 
