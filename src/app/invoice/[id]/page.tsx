@@ -39,7 +39,6 @@ interface Invoice {
 
 export default function HomeownerPortal() {
   const { id } = useParams();
-  const router = useParams();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
   const [scheduleTasks, setScheduleTasks] = useState<any[]>([]);
@@ -559,17 +558,17 @@ export default function HomeownerPortal() {
             {/* COMPACT CLEAN SIDEBAR VALUE HUB */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.02)] space-y-5 text-left relative overflow-hidden">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Total</p>
-                <h2 className="text-3xl font-black text-slate-955 mt-1 tracking-tight">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJECT TOTAL</p>
+                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
                   ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
                   <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md">
-                    Contract Base: ${baseTotal.toLocaleString(undefined, {minimumFractionDigits:2})}
+                    Contract Base: ${baseTotal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                   </span>
                   {approvedCoTotal > 0 && (
                     <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-md shadow-sm">
-                      Appended Variations: +${approvedCoTotal.toLocaleString(undefined, {minimumFractionDigits:2})}
+                      Appended Variations: +${approvedCoTotal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                     </span>
                   )}
                 </div>
@@ -672,7 +671,7 @@ export default function HomeownerPortal() {
                               {isCoApproved && <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoPaid ? 'bg-blue-50 text-blue-700':'bg-red-50 text-red-700'}`}>{isCoPaid ? "PAID":"UNPD"}</span>}
                             </div>
                           </div>
-                          <span className="font-sans font-extrabold text-slate-900">${co.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                          <span className="font-sans font-extrabold text-slate-900">${co.amount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                         </div>
                         {isExpanded && (
                           <div className="p-2.5 bg-slate-50 border-t space-y-2.5 animate-fadeIn">
@@ -680,7 +679,7 @@ export default function HomeownerPortal() {
                               {co.items?.map((item: any, iIdx: number) => (
                                 <div key={iIdx} className="p-2 flex justify-between bg-white">
                                   <span className="font-bold text-slate-800 truncate w-32">{item.title}</span>
-                                  <span className="font-sans font-bold text-slate-700">${item.cost.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                                  <span className="font-sans font-bold text-slate-700">${item.cost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                                 </div>
                               ))}
                             </div>
