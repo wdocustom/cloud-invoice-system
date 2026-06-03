@@ -96,10 +96,24 @@ export default function ProjectWorkspaceControlHub() {
     }
   }
 
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function flushPendingDebounce() {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+  }
+
   async function saveGlobalScopeItemChanges(updatedItems: any[]) {
-    // Dynamically calculate dynamic project tracking sums across BOTH operational tier structures
     const calculatedNewTotal = updatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0);
-    
+
+    setProject((prev: any) => ({
+      ...prev,
+      items: updatedItems,
+      amount: calculatedNewTotal
+    }));
+
     try {
       const { error } = await supabase
         .from("invoices")
@@ -110,14 +124,9 @@ export default function ProjectWorkspaceControlHub() {
         .eq("id", projectId);
 
       if (error) throw error;
-      
-      setProject((prev: any) => ({
-        ...prev,
-        items: updatedItems,
-        amount: calculatedNewTotal
-      }));
     } catch (err: any) {
       alert("Error synchronizing scope line rows: " + err.message);
+      fetchComprehensiveProjectData();
     }
   }
 
@@ -125,9 +134,8 @@ export default function ProjectWorkspaceControlHub() {
     e.preventDefault();
     if (!newTitle.trim() || !newMidCost) return alert("Please fill out item title and standard mid-cost parameters.");
 
-    const currentItems = Array.isArray(project.items) ? [...project.items] : [];
-    
-    // Auto-calculate luxury parameters fallback values if left explicitly blank by operator
+    flushPendingDebounce();
+
     const fallbackHighTitle = newHighTitle.trim() || `${newTitle.trim()} Luxury Upgrade`;
     const fallbackHighDescription = newHighDescription.trim() || newMidDescription.trim() || `Premium luxury grade installation upgrade tier parameters for ${newTitle.trim()}.`;
     const fallbackHighCost = newHighCost ? toNum(newHighCost) : toNum(newMidCost) * 1.35;
@@ -141,8 +149,9 @@ export default function ProjectWorkspaceControlHub() {
       high_cost: fallbackHighCost || 0
     };
 
+    const currentItems = Array.isArray(project.items) ? [...project.items] : [];
     const nextItemsArray = [...currentItems, payloadItem];
-    
+
     setNewTitle("");
     setNewMidDescription("");
     setNewMidCost("");
@@ -155,15 +164,14 @@ export default function ProjectWorkspaceControlHub() {
 
   const removeLineRowItem = (indexToRemove: number) => {
     if (!confirm("Are you sure you want to delete this contract scope item row?")) return;
+    flushPendingDebounce();
     const currentItems = Array.isArray(project.items) ? [...project.items] : [];
     const nextItemsArray = currentItems.filter((_, idx) => idx !== indexToRemove);
     saveGlobalScopeItemChanges(nextItemsArray);
   };
 
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const debouncedSave = useCallback((items: any[]) => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    flushPendingDebounce();
     saveTimerRef.current = setTimeout(() => saveGlobalScopeItemChanges(items), 600);
   }, [projectId]);
 
