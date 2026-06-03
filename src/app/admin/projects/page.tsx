@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { toNum } from "@/lib/utils";
 
 export default function ProjectsIndexLedger() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function ProjectsIndexLedger() {
                 </div>
                 <div className="flex items-center gap-4 shrink-0">
                   <span className="font-sans font-black text-slate-950 text-sm">
-                    ${(proj.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    ${toNum(proj.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </span>
                   <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
                     proj.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'

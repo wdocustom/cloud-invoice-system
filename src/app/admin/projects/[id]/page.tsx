@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
+import { toNum } from "@/lib/utils";
 
 export default function ProjectWorkspaceControlHub() {
   const router = useRouter();
@@ -96,7 +97,7 @@ export default function ProjectWorkspaceControlHub() {
 
   async function saveGlobalScopeItemChanges(updatedItems: any[]) {
     // Dynamically calculate dynamic project tracking sums across BOTH operational tier structures
-    const calculatedNewTotal = updatedItems.reduce((sum, item) => sum + (parseFloat(item.mid_cost) || 0), 0);
+    const calculatedNewTotal = updatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0);
     
     try {
       const { error } = await supabase
@@ -128,12 +129,12 @@ export default function ProjectWorkspaceControlHub() {
     // Auto-calculate luxury parameters fallback values if left explicitly blank by operator
     const fallbackHighTitle = newHighTitle.trim() || `${newTitle.trim()} Luxury Upgrade`;
     const fallbackHighDescription = newHighDescription.trim() || newMidDescription.trim() || `Premium luxury grade installation upgrade tier parameters for ${newTitle.trim()}.`;
-    const fallbackHighCost = newHighCost ? parseFloat(newHighCost) : parseFloat(newMidCost) * 1.35;
+    const fallbackHighCost = newHighCost ? toNum(newHighCost) : toNum(newMidCost) * 1.35;
 
     const payloadItem = {
       title: newTitle.trim(),
       mid_description: newMidDescription.trim(),
-      mid_cost: parseFloat(newMidCost) || 0,
+      mid_cost: toNum(newMidCost),
       high_title: fallbackHighTitle,
       high_description: fallbackHighDescription,
       high_cost: fallbackHighCost || 0
@@ -158,13 +159,25 @@ export default function ProjectWorkspaceControlHub() {
     saveGlobalScopeItemChanges(nextItemsArray);
   };
 
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedSave = useCallback((items: any[]) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => saveGlobalScopeItemChanges(items), 600);
+  }, [projectId]);
+
   const updateInlineItemField = (index: number, field: string, value: any) => {
     const currentItems = Array.isArray(project.items) ? [...project.items] : [];
     currentItems[index] = {
       ...currentItems[index],
       [field]: value
     };
-    saveGlobalScopeItemChanges(currentItems);
+    setProject((prev: any) => ({
+      ...prev,
+      items: currentItems,
+      amount: currentItems.reduce((sum: number, item: any) => sum + toNum(item.mid_cost), 0)
+    }));
+    debouncedSave(currentItems);
   };
 
   // Convert image upload to base64 format right inside the log stream state
@@ -279,7 +292,7 @@ export default function ProjectWorkspaceControlHub() {
           <div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-3">PROJECT COST</p>
             <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans">
-              ${(project?.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </h2>
           </div>
           <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border mt-4">
@@ -373,7 +386,7 @@ export default function ProjectWorkspaceControlHub() {
                         <input 
                           type="number" 
                           value={item.mid_cost || ""} 
-                          onChange={(e) => updateInlineItemField(idx, "mid_cost", parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateInlineItemField(idx, "mid_cost", toNum(e.target.value))}
                           className="w-full bg-transparent py-1.5 text-xs font-black text-slate-900 outline-none text-right" 
                         />
                       </div>
@@ -396,7 +409,7 @@ export default function ProjectWorkspaceControlHub() {
                         <input 
                           type="number" 
                           value={item.high_cost || ""} 
-                          onChange={(e) => updateInlineItemField(idx, "high_cost", parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateInlineItemField(idx, "high_cost", toNum(e.target.value))}
                           className="w-full bg-transparent py-1.5 text-xs font-black text-blue-900 outline-none text-right" 
                         />
                       </div>
