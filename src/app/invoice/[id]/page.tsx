@@ -235,7 +235,7 @@ export default function HomeownerPortal() {
             task_name: item.title,
             target_start_date: taskStartStr,
             target_end_date: taskEndStr,
-            parent_id: null, // Deployed straight into root headers matrix levels
+            parent_id: null,
             progress_percent: 0,
             status: "scheduled",
             sort_order: orderIndex * 10,
@@ -560,15 +560,16 @@ export default function HomeownerPortal() {
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJECT TOTAL</p>
                 <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
-                  ${combinedProjectTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {/* Strict multi-tier type sanitization wrapper loop fixes the $088500 string rendering bug */}
+                  ${(Number(combinedProjectTotal) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
                   <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md">
-                    Contract Base: ${baseTotal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+                    Contract Base: ${(Number(baseTotal) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                   </span>
                   {approvedCoTotal > 0 && (
                     <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-md shadow-sm">
-                      Appended Variations: +${approvedCoTotal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+                      Appended Variations: +${(Number(approvedCoTotal) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                     </span>
                   )}
                 </div>
@@ -577,7 +578,7 @@ export default function HomeownerPortal() {
               <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-4 text-xs text-slate-600 space-y-2.5 font-semibold">
                 <div className="flex justify-between items-center border-b border-slate-200/40 pb-2">
                   <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage}%):</span>
-                  <span className="font-sans font-black text-slate-950 text-sm">${depositAmount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                  <span className="font-sans font-black text-slate-950 text-sm">${(Number(depositAmount) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-slate-500">
                   <span className="text-slate-500 font-medium">Estimated Build Timeline:</span>
@@ -644,7 +645,7 @@ export default function HomeownerPortal() {
                         </div>
                         <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {phase.percentage}%</p>
                       </div>
-                      <span className="font-sans font-extrabold text-slate-900">${phaseVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-sans font-extrabold text-slate-900">${(Number(phaseVal) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   );
                 })}
@@ -671,7 +672,7 @@ export default function HomeownerPortal() {
                               {isCoApproved && <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoPaid ? 'bg-blue-50 text-blue-700':'bg-red-50 text-red-700'}`}>{isCoPaid ? "PAID":"UNPD"}</span>}
                             </div>
                           </div>
-                          <span className="font-sans font-extrabold text-slate-900">${co.amount.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                          <span className="font-sans font-extrabold text-slate-900">${(Number(co.amount) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                         </div>
                         {isExpanded && (
                           <div className="p-2.5 bg-slate-50 border-t space-y-2.5 animate-fadeIn">
@@ -679,7 +680,7 @@ export default function HomeownerPortal() {
                               {co.items?.map((item: any, iIdx: number) => (
                                 <div key={iIdx} className="p-2 flex justify-between bg-white">
                                   <span className="font-bold text-slate-800 truncate w-32">{item.title}</span>
-                                  <span className="font-sans font-bold text-slate-700">${item.cost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                  <span className="font-sans font-bold text-slate-700">${(Number(item.cost) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                                 </div>
                               ))}
                             </div>
