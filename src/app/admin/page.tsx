@@ -14,60 +14,62 @@ export default function MultiTierEstimatorCreator() {
   const [depositPercent, setDepositPercent] = useState(20);
   const [goalsPrompt, setGoalsPrompt] = useState("");
   
-  // New document processing states
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [attachedFileName, setAttachedFileName] = useState("");
+  const [extractedFileText, setExtractedFileText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<any[]>([]);
   const [proposalLink, setProposalLink] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setAttachedFile(e.target.files[0]);
-    }
+  // Process the layout specs directly on the user's device
+  const handleClientSideFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAttachedFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const fullResultText = event.target?.result as string;
+      
+      // Clean up common encoding data streams to isolate plain text strings cleanly
+      const normalizedText = fullResultText
+        .replace(/[^\x20-\x7E\n\r\t]/g, " ")
+        .replace(/\s+/g, " ");
+      
+      setExtractedFileText(normalizedText);
+    };
+    
+    // Read the package details safely without overloading network memory bounds
+    reader.readAsText(file);
   };
 
   const runAiEstimatorEngine = async () => {
-    if (!goalsPrompt.trim() && !attachedFile) {
+    if (!goalsPrompt.trim() && !extractedFileText) {
       return alert("Please describe your remodeling goals or upload a design package document.");
     }
     setIsGenerating(true);
     
     try {
-      let responseData;
+      // Stream as a clean, standardized JSON body request rather than a heavy multi-part stream
+      const res = await fetch("/api/generate-scope", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          prompt: goalsPrompt.trim(),
+          fileContext: extractedFileText,
+          address: streetAddress.trim() || "Project Address", 
+          zipcode: zipCode.trim() || "Omaha" 
+        }),
+      });
       
-      // If a document is attached, switch to a multipart payload delivery pipeline
-      if (attachedFile) {
-        const formData = new FormData();
-        formData.append("file", attachedFile);
-        formData.append("prompt", goalsPrompt.trim());
-        formData.append("address", streetAddress.trim() || "Project Address");
-        formData.append("zipcode", zipCode.trim() || "Omaha");
-
-        const res = await fetch("/api/generate-scope", {
-          method: "POST",
-          body: formData, // Browser auto-detects multipart content boundaries
-        });
-        responseData = await res.json();
-      } else {
-        // Standard structural text fallback pipeline
-        const res = await fetch("/api/generate-scope", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            prompt: goalsPrompt.trim(), 
-            address: streetAddress.trim() || "Project Address", 
-            zipcode: zipCode.trim() || "Omaha" 
-          }),
-        });
-        responseData = await res.json();
-      }
+      const responseData = await res.json();
 
       if (responseData.items && Array.isArray(responseData.items)) {
         setGeneratedItems(responseData.items);
-        alert("AI Estimation sheet populated successfully from design parameters!");
+        alert("AI Estimation sheet populated successfully!");
       } else {
-        alert("Could not parse items from the provided parameters.");
+        alert(responseData.error || "Could not parse items from the provided parameters.");
       }
     } catch (err) {
       console.error(err);
@@ -137,7 +139,7 @@ export default function MultiTierEstimatorCreator() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left flex items-center justify-center p-4">
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl max-w-4xl w-full space-y-6">
         
-        {/* Title and Navigation Link Header */}
+        {/* Title and Navigation Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
           <h1 className="text-xl font-black text-slate-900 tracking-tight uppercase">
             Multi-Tier Estimate Creator Workspace
@@ -174,25 +176,25 @@ export default function MultiTierEstimatorCreator() {
           </div>
         </div>
 
-        {/* INTEGRATED DUAL CONTENT/DOCUMENT REMODELING DROPZONE */}
+        {/* DUAL CONTENT DEPLOYER CONTROL DROPZONE */}
         <div className="border border-blue-100 bg-blue-50/30 p-5 rounded-2xl space-y-4 text-xs">
           <div>
             <h4 className="font-black text-slate-900 uppercase tracking-wide text-[11px]">⚡ Intelligent Document Extraction Input</h4>
-            <p className="text-slate-400 font-medium text-[11px] mt-0.5">Describe structural goals or attach estimation summary packets (such as IKEA planning manifests) to process item breakdowns.</p>
+            <p className="text-slate-400 font-medium text-[11px] mt-0.5">Describe structural goals or attach estimation summary packets to process custom contracting specifications layout metrics.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <input 
               type="text" 
-              placeholder="Provide context or complementary instructions (e.g., Include Sink Base installation)..." 
+              placeholder="Provide complementary contextual instructions or describe project metrics..." 
               value={goalsPrompt} 
               onChange={(e) => setGoalsPrompt(e.target.value)}
               className="w-full sm:flex-1 p-3 bg-white border border-slate-200 focus:border-blue-400 rounded-xl outline-none font-semibold text-slate-800 shadow-sm" 
             />
             
             <label className="w-full sm:w-auto bg-white border border-slate-200 hover:border-slate-400 p-3 rounded-xl shadow-sm text-center font-bold text-slate-600 cursor-pointer transition-colors whitespace-nowrap">
-              {attachedFile ? `📎 ${attachedFile.name.slice(0, 15)}...` : "📁 Upload Package (PDF/Img)"}
-              <input type="file" accept=".pdf,image/*" onChange={handleFileChange} className="hidden" />
+              {attachedFileName ? `📎 ${attachedFileName.slice(0, 15)}...` : "📁 Upload Package"}
+              <input type="file" onChange={handleClientSideFileLoad} className="hidden" />
             </label>
 
             <button 
@@ -213,7 +215,7 @@ export default function MultiTierEstimatorCreator() {
               <div key={idx} className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm gap-4">
                 <div className="text-left">
                   <span className="font-extrabold text-slate-800 block text-xs">{item.title}</span>
-                  <span className="text-[10px] text-slate-400 font-medium leading-relaxed block mt-0.5">{item.mid_description || item.description}</span>
+                  <span className="text-[10px] text-slate-400 font-medium block mt-0.5">{item.mid_description || item.description}</span>
                 </div>
                 <span className="font-sans font-black text-slate-900 text-sm shrink-0">${(parseFloat(item.mid_cost) || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
@@ -221,7 +223,7 @@ export default function MultiTierEstimatorCreator() {
           </div>
         )}
 
-        {/* Global Broadcast Contract Actions Block */}
+        {/* Global Broadcast Actions Block */}
         <div className="space-y-3 pt-2">
           <button 
             type="button" 
@@ -239,7 +241,6 @@ export default function MultiTierEstimatorCreator() {
                 type="text" 
                 readOnly 
                 value={proposalLink} 
-                onClick={(e) => (e.target as HTMLInputElement).select()}
                 className="w-full text-center font-mono font-bold bg-white text-slate-700 p-2 rounded-lg border border-emerald-200 mt-2 outline-none select-all" 
               />
             </div>
