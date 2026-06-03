@@ -95,7 +95,7 @@ export default function HomeownerPortalClient({
 
     if (mainProject) {
       setInvoice(mainProject);
-      if (mainProject.items && activeIndices.length === 0) {
+      if (mainProject.items) {
         setActiveIndices(mainProject.items.map((_: any, idx: number) => idx));
       }
 
