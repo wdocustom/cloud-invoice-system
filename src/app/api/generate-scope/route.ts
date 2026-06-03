@@ -14,7 +14,6 @@ export async function POST(request: Request) {
     let base64File = "";
     let mimeType = "";
 
-    // 1. DYNAMIC INCOMING REQUEST PARSING GATEWAY
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
       prompt = (formData.get("prompt") as string) || "";
@@ -28,14 +27,12 @@ export async function POST(request: Request) {
         base64File = Buffer.from(arrayBuffer).toString("base64");
       }
     } else {
-      // Standard application/json fallback parsing strategy
       const body = await request.json();
       prompt = body.prompt || "";
       address = body.address || address;
       zipcode = body.zipcode || zipcode;
     }
 
-    // 2. RESIDENTIAL REMODELING COST ESTIMATOR PROMPT LAYERS
     const systemInstruction = `
       You are an elite residential remodeling cost estimator specializing in Omaha, NE.
       Analyze the user instructions and any attached design packets/manifests for a project at Address: ${address}, Zip Code: ${zipcode}.
@@ -68,12 +65,10 @@ export async function POST(request: Request) {
       }
     `;
 
-    // 3. MULTI-MODAL GEMINI CONTEXT PACKAGING PIPELINE
     const contentsParts: any[] = [
       { text: `${systemInstruction}\n\nUser Context/Instructions: ${prompt}` }
     ];
 
-    // If an uploaded document is present, inject the binary base64 part inline
     if (base64File && mimeType) {
       contentsParts.push({
         inlineData: {
@@ -83,7 +78,6 @@ export async function POST(request: Request) {
       });
     }
 
-    // 4. API CALL TO GEMINI
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
@@ -101,14 +95,11 @@ export async function POST(request: Request) {
     const data = await response.json();
     let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
     
-    // Fallback sanitation if markdown json block quotes escape response config rules
     if (rawText.includes("```")) {
       rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
     }
 
     const parsedJson = JSON.parse(rawText);
-
-    // Support formatting whether model provides root object {"items": [...]} or just a raw array [...]
     const finalItemsArray = Array.isArray(parsedJson) ? parsedJson : (parsedJson.items || []);
 
     return NextResponse.json({ items: finalItemsArray });
