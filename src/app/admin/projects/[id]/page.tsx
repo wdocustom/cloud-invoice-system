@@ -1,11 +1,14 @@
 "use client";
-import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabase";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { supabase } from "../../../lib/supabase";
 
-export default function ProjectWorkspaceControlHub({ params }: { params: Promise<{ id: string }> }) {
+export default function ProjectWorkspaceControlHub() {
   const router = useRouter();
-  const { id: projectId } = use(params);
+  const params = useParams();
+  
+  // Cleanly extract the dynamic route ID parameter using next/navigation's native client hook
+  const projectId = params?.id as string;
 
   // Core Data States
   const [project, setProject] = useState<any>(null);
@@ -24,7 +27,9 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
   const [newCost, setNewCost] = useState("");
 
   useEffect(() => {
-    fetchComprehensiveProjectData();
+    if (projectId) {
+      fetchComprehensiveProjectData();
+    }
   }, [projectId]);
 
   async function fetchComprehensiveProjectData() {
@@ -39,7 +44,6 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
       if (error) throw error;
       if (data) {
         setProject(data);
-        // Initialize editing fields
         setEditName(data.homeowner_name || "");
         setEditEmail(data.homeowner_email || "");
         setEditAddress(data.job_address || "");
@@ -51,7 +55,6 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
     }
   }
 
-  // Update Client profile properties inside Supabase
   async function saveClientProfileModifications() {
     setIsSaving(true);
     try {
@@ -66,7 +69,6 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
 
       if (error) throw error;
       
-      // Update local UI state
       setProject((prev: any) => ({
         ...prev,
         homeowner_name: editName.trim(),
@@ -83,7 +85,6 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
     }
   }
 
-  // Handle changes to line items (Inline adjustments, deletions, additions)
   async function saveGlobalScopeItemChanges(updatedItems: any[]) {
     const calculatedNewTotal = updatedItems.reduce((sum, item) => sum + (parseFloat(item.mid_cost) || 0), 0);
     
@@ -124,7 +125,6 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
 
     const nextItemsArray = [...currentItems, payloadItem];
     
-    // Clear inputs
     setNewTitle("");
     setNewDescription("");
     setNewCost("");
@@ -157,7 +157,7 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left">
       
-      {/* Dynamic Navigation Header Banner Block */}
+      {/* Navigation Header Banner */}
       <div className="bg-slate-900 text-white shadow-sm border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between">
           <div className="space-y-0.5">
@@ -249,7 +249,7 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
 
       </div>
 
-      {/* GANTT SCHEDULER HORIZON GRID WORKSPACE */}
+      {/* GANTT SCHEDULER BLOCK */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
@@ -261,7 +261,7 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
         </div>
       </div>
 
-      {/* RENAME TO 'ITEMS' WORKSPACE SECTION */}
+      {/* ITEMS WORKSPACE SECTION */}
       <div className="max-w-7xl mx-auto px-4 pt-6 space-y-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
           <div className="border-b pb-3">
@@ -310,7 +310,7 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
             ))}
           </div>
 
-          {/* RESTORED LINE ITEM INSERTION CONTROLS BOX */}
+          {/* LINE ITEM INSERTION CONTROLS */}
           <form onSubmit={insertNewLineRow} className="border border-blue-100 bg-blue-50/20 p-5 rounded-2xl space-y-4">
             <div>
               <h4 className="font-black text-slate-900 uppercase tracking-wide text-[10px] text-blue-600">➕ Add Contract Line Item</h4>
@@ -351,7 +351,7 @@ export default function ProjectWorkspaceControlHub({ params }: { params: Promise
         </div>
       </div>
 
-      {/* MODAL WINDOW SYSTEM: CLIENT PROFILE MODIFICATIONS EDITOR */}
+      {/* CLIENT PROFILE MODAL */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl text-left">
