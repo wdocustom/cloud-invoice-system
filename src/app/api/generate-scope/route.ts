@@ -1,12 +1,5 @@
 import { NextResponse } from "next/server";
 
-// Force Next.js to leave the incoming data stream completely alone so our binary parser handles it cleanly
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -21,7 +14,7 @@ export async function POST(request: Request) {
     let base64File = "";
     let mimeType = "";
 
-    // 1. DATA STREAM EXTRACTION ENGINE
+    // 1. DATA STREAM EXTRACTION ENGINE (NATIVE COMPATIBILITY MODE)
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
       prompt = (formData.get("prompt") as string) || "";
@@ -80,7 +73,7 @@ export async function POST(request: Request) {
       { text: `${systemInstruction}\n\nUser Context/Instructions: ${prompt}` }
     ];
 
-    // If a document was compiled, load the multi-modal inline binary block data object
+    // If a document was compiled, load the multi-modal inline binary data object
     if (base64File && mimeType) {
       contentsParts.push({
         inlineData: {
@@ -90,7 +83,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 4. INITIATE SECURE FETCH DISPATCH ROUTE RADAR
+    // 4. INITIATE API FETCH ROUTE TO GEMINI
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
