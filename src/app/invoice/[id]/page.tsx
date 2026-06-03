@@ -150,8 +150,21 @@ export default function HomeownerPortal() {
   const isLocked = invoice?.status === "approved";
   const masterItems = invoice?.items || [];
   
-  const baseTotal = isLocked ? invoice.amount : masterItems.reduce((sum: number, item: any, idx: number) => activeIndices.includes(idx) ? sum + (tier === "mid" ? item.mid_cost : item.high_cost) : sum, 0);
-  const approvedCoTotal = changeOrders.filter((co: any) => co.status === "approved").reduce((sum: number, co: any) => sum + co.amount, 0);
+  // Explicitly force number types inside the calculation loop to prevent text string joining bugs
+  const baseTotal = isLocked 
+    ? (Number(invoice.amount) || 0)
+    : masterItems.reduce((sum: number, item: any, idx: number) => {
+        if (activeIndices.includes(idx)) {
+          const costValue = tier === "mid" ? parseFloat(item.mid_cost) : parseFloat(item.high_cost);
+          return sum + (costValue || 0);
+        }
+        return sum;
+      }, 0);
+
+  const approvedCoTotal = changeOrders
+    .filter((co: any) => co.status === "approved")
+    .reduce((sum: number, co: any) => sum + (parseFloat(co.amount) || 0), 0);
+
   const combinedProjectTotal = baseTotal + approvedCoTotal;
   const depositAmount = baseTotal * ((invoice?.deposit_percentage || 20) / 100);
 
@@ -202,10 +215,9 @@ export default function HomeownerPortal() {
     const finalizedItems = masterItems.filter((_: any, idx: number) => activeIndices.includes(idx)).map((item: any) => ({
       title: tier === "mid" ? item.title : (item.high_title || `${item.title} Upgrade`),
       description: tier === "mid" ? item.mid_description : item.high_description,
-      cost: tier === "mid" ? item.mid_cost : item.high_cost
+      cost: tier === "mid" ? parseFloat(item.mid_cost) : parseFloat(item.high_cost)
     }));
 
-    // 1. Core update to finalize proposal state parameters
     const { error } = await supabase
       .from("invoices")
       .update({ status: "approved", amount: baseTotal, items: finalizedItems, signature_name: typedSignature, signed_at: timestamp })
@@ -213,21 +225,15 @@ export default function HomeownerPortal() {
 
     if (!error) {
       try {
-        // 2. Clear out older flat temporary scheduler placeholder rows if any exist
         await supabase.from("project_schedules").delete().eq("project_id", id);
 
-        // 3. Automated Gantt timeline generator parser mapping sequence
         const fallbackProjectStart = invoice?.estimated_start_date || new Date().toISOString().split("T")[0];
         let runningDateTracker = new Date(fallbackProjectStart + 'T00:00:00');
 
         const schedulesToInsert = finalizedItems.map((item: any, orderIndex: number) => {
           const taskStartStr = runningDateTracker.toISOString().split("T")[0];
-          
-          // Increment calendar windows iteratively by exactly 4 days per phase to stagger rows nicely
           runningDateTracker.setDate(runningDateTracker.getDate() + 4);
           const taskEndStr = runningDateTracker.toISOString().split("T")[0];
-          
-          // Step spacer padding to separate master components
           runningDateTracker.setDate(runningDateTracker.getDate() + 1);
 
           return {
@@ -482,7 +488,7 @@ export default function HomeownerPortal() {
                       
                       <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 sm:pt-0">
                         <span className="font-sans font-extrabold text-slate-950 text-sm tracking-tight">
-                          ${(isLocked ? item.cost : (tier === 'mid' ? item.mid_cost : item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ${(isLocked ? Number(item.cost) : (tier === 'mid' ? Number(item.mid_cost) : Number(item.high_cost))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                         {!isLocked && (
                           isActive ? (
@@ -560,7 +566,7 @@ export default function HomeownerPortal() {
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJECT TOTAL</p>
                 <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
-                  {/* Strict multi-tier type sanitization wrapper loop fixes the $088500 string rendering bug */}
+                  {/* Strict multi-tier type sanitization wrapper loop fixes the $088500 string rendering bug completely */}
                   ${(Number(combinedProjectTotal) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
