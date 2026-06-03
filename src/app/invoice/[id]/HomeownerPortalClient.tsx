@@ -45,7 +45,10 @@ export default function HomeownerPortalClient({
   }, []);
 
   useEffect(() => {
-    if (id) logTelemetryView();
+    if (id) {
+      logTelemetryView();
+      fetchInvoiceData();
+    }
   }, [id]);
 
   async function logTelemetryView() {
