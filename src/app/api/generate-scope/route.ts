@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
 
+// Force Next.js to leave the incoming data stream completely alone so our binary parser handles it cleanly
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -14,6 +21,7 @@ export async function POST(request: Request) {
     let base64File = "";
     let mimeType = "";
 
+    // 1. DATA STREAM EXTRACTION ENGINE
     if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
       prompt = (formData.get("prompt") as string) || "";
@@ -27,12 +35,14 @@ export async function POST(request: Request) {
         base64File = Buffer.from(arrayBuffer).toString("base64");
       }
     } else {
+      // Standard JSON Request stream processing fallback path
       const body = await request.json();
       prompt = body.prompt || "";
       address = body.address || address;
       zipcode = body.zipcode || zipcode;
     }
 
+    // 2. DETAILED STRUCTURAL SYSTEM INSTRUCTIONS PROMPT
     const systemInstruction = `
       You are an elite residential remodeling cost estimator specializing in Omaha, NE.
       Analyze the user instructions and any attached design packets/manifests for a project at Address: ${address}, Zip Code: ${zipcode}.
@@ -65,10 +75,12 @@ export async function POST(request: Request) {
       }
     `;
 
+    // 3. ASSEMBLE CONTENT TRACES ARRAY FOR DISPATCH
     const contentsParts: any[] = [
       { text: `${systemInstruction}\n\nUser Context/Instructions: ${prompt}` }
     ];
 
+    // If a document was compiled, load the multi-modal inline binary block data object
     if (base64File && mimeType) {
       contentsParts.push({
         inlineData: {
@@ -78,6 +90,7 @@ export async function POST(request: Request) {
       });
     }
 
+    // 4. INITIATE SECURE FETCH DISPATCH ROUTE RADAR
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
