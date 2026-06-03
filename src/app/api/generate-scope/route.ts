@@ -13,21 +13,21 @@ export async function POST(request: Request) {
     const address = body.address || "Project Address";
     const zipcode = body.zipcode || "Omaha";
 
-    // Standard structural fallback data mapped directly from your uploaded contract file manifest [cite: 1, 2, 3]
+    // Generic fallback data for prompt context when uploaded file is empty or garbled
     const hardcodedIkeaPackageFallback = `
-      DOC MANIFEST: Your IKEA Kitchen Plan Package for Becky & Ike. [cite: 1, 2, 3]
-      CREATION DATE: Updated 04/26/26. [cite: 15, 432]
-      JOB SITE: Becky Vicarius, 344 S. 70th Street, 68132 Omaha. [cite: 623, 625]
-      TOTAL GOODS VALUE EXCLUDING TAX: $8,175.96. [cite: 10, 26, 676]
-      COMPONENTS INCLUDED: 
-      - SE B1D Base cabinet with shelves 15x24x30 white (SINARP brown doors) [cite: 627]
-      - SE SB2D Base cabinet for sink 36x24x30 white (SINARP brown doors) [cite: 627]
-      - SE CSBC Corner base cabinet with carousel 38x24x30 white (SINARP brown doors) [cite: 627]
-      - SE H1BT6S High cabinet with shelves (Modify base to fit 83.5 inch vertical space below soffit) [cite: 468, 469]
-      - SE W2D OTR 15 Wall cabinet with microhood 30x15x15 white (SINARP doors) [cite: 470, 471, 472, 473, 474]
-      - BAGGANÄS stainless steel handles, MITTLED LED kitchen countertop light strips, TRÅDFRI smart drivers. [cite: 441, 639, 654, 657]
-      - Countertop: Non-IKEA. Sink: Blanco Undermount. Faucet: Customer's own. [cite: 17, 442, 443, 444]
-      - APPLIANCES: Samsung Dishwasher DW80B707OUS/AA, Samsung Fridge RF23BB8600QLAA, Samsung Range NS16DG9300SRAA. [cite: 446, 447, 448]
+      DOC MANIFEST: Sample IKEA Kitchen Plan Package.
+      CREATION DATE: Updated 01/01/26.
+      JOB SITE: Sample Client, 123 Main Street, 68000 Omaha.
+      TOTAL GOODS VALUE EXCLUDING TAX: $8,175.96.
+      COMPONENTS INCLUDED:
+      - SE B1D Base cabinet with shelves 15x24x30 white (SINARP brown doors)
+      - SE SB2D Base cabinet for sink 36x24x30 white (SINARP brown doors)
+      - SE CSBC Corner base cabinet with carousel 38x24x30 white (SINARP brown doors)
+      - SE H1BT6S High cabinet with shelves (Modify base to fit 83.5 inch vertical space below soffit)
+      - SE W2D OTR 15 Wall cabinet with microhood 30x15x15 white (SINARP doors)
+      - BAGGANÄS stainless steel handles, MITTLED LED kitchen countertop light strips, TRÅDFRI smart drivers.
+      - Countertop: Non-IKEA. Sink: Blanco Undermount. Faucet: Customer supplied.
+      - APPLIANCES: Samsung Dishwasher, Samsung Refrigerator, Samsung Range.
     `;
 
     // Ensure we provide explicit fallback text if the uploaded file is binary/garbled noise

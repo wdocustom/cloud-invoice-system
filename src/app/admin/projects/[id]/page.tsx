@@ -35,6 +35,7 @@ export default function ProjectWorkspaceControlHub() {
   const [attachedPhotoBase64, setAttachedPhotoBase64] = useState("");
   const [attachedPhotoName, setAttachedPhotoName] = useState("");
   const [isLogging, setIsLogging] = useState(false);
+  const [attachedPhotoFile, setAttachedPhotoFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (projectId) {
@@ -186,6 +187,7 @@ export default function ProjectWorkspaceControlHub() {
     if (!file) return;
 
     setAttachedPhotoName(file.name);
+    setAttachedPhotoFile(file);
     const reader = new FileReader();
     reader.onload = (event) => {
       setAttachedPhotoBase64(event.target?.result as string);
@@ -198,10 +200,24 @@ export default function ProjectWorkspaceControlHub() {
     if (!dailyNotes.trim() && !attachedPhotoBase64) return;
     setIsLogging(true);
 
+    let photoUrl: string | null = null;
+    if (attachedPhotoFile) {
+      const filePath = `daily-logs/${projectId}/${Date.now()}-${attachedPhotoFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("project-photos")
+        .upload(filePath, attachedPhotoFile);
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage
+          .from("project-photos")
+          .getPublicUrl(filePath);
+        photoUrl = urlData.publicUrl;
+      }
+    }
+
     const newLogEntry = {
       timestamp: new Date().toISOString(),
       notes: dailyNotes.trim(),
-      photo: attachedPhotoBase64 || null, // Appends base64 camera image directly to Supabase array entry
+      photo: photoUrl,
       author: "Contractor Workspace"
     };
 
@@ -219,6 +235,7 @@ export default function ProjectWorkspaceControlHub() {
       setDailyNotes("");
       setAttachedPhotoBase64("");
       setAttachedPhotoName("");
+      setAttachedPhotoFile(null);
       alert("Daily operations log with image snapshot filed successfully!");
     } catch (err: any) {
       alert("Failed to submit field log entry: " + err.message);
