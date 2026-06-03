@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import HomeownerPortalClient from "./HomeownerPortalClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomeownerPortalPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
