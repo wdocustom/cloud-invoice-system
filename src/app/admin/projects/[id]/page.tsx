@@ -21,6 +21,7 @@ export default function ProjectWorkspaceControlHub() {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editAddress, setEditAddress] = useState("");
+  const [editProjectTitle, setEditProjectTitle] = useState("");
 
   // Line Item Insertion States
   const [newTitle, setNewTitle] = useState("");
@@ -58,6 +59,7 @@ export default function ProjectWorkspaceControlHub() {
         setEditName(data.homeowner_name || "");
         setEditEmail(data.homeowner_email || "");
         setEditAddress(data.job_address || "");
+        setEditProjectTitle(data.project_title || "");
       }
     } catch (err) {
       console.error("Error retrieving database record profiles:", err);
@@ -74,17 +76,19 @@ export default function ProjectWorkspaceControlHub() {
         .update({
           homeowner_name: editName.trim(),
           homeowner_email: editEmail.trim(),
-          job_address: editAddress.trim()
+          job_address: editAddress.trim(),
+          project_title: editProjectTitle.trim()
         })
         .eq("id", projectId);
 
       if (error) throw error;
-      
+
       setProject((prev: any) => ({
         ...prev,
         homeowner_name: editName.trim(),
         homeowner_email: editEmail.trim(),
-        job_address: editAddress.trim()
+        job_address: editAddress.trim(),
+        project_title: editProjectTitle.trim()
       }));
       
       setIsEditModalOpen(false);
@@ -308,18 +312,24 @@ export default function ProjectWorkspaceControlHub() {
           <div>
             <div className="flex items-center justify-between border-b pb-2 mb-2">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PROJECT ADDRESS</p>
-              <button 
+              <button
                 onClick={() => setIsEditModalOpen(true)}
                 className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wider transition outline-none"
               >
                 ✏️ EDIT PROFILE
               </button>
             </div>
-            <h3 className="font-extrabold text-slate-900 text-sm leading-relaxed mb-4">{project?.job_address || "No address specified."}</h3>
+            <h3 className="font-extrabold text-slate-900 text-sm leading-relaxed mb-1">{project?.job_address || "No address specified."}</h3>
+            {project?.project_title && (
+              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">{project.project_title}</p>
+            )}
           </div>
-          <div>
-            <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5">CLIENT</label>
-            <p className="font-mono font-bold text-xs text-slate-500 truncate">{project?.homeowner_email || "N/A"}</p>
+          <div className="space-y-1">
+            <div>
+              <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5">CLIENT</label>
+              <p className="font-bold text-xs text-slate-800">{project?.homeowner_name || "N/A"}</p>
+            </div>
+            <p className="font-mono font-bold text-[11px] text-slate-500 truncate">{project?.homeowner_email || "N/A"}</p>
           </div>
         </div>
 
@@ -331,12 +341,27 @@ export default function ProjectWorkspaceControlHub() {
               ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </h2>
           </div>
-          <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border mt-4">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider pl-1">PAID</span>
-            <div className="w-8 h-4 bg-slate-200 rounded-full p-0.5 cursor-pointer flex justify-start">
+          <button
+            type="button"
+            onClick={async () => {
+              const newVal = !project?.deposit_cleared;
+              setProject((prev: any) => ({ ...prev, deposit_cleared: newVal }));
+              const { error } = await supabase
+                .from("invoices")
+                .update({ deposit_cleared: newVal })
+                .eq("id", projectId);
+              if (error) {
+                setProject((prev: any) => ({ ...prev, deposit_cleared: !newVal }));
+                alert("Failed to update deposit status: " + error.message);
+              }
+            }}
+            className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border mt-4 cursor-pointer hover:bg-slate-100 transition outline-none"
+          >
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider pl-1">DEPOSIT PAID</span>
+            <div className={`w-8 h-4 rounded-full p-0.5 flex transition-all duration-200 ${project?.deposit_cleared ? 'bg-emerald-500 justify-end' : 'bg-slate-200 justify-start'}`}>
               <div className="w-3 h-3 bg-white rounded-full shadow-sm" />
             </div>
-          </div>
+          </button>
         </div>
 
         {/* PORTAL ANALYTICS FEED CARD */}
@@ -380,11 +405,34 @@ export default function ProjectWorkspaceControlHub() {
       {/* ITEMS MANAGER LEDGER CARD CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 pt-6 space-y-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
-          <div className="border-b pb-3">
-            <h2 className="text-base font-black text-slate-900 uppercase tracking-wide">
-              ITEMS
-            </h2>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify descriptions, values, or append new line scopes directly into the contract ledger structure.</p>
+          <div className="border-b pb-3 flex items-start justify-between">
+            <div>
+              <h2 className="text-base font-black text-slate-900 uppercase tracking-wide">
+                ITEMS
+              </h2>
+              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify descriptions, values, or append new line scopes directly into the contract ledger structure.</p>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const newVal = !project?.show_luxury_tier;
+                setProject((prev: any) => ({ ...prev, show_luxury_tier: newVal }));
+                const { error } = await supabase
+                  .from("invoices")
+                  .update({ show_luxury_tier: newVal })
+                  .eq("id", projectId);
+                if (error) {
+                  setProject((prev: any) => ({ ...prev, show_luxury_tier: !newVal }));
+                  alert("Failed to update luxury tier visibility: " + error.message);
+                }
+              }}
+              className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl transition outline-none shrink-0"
+            >
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Luxury Tier</span>
+              <div className={`w-8 h-4 rounded-full p-0.5 flex transition-all duration-200 ${project?.show_luxury_tier ? 'bg-blue-500 justify-end' : 'bg-slate-200 justify-start'}`}>
+                <div className="w-3 h-3 bg-white rounded-full shadow-sm" />
+              </div>
+            </button>
           </div>
 
           {/* DUAL-TIER WORKSPACE INPUT ROW LOOPS */}
@@ -625,10 +673,20 @@ export default function ProjectWorkspaceControlHub() {
               </div>
               <div>
                 <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Target Project Site Address</label>
-                <input 
-                  type="text" 
-                  value={editAddress} 
+                <input
+                  type="text"
+                  value={editAddress}
                   onChange={(e) => setEditAddress(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Project Title</label>
+                <input
+                  type="text"
+                  value={editProjectTitle}
+                  onChange={(e) => setEditProjectTitle(e.target.value)}
+                  placeholder="e.g. Bath Remodel, Basement Finish, Kitchen Remodel"
                   className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
                 />
               </div>

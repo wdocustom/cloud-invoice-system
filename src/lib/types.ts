@@ -30,4 +30,7 @@ export interface Invoice {
   deposit_cleared?: boolean;
   homeowner_options?: any[];
   homeowner_selections?: any;
+  show_luxury_tier?: boolean;
+  project_title?: string;
+  description?: string;
 }
