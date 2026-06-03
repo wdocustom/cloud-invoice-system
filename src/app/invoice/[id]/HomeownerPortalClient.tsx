@@ -291,17 +291,34 @@ export default function HomeownerPortalClient({
       {/* Top Professional Accent Header Bar */}
       <div className="bg-slate-900 text-white shadow-sm border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
-          <div className="space-y-0.5">
-            <h1 className="text-sm font-black tracking-wider uppercase text-slate-200">WDO Custom Client Hub</h1>
-            <p className="text-[10px] font-sans font-bold tracking-widest text-slate-400 uppercase">
-              {invoice.job_address && invoice.job_address.trim() !== "" ? invoice.job_address : "Project Location Pending"}
-            </p>
-          </div>
+          <h1 className="text-sm font-black tracking-wider uppercase text-slate-200">WDO Custom Client Hub</h1>
           <span className={`px-3 py-1 rounded-md text-[9px] font-black tracking-widest uppercase border ${
             isLocked ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
           }`}>
             • {invoice.status}
           </span>
+        </div>
+      </div>
+
+      {/* Contractor & Project Info Cards */}
+      <div className="max-w-6xl mx-auto px-4 pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-1.5">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-2">Contractor</p>
+            <p className="font-black text-slate-900 text-sm tracking-tight">WDO Custom</p>
+            <p className="text-xs font-bold text-slate-700">Skyler Camacho</p>
+            <p className="text-[11px] font-bold text-slate-500">LIC-1901422</p>
+            <p className="text-[11px] font-bold text-slate-500">402-819-8558</p>
+            <p className="text-[11px] font-mono font-bold text-slate-500">skyler@wdocustom.com</p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-1.5">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-2">Project Details</p>
+            <p className="font-black text-slate-900 text-sm tracking-tight">{invoice.homeowner_name || "Client"}</p>
+            <p className="text-xs font-bold text-slate-700">{invoice.job_address || "Address Pending"}</p>
+            {(invoice as any).project_title && (
+              <p className="text-[11px] font-black text-blue-600 uppercase tracking-wide mt-1">{(invoice as any).project_title}</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -326,7 +343,7 @@ export default function HomeownerPortalClient({
           <div className="lg:col-span-2 space-y-4">
 
             {/* Global Tier Option Selector Card */}
-            {!isLocked && (
+            {!isLocked && (invoice as any).show_luxury_tier && (
               <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="space-y-0.5 text-left">
                   <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">Project Specification Grade</h4>
