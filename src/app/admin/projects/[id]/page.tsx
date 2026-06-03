@@ -26,6 +26,10 @@ export default function ProjectWorkspaceControlHub() {
   const [newDescription, setNewDescription] = useState("");
   const [newCost, setNewCost] = useState("");
 
+  // Field Operations Log States
+  const [dailyNotes, setDailyNotes] = useState("");
+  const [isLogging, setIsLogging] = useState(false);
+
   useEffect(() => {
     if (projectId) {
       fetchComprehensiveProjectData();
@@ -148,6 +152,37 @@ export default function ProjectWorkspaceControlHub() {
     saveGlobalScopeItemChanges(currentItems);
   };
 
+  const submitDailyOperationsLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!dailyNotes.trim()) return;
+    setIsLogging(true);
+
+    const newLogEntry = {
+      timestamp: new Date().toISOString(),
+      notes: dailyNotes.trim(),
+      author: "Contractor Workspace"
+    };
+
+    const currentLogs = Array.isArray(project.daily_logs) ? [...project.daily_logs] : [];
+    const updatedLogs = [newLogEntry, ...currentLogs];
+
+    try {
+      const { error } = await supabase
+        .from("invoices")
+        .update({ daily_logs: updatedLogs })
+        .eq("id", projectId);
+
+      if (error) throw error;
+      setProject((prev: any) => ({ ...prev, daily_logs: updatedLogs }));
+      setDailyNotes("");
+      alert("Daily operations log filed successfully!");
+    } catch (err: any) {
+      alert("Failed to submit field log entry: " + err.message);
+    } finally {
+      setIsLogging(false);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-sans">
       <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
@@ -162,15 +197,15 @@ export default function ProjectWorkspaceControlHub() {
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between">
           <div className="space-y-0.5">
             <button onClick={() => router.push("/admin/projects")} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition block mb-1">
-              ← Back to Project Index Ledger
+              ← BACK TO PROJECT INDEX LEDGER
             </button>
             <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100">
-              {project?.homeowner_name || "Client File"} Workspace Control Hub
+              {project?.homeowner_name || "CLIENT"} WORKSPACE
             </h1>
           </div>
           <div className="flex items-center gap-3">
             <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-wider">
-              Proposal State: {project?.status || "Pending"}
+              PROPOSAL STATE: {project?.status || "PENDING"}
             </span>
             <button 
               onClick={() => {
@@ -179,59 +214,55 @@ export default function ProjectWorkspaceControlHub() {
               }}
               className="bg-white hover:bg-slate-50 text-slate-900 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm outline-none"
             >
-              Copy Live Portal Link
+              COPY LIVE PORTAL LINK
             </button>
           </div>
         </div>
       </div>
 
+      {/* METRICS ROW CARDS AREA */}
       <div className="max-w-7xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* CLIENT PROFILE DETAILS CARD */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden">
-          <div className="flex items-center justify-between border-b pb-2">
-            <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Project Site Profile</p>
-              <h3 className="font-extrabold text-slate-900 text-sm truncate max-w-[180px]">{project?.homeowner_name}</h3>
+        {/* PROJECT ADDRESS CARD */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between border-b pb-2 mb-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PROJECT ADDRESS</p>
+              <button 
+                onClick={() => setIsEditModalOpen(true)}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wider transition outline-none"
+              >
+                ✏️ EDIT PROFILE
+              </button>
             </div>
-            <button 
-              onClick={() => setIsEditModalOpen(true)}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[9px] px-3 py-1.5 rounded-lg uppercase tracking-wider transition outline-none"
-            >
-              ✏️ Edit Profile
-            </button>
+            <h3 className="font-extrabold text-slate-900 text-sm leading-relaxed mb-4">{project?.job_address || "No address specified."}</h3>
           </div>
-          
-          <div className="space-y-3 text-xs">
-            <div>
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5">Project Address</label>
-              <p className="font-bold text-slate-800 leading-relaxed">{project?.job_address || "No address specified."}</p>
-            </div>
-            <div>
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5">Client Channel Contact</label>
-              <p className="font-mono font-bold text-slate-600 truncate">{project?.homeowner_email || "N/A"}</p>
-            </div>
+          <div>
+            <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5">CLIENT</label>
+            <p className="font-mono font-bold text-xs text-slate-500 truncate">{project?.homeowner_email || "N/A"}</p>
           </div>
         </div>
 
-        {/* PROJECT FISCAL METRICS CARD */}
+        {/* PROJECT COST METRIC CARD */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
           <div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-3">Project Financial Total</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-3">PROJECT COST</p>
             <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans">
               ${(project?.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </h2>
           </div>
           <div className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border mt-4">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider pl-1">Mark Project Paid</span>
-            <div className="w-8 h-4 bg-slate-200 rounded-full p-0.5 cursor-pointer flex justify-start"><div className="w-3 h-3 bg-white rounded-full shadow-sm" /></div>
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider pl-1">PAID</span>
+            <div className="w-8 h-4 bg-slate-200 rounded-full p-0.5 cursor-pointer flex justify-start">
+              <div className="w-3 h-3 bg-white rounded-full shadow-sm" />
+            </div>
           </div>
         </div>
 
-        {/* REAL-TIME PORTAL TRACKING ANALYTICS CARD */}
+        {/* PORTAL ANALYTICS FEED CARD */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div className="flex justify-between items-center border-b pb-2">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Portal Analytics Feed</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PORTAL ANALYTICS FEED</p>
             <span className="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-0.5 rounded-md border border-blue-100">Hits: {project?.view_count || 0}</span>
           </div>
           <div className="space-y-1.5 max-h-24 overflow-y-auto text-[10px] divide-y divide-slate-50 pr-1">
@@ -249,29 +280,34 @@ export default function ProjectWorkspaceControlHub() {
 
       </div>
 
-      {/* GANTT SCHEDULER BLOCK */}
+      {/* GANTT BLUEPRINT SCHEDULER HORIZON TRACK */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            🗓️ Production Phase Gantt Blueprint Scheduler
+            🗓️ PRODUCTION PHASE GANTT BLUEPRINT SCHEDULER
           </h3>
-          <div className="h-32 border border-dashed rounded-xl bg-slate-50/50 flex items-center justify-center">
-            <p className="text-[11px] font-medium text-slate-400 italic">Operational horizon timeline component active</p>
+          <p className="text-[11px] text-slate-400 font-medium -mt-2">Construct sub-tasks, nest trade rows, and update operational progress margins directly into live streams charts grids.</p>
+          <div className="h-40 border border-slate-200 rounded-xl bg-slate-50/50 flex flex-col items-center justify-between p-4">
+            <div className="w-full flex justify-between text-[10px] font-black text-slate-400 border-b pb-2 uppercase tracking-wider">
+              <span>PHASE WORKSPACE MANAGEMENT TRACK</span>
+              <span>OPERATIONAL HORIZON CALENDAR GRID VIEW</span>
+            </div>
+            <p className="text-[11px] font-medium text-slate-400 italic mb-4">Operational horizon timeline component active</p>
           </div>
         </div>
       </div>
 
-      {/* ITEMS WORKSPACE SECTION */}
+      {/* ITEMS MANAGER LEDGER CARD CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 pt-6 space-y-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
           <div className="border-b pb-3">
             <h2 className="text-base font-black text-slate-900 uppercase tracking-wide">
-              Items
+              ITEMS
             </h2>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify descriptions, values, or append new line scopes directly into the contract ledger structure.</p>
           </div>
 
-          {/* LIST MATRIX CONTROLS LOOP */}
+          {/* RENDERING ROW LOOP TRACKER */}
           <div className="space-y-4">
             {Array.isArray(project?.items) && project.items.map((item: any, idx: number) => (
               <div key={idx} className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3 relative group transition-all hover:border-slate-300">
@@ -310,7 +346,7 @@ export default function ProjectWorkspaceControlHub() {
             ))}
           </div>
 
-          {/* LINE ITEM INSERTION CONTROLS */}
+          {/* CONTRACT SCOPE ENTRY CONTROLS BLOCK */}
           <form onSubmit={insertNewLineRow} className="border border-blue-100 bg-blue-50/20 p-5 rounded-2xl space-y-4">
             <div>
               <h4 className="font-black text-slate-900 uppercase tracking-wide text-[10px] text-blue-600">➕ Add Contract Line Item</h4>
@@ -351,7 +387,53 @@ export default function ProjectWorkspaceControlHub() {
         </div>
       </div>
 
-      {/* CLIENT PROFILE MODAL */}
+      {/* RESTORED FIELD OPERATIONS DAILY LOG WORKBENCH */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="border-b pb-3 border-slate-100">
+            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">📸 FIELD OPERATIONS DAILY LOG</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Record construction notes, site progress logs, and snap layout photos straight from your device camera into the client portal.</p>
+          </div>
+
+          <form onSubmit={submitDailyOperationsLog} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-slate-50 border p-4 rounded-2xl flex flex-col justify-between gap-4">
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">LOG SITE PROGRESS NOTES:</label>
+                <textarea 
+                  value={dailyNotes}
+                  onChange={(e) => setDailyNotes(e.target.value)}
+                  placeholder="Describe trade workflow status..." 
+                  className="w-full bg-white border p-3 rounded-xl text-xs font-semibold outline-none focus:border-slate-300 min-h-[90px] shadow-sm"
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={isLogging || !dailyNotes.trim()}
+                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition"
+              >
+                {isLogging ? "SAVING LOG..." : "SUBMIT FIELD LOG"}
+              </button>
+            </div>
+            
+            <div className="lg:col-span-2 border border-slate-100 rounded-2xl p-4 max-h-[180px] overflow-y-auto space-y-3 bg-white divide-y divide-slate-100">
+              {Array.isArray(project?.daily_logs) && project.daily_logs.map((log: any, i: number) => (
+                <div key={i} className="text-xs pt-3 first:pt-0">
+                  <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">
+                    <span>👷‍♂️ {log.author || "Site Superintendent"}</span>
+                    <span>{new Date(log.timestamp).toLocaleString()}</span>
+                  </div>
+                  <p className="text-slate-700 font-medium leading-relaxed bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">{log.notes}</p>
+                </div>
+              ))}
+              {(!project?.daily_logs || project.daily_logs.length === 0) && (
+                <p className="text-center italic text-slate-400 text-xs pt-12">No field records submitted to the ledger index timeline yet.</p>
+              )}
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* CLIENT SPEC PROFILE INTERACTION MODAL */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl text-left">
