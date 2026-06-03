@@ -115,17 +115,29 @@ export default function ProjectWorkspaceControlHub() {
     }));
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("invoices")
         .update({
           items: updatedItems,
           amount: calculatedNewTotal
         })
-        .eq("id", projectId);
+        .eq("id", projectId)
+        .select()
+        .single();
 
       if (error) throw error;
+
+      if (!data) {
+        throw new Error("Write confirmed but no row returned — check Supabase RLS policies.");
+      }
+
+      setProject((prev: any) => ({
+        ...prev,
+        items: data.items,
+        amount: data.amount
+      }));
     } catch (err: any) {
-      alert("Error synchronizing scope line rows: " + err.message);
+      alert("Error saving: " + err.message);
       fetchComprehensiveProjectData();
     }
   }
