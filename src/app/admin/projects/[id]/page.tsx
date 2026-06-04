@@ -41,6 +41,8 @@ export default function ProjectWorkspaceControlHub() {
   // Q&A Messaging States
   const [qaMessage, setQaMessage] = useState("");
   const [isSendingQa, setIsSendingQa] = useState(false);
+  const [editingQaIndex, setEditingQaIndex] = useState<number | null>(null);
+  const [editingQaText, setEditingQaText] = useState("");
 
   useEffect(() => {
     if (projectId) {
@@ -659,15 +661,87 @@ export default function ProjectWorkspaceControlHub() {
             {Array.isArray(project?.questions) && project.questions.length > 0 ? (
               project.questions.map((msg: any, i: number) => (
                 <div key={i} className={`flex ${msg.author === "contractor" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
+                  <div className={`max-w-[75%] rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
                     msg.author === "contractor"
                       ? "bg-slate-900 text-white rounded-br-md"
                       : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
                   }`}>
-                    <p>{msg.text}</p>
-                    <p className={`text-[9px] mt-1.5 font-bold ${msg.author === "contractor" ? "text-slate-400" : "text-slate-400"}`}>
-                      {msg.author === "contractor" ? "You" : project?.homeowner_name || "Homeowner"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                    </p>
+                    {editingQaIndex === i ? (
+                      <div className="px-4 py-2.5 space-y-2">
+                        <textarea
+                          value={editingQaText}
+                          onChange={(e) => setEditingQaText(e.target.value)}
+                          className="w-full bg-slate-800 text-white border border-slate-700 p-2 rounded-lg text-xs font-bold outline-none focus:border-slate-500 min-h-[48px]"
+                          rows={2}
+                        />
+                        <div className="flex gap-1.5 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setEditingQaIndex(null)}
+                            className="text-[9px] font-black text-slate-400 hover:text-slate-300 px-2 py-1 rounded transition"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!editingQaText.trim()) return;
+                              const currentMessages = [...(project?.questions || [])];
+                              currentMessages[i] = { ...currentMessages[i], text: editingQaText.trim(), edited: true };
+                              try {
+                                const { error } = await supabase.from("invoices").update({ questions: currentMessages }).eq("id", projectId);
+                                if (error) throw error;
+                                setProject((prev: any) => ({ ...prev, questions: currentMessages }));
+                                setEditingQaIndex(null);
+                              } catch (err: any) {
+                                alert("Failed to update message: " + err.message);
+                              }
+                            }}
+                            className="text-[9px] font-black text-emerald-400 hover:text-emerald-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg transition"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="px-4 py-2.5">
+                        <p>{msg.text}{msg.edited && <span className="text-[8px] ml-1 opacity-50">(edited)</span>}</p>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <p className={`text-[9px] font-bold ${msg.author === "contractor" ? "text-slate-400" : "text-slate-400"}`}>
+                            {msg.author === "contractor" ? "You" : project?.homeowner_name || "Homeowner"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          </p>
+                          {msg.author === "contractor" && (
+                            <div className="flex gap-1.5 ml-3">
+                              <button
+                                type="button"
+                                onClick={() => { setEditingQaIndex(i); setEditingQaText(msg.text); }}
+                                className="text-[9px] font-bold text-slate-500 hover:text-white transition"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (!confirm("Delete this message?")) return;
+                                  const currentMessages = [...(project?.questions || [])];
+                                  currentMessages.splice(i, 1);
+                                  try {
+                                    const { error } = await supabase.from("invoices").update({ questions: currentMessages }).eq("id", projectId);
+                                    if (error) throw error;
+                                    setProject((prev: any) => ({ ...prev, questions: currentMessages }));
+                                  } catch (err: any) {
+                                    alert("Failed to delete message: " + err.message);
+                                  }
+                                }}
+                                className="text-[9px] font-bold text-red-400/60 hover:text-red-400 transition"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
