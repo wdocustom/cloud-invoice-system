@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       ],
       metadata: {
         invoice_id,
-        phase_index: String(phase_index),
+        phase_index: String(phase_index ?? 0),
+        payment_type: phase_index === 0 ? "deposit" : `phase_${phase_index}`,
       },
       success_url: `${baseUrl}/invoice/${invoice_id}?payment=success`,
       cancel_url: `${baseUrl}/invoice/${invoice_id}?payment=cancelled`,

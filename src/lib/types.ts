@@ -33,4 +33,5 @@ export interface Invoice {
   show_luxury_tier?: boolean;
   project_title?: string;
   description?: string;
+  payment_history?: any[];
 }

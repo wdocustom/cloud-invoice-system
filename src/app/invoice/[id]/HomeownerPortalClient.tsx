@@ -678,7 +678,7 @@ export default function HomeownerPortalClient({
 
               <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-4 text-xs text-slate-600 space-y-2.5 font-semibold">
                 <div className="flex justify-between items-center border-b border-slate-200/40 pb-2">
-                  <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage}%):</span>
+                  <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage ?? 20}%):</span>
                   <span className="font-sans font-black text-slate-950 text-sm">${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-slate-500">
