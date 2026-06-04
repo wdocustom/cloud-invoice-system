@@ -37,16 +37,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true });
     }
 
-    const paymentRecord = {
-      stripe_session_id: session.id,
-      stripe_payment_intent: session.payment_intent,
-      amount: amountPaid,
-      phase_index: phaseIndex,
-      status: session.payment_status,
-      customer_email: session.customer_details?.email,
-      paid_at: new Date().toISOString(),
-    };
-
     try {
       const { data: invoice, error: fetchError } = await supabase
         .from("invoices")
@@ -59,7 +49,26 @@ export async function POST(request: Request) {
         return NextResponse.json({ received: true });
       }
 
-      const updatedHistory = [...(invoice.payment_history || []), paymentRecord];
+      const existingHistory = invoice.payment_history || [];
+      const alreadyProcessed = existingHistory.some(
+        (p: any) => p.stripe_session_id === session.id
+      );
+      if (alreadyProcessed) {
+        console.log(`Webhook: session ${session.id} already processed, skipping`);
+        return NextResponse.json({ received: true });
+      }
+
+      const paymentRecord = {
+        stripe_session_id: session.id,
+        stripe_payment_intent: session.payment_intent,
+        amount: amountPaid,
+        phase_index: phaseIndex,
+        status: session.payment_status,
+        customer_email: session.customer_details?.email,
+        paid_at: new Date().toISOString(),
+      };
+
+      const updatedHistory = [...existingHistory, paymentRecord];
 
       const updatePayload: Record<string, unknown> = {
         payment_history: updatedHistory,
@@ -71,7 +80,10 @@ export async function POST(request: Request) {
           updatePayload.current_phase_index = 1;
         }
       } else {
-        updatePayload.current_phase_index = phaseIndex + 1;
+        updatePayload.current_phase_index = Math.max(
+          invoice.current_phase_index || 0,
+          phaseIndex + 1
+        );
       }
 
       const { error: updateError } = await supabase
@@ -81,11 +93,13 @@ export async function POST(request: Request) {
 
       if (updateError) {
         console.error("Webhook: failed to update invoice", updateError);
-      } else {
-        console.log(`Webhook: invoice ${invoiceId} updated — phase ${phaseIndex} paid`);
+        return NextResponse.json({ error: "Database update failed" }, { status: 500 });
       }
+
+      console.log(`Webhook: invoice ${invoiceId} updated — phase ${phaseIndex} paid`);
     } catch (err) {
       console.error("Webhook processing error:", err);
+      return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }
   }
 
