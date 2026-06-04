@@ -37,6 +37,8 @@ export default function HomeownerPortalClient({
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "check">("stripe");
   const [expandedCoId, setExpandedCoId] = useState<string | null>(null);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [qaMessage, setQaMessage] = useState("");
+  const [isSendingQa, setIsSendingQa] = useState(false);
 
   useEffect(() => {
     if (initialInvoice?.items && activeIndices.length === 0) {
@@ -544,6 +546,79 @@ export default function HomeownerPortalClient({
                   </div>
                 );
               })}
+            </div>
+
+            {/* Q&A COMMUNICATION THREAD */}
+            <div className="border-2 border-blue-200 bg-white rounded-2xl p-5 shadow-md text-left space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-600" />
+              <div className="pt-1">
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  💬 Questions & Answers
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">Have a question about the proposal? Ask below and we'll respond directly.</p>
+              </div>
+
+              <div className="border border-slate-100 rounded-xl max-h-[280px] overflow-y-auto p-4 space-y-3 bg-slate-50/40">
+                {Array.isArray((invoice as any).questions) && (invoice as any).questions.length > 0 ? (
+                  (invoice as any).questions.map((msg: any, i: number) => (
+                    <div key={i} className={`flex ${msg.author === "homeowner" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
+                        msg.author === "homeowner"
+                          ? "bg-blue-600 text-white rounded-br-md"
+                          : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
+                      }`}>
+                        <p>{msg.text}</p>
+                        <p className={`text-[9px] mt-1.5 font-bold ${msg.author === "homeowner" ? "text-blue-200" : "text-slate-400"}`}>
+                          {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 space-y-2">
+                    <p className="text-2xl">💬</p>
+                    <p className="text-xs font-bold text-slate-500">No messages yet</p>
+                    <p className="text-[11px] text-slate-400 font-medium">Ask a question about materials, timeline, pricing — we're here to help!</p>
+                  </div>
+                )}
+              </div>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!qaMessage.trim()) return;
+                  setIsSendingQa(true);
+                  const newMsg = { text: qaMessage.trim(), author: "homeowner", timestamp: new Date().toISOString() };
+                  const currentMessages = Array.isArray((invoice as any).questions) ? [...(invoice as any).questions] : [];
+                  const updated = [...currentMessages, newMsg];
+                  try {
+                    const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", id);
+                    if (error) throw error;
+                    setInvoice((prev: any) => ({ ...prev, questions: updated }));
+                    setQaMessage("");
+                  } catch {
+                    alert("Failed to send message. Please try again.");
+                  } finally {
+                    setIsSendingQa(false);
+                  }
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={qaMessage}
+                  onChange={(e) => setQaMessage(e.target.value)}
+                  placeholder="Type your question here..."
+                  className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-400 focus:bg-white transition shadow-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={isSendingQa || !qaMessage.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition shadow-md shrink-0"
+                >
+                  {isSendingQa ? "..." : "Send"}
+                </button>
+              </form>
             </div>
 
             {/* DYNAMIC DESIGN CHOICE BOARD MODULE */}

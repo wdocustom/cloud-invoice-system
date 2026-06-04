@@ -38,6 +38,10 @@ export default function ProjectWorkspaceControlHub() {
   const [isLogging, setIsLogging] = useState(false);
   const [attachedPhotoFile, setAttachedPhotoFile] = useState<File | null>(null);
 
+  // Q&A Messaging States
+  const [qaMessage, setQaMessage] = useState("");
+  const [isSendingQa, setIsSendingQa] = useState(false);
+
   useEffect(() => {
     if (projectId) {
       fetchComprehensiveProjectData();
@@ -639,6 +643,74 @@ export default function ProjectWorkspaceControlHub() {
                 <p className="text-center italic text-slate-400 text-xs pt-16">No field records submitted to the ledger index timeline yet.</p>
               )}
             </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Q&A COMMUNICATION THREAD */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <div className="border-b pb-3 border-slate-100">
+            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">💬 CLIENT Q&A THREAD</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Messages sent here appear on the homeowner portal. Use this to answer questions and drive toward proposal approval.</p>
+          </div>
+
+          <div className="border border-slate-100 rounded-2xl max-h-[320px] overflow-y-auto p-4 space-y-3 bg-slate-50/30">
+            {Array.isArray(project?.questions) && project.questions.length > 0 ? (
+              project.questions.map((msg: any, i: number) => (
+                <div key={i} className={`flex ${msg.author === "contractor" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
+                    msg.author === "contractor"
+                      ? "bg-slate-900 text-white rounded-br-md"
+                      : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
+                  }`}>
+                    <p>{msg.text}</p>
+                    <p className={`text-[9px] mt-1.5 font-bold ${msg.author === "contractor" ? "text-slate-400" : "text-slate-400"}`}>
+                      {msg.author === "contractor" ? "You" : project?.homeowner_name || "Homeowner"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center italic text-slate-400 text-xs py-8">No messages yet. Start the conversation to guide your client toward approval.</p>
+            )}
+          </div>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!qaMessage.trim()) return;
+              setIsSendingQa(true);
+              const newMsg = { text: qaMessage.trim(), author: "contractor", timestamp: new Date().toISOString() };
+              const currentMessages = Array.isArray(project?.questions) ? [...project.questions] : [];
+              const updated = [...currentMessages, newMsg];
+              try {
+                const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", projectId);
+                if (error) throw error;
+                setProject((prev: any) => ({ ...prev, questions: updated }));
+                setQaMessage("");
+              } catch (err: any) {
+                alert("Failed to send message: " + err.message);
+              } finally {
+                setIsSendingQa(false);
+              }
+            }}
+            className="flex gap-2"
+          >
+            <input
+              type="text"
+              value={qaMessage}
+              onChange={(e) => setQaMessage(e.target.value)}
+              placeholder="Type a reply to your client..."
+              className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-slate-400 focus:bg-white transition shadow-sm"
+            />
+            <button
+              type="submit"
+              disabled={isSendingQa || !qaMessage.trim()}
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition shadow-sm shrink-0"
+            >
+              {isSendingQa ? "Sending..." : "Send"}
+            </button>
           </form>
         </div>
       </div>
