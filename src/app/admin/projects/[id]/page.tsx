@@ -373,18 +373,43 @@ export default function ProjectWorkspaceControlHub() {
         {/* PORTAL ANALYTICS FEED CARD */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div className="flex justify-between items-center border-b pb-2">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PORTAL ANALYTICS FEED</p>
-            <span className="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-0.5 rounded-md border border-blue-100">Hits: {project?.view_count || 0}</span>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PORTAL ANALYTICS</p>
+            <span className="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-0.5 rounded-md border border-blue-100">Views: {project?.view_count || 0}</span>
           </div>
-          <div className="space-y-1.5 max-h-24 overflow-y-auto text-[10px] divide-y divide-slate-50 pr-1">
-            {Array.isArray(project?.view_history) && project.view_history.map((hit: any, i: number) => (
-              <div key={i} className="flex justify-between items-center pt-1.5 text-slate-600 font-medium">
-                <span>#{project.view_history.length - i} • Link Visited</span>
-                <span className="font-mono text-slate-400 text-[9px]">{hit.timestamp ? new Date(hit.timestamp).toLocaleDateString() : "Live Hit"}</span>
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            {Array.isArray(project?.view_history) && [...project.view_history].reverse().map((hit: any, i: number) => (
+              <div key={i} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-[10px] space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="font-black text-slate-700">#{project.view_history.length - i}</span>
+                  <span className="font-mono text-slate-500 text-[9px]">
+                    {hit.timestamp ? new Date(hit.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : "—"}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {hit.ip && (
+                    <span className="bg-white border border-slate-200 text-slate-600 font-mono font-bold text-[8px] px-1.5 py-0.5 rounded">{hit.ip}</span>
+                  )}
+                  {hit.device && (
+                    <span className={`font-bold text-[8px] px-1.5 py-0.5 rounded border ${
+                      hit.device.includes("iOS") ? "bg-blue-50 text-blue-700 border-blue-100" :
+                      hit.device.includes("Android") ? "bg-green-50 text-green-700 border-green-100" :
+                      "bg-slate-100 text-slate-600 border-slate-200"
+                    }`}>{hit.device}</span>
+                  )}
+                  {hit.browser && (
+                    <span className="bg-amber-50 text-amber-700 border border-amber-100 font-bold text-[8px] px-1.5 py-0.5 rounded">{hit.browser}</span>
+                  )}
+                  {hit.screen && (
+                    <span className="bg-purple-50 text-purple-700 border border-purple-100 font-bold text-[8px] px-1.5 py-0.5 rounded">{hit.screen}</span>
+                  )}
+                </div>
+                {hit.referrer && (
+                  <p className="text-[8px] text-slate-400 font-medium truncate">via: {hit.referrer}</p>
+                )}
               </div>
             ))}
             {(!project?.view_history || project.view_history.length === 0) && (
-              <p className="text-center italic text-slate-400 pt-4">No consumer activity logs generated yet.</p>
+              <p className="text-center italic text-slate-400 text-xs pt-4">No portal views yet.</p>
             )}
           </div>
         </div>

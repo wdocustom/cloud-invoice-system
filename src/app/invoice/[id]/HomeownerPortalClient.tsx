@@ -54,35 +54,30 @@ export default function HomeownerPortalClient({
   }, [id]);
 
   async function logTelemetryView() {
-    const timestamp = new Date().toISOString();
-
     const ua = navigator.userAgent;
     let device = "Desktop";
     if (/Mobi|Android|iPhone|iPad/i.test(ua)) {
       device = /iPhone|iPad/i.test(ua) ? "Mobile (iOS)" : "Mobile (Android)";
     }
 
-    let browser = "Unknown Browser";
-    if (ua.indexOf("Chrome") > -1) browser = "Chrome";
-    else if (ua.indexOf("Safari") > -1) browser = "Safari";
-    else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
+    let browser = "Unknown";
+    if (ua.indexOf("Chrome") > -1 && ua.indexOf("Edge") === -1) browser = "Chrome";
     else if (ua.indexOf("Edge") > -1) browser = "Edge";
-
-    const sessionPayload = {
-      timestamp,
-      device,
-      browser,
-    };
+    else if (ua.indexOf("Safari") > -1 && ua.indexOf("Chrome") === -1) browser = "Safari";
+    else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
 
     try {
-      const { data } = await supabase.from("invoices").select("view_count, view_history").eq("id", id).single();
-      if (data) {
-        const updatedHistory = [...(data.view_history || []), sessionPayload];
-        await supabase.from("invoices").update({
-          view_count: (data.view_count || 0) + 1,
-          view_history: updatedHistory
-        }).eq("id", id);
-      }
+      await fetch("/api/track-view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoice_id: id,
+          device,
+          browser,
+          referrer: document.referrer || null,
+          screen: `${window.screen.width}x${window.screen.height}`,
+        }),
+      });
     } catch (err) {
       console.error("Telemetry collection exception:", err);
     }
