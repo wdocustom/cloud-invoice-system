@@ -13,66 +13,53 @@ export async function POST(request: Request) {
     const address = body.address || "Project Address";
     const zipcode = body.zipcode || "Omaha";
 
-    // Generic fallback data for prompt context when uploaded file is empty or garbled
-    const hardcodedIkeaPackageFallback = `
-      DOC MANIFEST: Sample IKEA Kitchen Plan Package.
-      CREATION DATE: Updated 01/01/26.
-      JOB SITE: Sample Client, 123 Main Street, 68000 Omaha.
-      TOTAL GOODS VALUE EXCLUDING TAX: $8,175.96.
-      COMPONENTS INCLUDED:
-      - SE B1D Base cabinet with shelves 15x24x30 white (SINARP brown doors)
-      - SE SB2D Base cabinet for sink 36x24x30 white (SINARP brown doors)
-      - SE CSBC Corner base cabinet with carousel 38x24x30 white (SINARP brown doors)
-      - SE H1BT6S High cabinet with shelves (Modify base to fit 83.5 inch vertical space below soffit)
-      - SE W2D OTR 15 Wall cabinet with microhood 30x15x15 white (SINARP doors)
-      - BAGGANÄS stainless steel handles, MITTLED LED kitchen countertop light strips, TRÅDFRI smart drivers.
-      - Countertop: Non-IKEA. Sink: Blanco Undermount. Faucet: Customer supplied.
-      - APPLIANCES: Samsung Dishwasher, Samsung Refrigerator, Samsung Range.
-    `;
+    const hasFileContext = fileContext && fileContext.trim().length > 100;
 
-    // Ensure we provide explicit fallback text if the uploaded file is binary/garbled noise
-    const cleanFileContext = (fileContext && fileContext.trim().length > 100 && !fileContext.includes("")) 
-      ? fileContext 
-      : hardcodedIkeaPackageFallback;
+    const systemInstruction = `You are an elite residential remodeling cost estimator based in Omaha, NE with 20+ years of experience pricing renovation projects.
 
-    const systemInstruction = `
-      You are an elite residential remodeling cost estimator specializing in Omaha, NE.
-      Analyze the user instructions and any attached design packets/manifests for a project at Address: ${address}, Zip Code: ${zipcode}.
-      
-      PRIMARY MANIFEST INPUT SOURCE CONTEXT:
-      ${cleanFileContext}
+PROJECT LOCATION: ${address}, ${zipcode}
 
-      Using the design data specifications provided in the manifest source above, you must generate an itemized list of contract line items detailing the installation work. 
-      
-      For EVERY construction line item, you must provide BOTH a "Mid-Tier" (standard default) specification and a premium "High-Tier" luxury upgrade alternative.
-      
-      CRITICAL TRADES & MARKUP JURISDICTION RULES:
-      1. First Line Item: The very first item in the array MUST be titled "Permits & Architectural Compliance". Its mid and high descriptions/costs should be identical, covering only baseline Omaha municipal building filing fees (no markup applied to permits).
-      
-      2. Second Line Item: Must be titled "IKEA Kitchen Cabinet Assembly & Framing Installation". Detail the labor, custom base modifications to clear the soffits, microhood modifications, toe-kicks, cover panels, and hanging suspension rails. Mid-Tier should reflect standard installation tracking markup (1.18 multiplier). High-Tier should reflect full custom trim carpentry luxury leveling upgrades (1.20 multiplier).
-      
-      3. Third Line Item: Must be titled "Luxury Kitchen Countertop Fabrication & Install". Since the blueprint calls for a "Non-IKEA" top, specify an elegant finish (Mid-Tier: Quartzite baseline; High-Tier: Premium bookmatched Calacatta Gold solid surface slabs).
-      
-      4. Fourth Line Item: Must be titled "Plumbing & Sink Utility Rough-In Connections". Detail the integration of the Blanco undermount sink and plumbing utility configurations.
-      
-      5. Fifth Line Item: Must be titled "Task Lighting & Smart Electrical Integration". Detail the wiring for the MITTLED countertop light strips and TRADFRI drivers.
-      
-      6. Text Constraints: Do NOT mention the words "markup", "18%", "20%", or "multiplier" anywhere in your text fields.
-      
-      Respond ONLY with a raw JSON structure matching this exact schema layout:
-      {
-        "items": [
-          {
-            "title": "IKEA Kitchen Cabinet Assembly & Framing Installation",
-            "mid_description": "Complete professional assembly and mounting of Sektion base, wall, and high pantry cabinetry structures with Sinarp brown doors. Includes unboxing, setting suspension rails, field modification of high cabinet bases for 83.5-inch soffits, toe-kicks, cover panels, and handle hardware.",
-            "mid_cost": 4950.00,
-            "high_title": "Premium Master-Craftsman Cabinetry Cluster Installation Upgrade",
-            "high_description": "Elite level cabinet installation featuring flush architectural layout alignment tolerances, customized support integrations, scribing to irregular wall surfaces, premium fast-track hardware validation loops, and lifetime structural mounting warranty guarantees.",
-            "high_cost": 6800.00
-          }
-        ]
-      }
-    `;
+${hasFileContext ? `ATTACHED DOCUMENT/PACKAGE CONTENTS:\n${fileContext}\n` : ""}
+
+CONTRACTOR'S SCOPE NOTES:
+${prompt}
+
+YOUR TASK:
+Parse the contractor's notes above carefully. They are written in shorthand — extract every distinct piece of work described.
+
+GROUPING RULES:
+1. Group related work by ROOM or AREA (e.g., "New Bedroom Build-Out", "Wine Room Conversion", "Exterior Repairs & Finish"). Each group becomes ONE line item.
+2. Within each line item description, list ALL the specific tasks that fall under that scope area.
+3. If the contractor mentions specific dimensions, materials, or quantities — include them exactly.
+4. If obvious related work is missing (e.g., they mention adding a bedroom but don't mention electrical for it), include it and note it as "included" in the description.
+5. The FIRST line item must ALWAYS be "Permits & Code Compliance" covering Omaha municipal building permits, inspections, and any required engineering. Mid and high cost/description should be identical for permits (no markup on permits).
+
+PRICING RULES (Omaha, NE market rates):
+- Price based on current Omaha residential remodeling labor + materials rates
+- Mid-Tier: Standard contractor-grade materials, professional labor
+- High-Tier: Premium/luxury materials, master craftsman labor, typically 25-40% above mid-tier depending on scope
+- Never mention "markup", "multiplier", or percentage calculations in descriptions
+- Be realistic — don't lowball or inflate
+
+DESCRIPTION QUALITY:
+- Mid-tier descriptions: specific, practical, mention actual materials and methods
+- High-tier descriptions: emphasize premium materials, superior craftsmanship, upgraded finishes
+- Both tiers: reference the actual work from the contractor's notes, don't be generic
+- Keep descriptions 1-3 sentences, dense with detail
+
+Respond ONLY with raw JSON matching this exact schema:
+{
+  "items": [
+    {
+      "title": "Short descriptive scope title",
+      "mid_description": "Detailed mid-tier scope description with specific materials and methods...",
+      "mid_cost": 0.00,
+      "high_title": "Premium version of the scope title",
+      "high_description": "Detailed high-tier scope description with premium materials and methods...",
+      "high_cost": 0.00
+    }
+  ]
+}`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -80,7 +67,7 @@ export async function POST(request: Request) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: systemInstruction + "\n\nUser Prompt: " + prompt }] }],
+          contents: [{ parts: [{ text: systemInstruction }] }],
           generationConfig: {
             responseMimeType: "application/json"
           }
@@ -90,13 +77,11 @@ export async function POST(request: Request) {
 
     const data = await response.json();
     let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    
-    // Extra safety layer to guarantee we isolate valid JSON strings cleanly
+
     if (rawText.includes("```")) {
       rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
     }
 
-    // Direct string cleanup in case of stray trailing characters or formatting variances
     const startBracket = rawText.indexOf("{");
     const endBracket = rawText.lastIndexOf("}");
     if (startBracket !== -1 && endBracket !== -1) {
@@ -108,28 +93,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ items: finalItemsArray });
   } catch (error: any) {
-    console.error("Estimator failure trace:", error);
-    
-    // Graceful fallback option array block if any text parser parsing glitch arises
-    return NextResponse.json({ 
-      items: [
-        {
-          title: "Permits & Architectural Compliance",
-          mid_description: "Standard city of Omaha municipal building permit applications, plumbing/electrical schedule processing fees, and localized code inspections compliance approvals.",
-          mid_cost: 350.00,
-          high_title: "Permits & Architectural Compliance",
-          high_description: "Standard city of Omaha municipal building permit applications, plumbing/electrical schedule processing fees, and localized code inspections compliance approvals.",
-          high_cost: 350.00
-        },
-        {
-          title: "IKEA Kitchen Cabinet Assembly & Framing Installation",
-          mid_description: "Complete professional assembly, hardware leveling adjustments, and secure structural tracking hanging of Sektion cabinet layouts with Sinarp wood doors. Includes on-site adjustments to bypass localized soffit limits.",
-          mid_cost: 5450.00,
-          high_title: "Master-Trim Joinery Kitchen Unit Custom Integration Upgrade",
-          high_description: "Elite level architectural furniture installation including precision continuous horizontal level adjustments, custom scribing to irregular drywall surfaces, robust safety anchors, and structural backing framework updates.",
-          high_cost: 7200.00
-        }
-      ] 
-    });
+    console.error("Estimator failure:", error);
+    return NextResponse.json({ error: "AI estimation failed. Please try again." }, { status: 500 });
   }
 }
