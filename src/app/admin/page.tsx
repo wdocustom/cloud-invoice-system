@@ -75,8 +75,8 @@ export default function MultiTierEstimatorCreator() {
   };
 
   const deployLiveProposalRecord = async () => {
-    if (!clientName.trim() || !clientEmail.trim()) {
-      return alert("Please fill out the Client Name and Client Email before deploying.");
+    if (!clientName.trim()) {
+      return alert("Please fill out the Client Name before deploying.");
     }
     setIsDeploying(true);
 
@@ -98,7 +98,7 @@ export default function MultiTierEstimatorCreator() {
         .insert([
           {
             homeowner_name: clientName.trim(),
-            homeowner_email: clientEmail.trim(),
+            homeowner_email: clientEmail.trim() || null,
             job_address: `${streetAddress.trim()}, Omaha, NE ${zipCode.trim()}`,
             description: primaryDatabaseSummaryText, // Added to fix the database constraint error
             amount: calculatedBaseTotal,
