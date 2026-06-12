@@ -73,10 +73,15 @@ export default function ProjectsIndexLedger() {
                   <p className="font-extrabold text-slate-900 text-sm">{proj.homeowner_name || "Unassigned Client Record"}</p>
                   <p className="text-slate-500 font-medium">{proj.job_address || "No target address specified."}</p>
                 </div>
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <span className="font-sans font-black text-slate-950 text-sm">
                     ${toNum(proj.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </span>
+                  {toNum(proj.view_count) > 0 && (
+                    <span className="bg-blue-50 text-blue-600 border border-blue-100 font-black text-[8px] px-2 py-0.5 rounded tracking-wider">
+                      👁 {proj.view_count}
+                    </span>
+                  )}
                   <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
                     proj.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'
                   }`}>
