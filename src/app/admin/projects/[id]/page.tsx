@@ -433,6 +433,135 @@ export default function ProjectWorkspaceControlHub() {
         </div>
       </div>
 
+      {/* PAYMENT SCHEDULE & DEPOSIT MANAGER */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <div className="border-b pb-3 border-slate-100">
+            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">💰 PAYMENT SCHEDULE & DEPOSIT</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Configure deposit percentage and payment draw phases. Changes sync instantly to the homeowner portal.</p>
+          </div>
+
+          {/* Deposit Percentage */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit %</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={project?.deposit_percentage ?? 20}
+                onChange={(e) => {
+                  const val = Math.min(100, Math.max(0, toNum(e.target.value)));
+                  setProject((prev: any) => ({ ...prev, deposit_percentage: val }));
+                }}
+                onBlur={async () => {
+                  const { error } = await supabase
+                    .from("invoices")
+                    .update({ deposit_percentage: project?.deposit_percentage ?? 20 })
+                    .eq("id", projectId);
+                  if (error) alert("Failed to save deposit %: " + error.message);
+                }}
+                className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:border-slate-400"
+              />
+            </div>
+            <div className="text-xs text-slate-500 font-medium">
+              <span className="font-black text-slate-800">${(toNum(project?.amount) * (toNum(project?.deposit_percentage ?? 20) / 100)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> of ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
+            </div>
+          </div>
+
+          {/* Phase Rows */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Draw Phases</p>
+              <p className="text-[9px] font-bold text-slate-400">
+                Total: <span className={`font-black ${
+                  (project?.payment_phases || []).reduce((s: number, p: any) => s + toNum(p.percentage), 0) === 100
+                    ? "text-emerald-600" : "text-red-500"
+                }`}>
+                  {(project?.payment_phases || []).reduce((s: number, p: any) => s + toNum(p.percentage), 0)}%
+                </span>
+              </p>
+            </div>
+
+            {Array.isArray(project?.payment_phases) && project.payment_phases.map((phase: any, idx: number) => {
+              const phaseAmount = toNum(project?.amount) * (toNum(phase.percentage) / 100);
+              return (
+                <div key={idx} className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group">
+                  <span className="text-[9px] font-black text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">#{idx + 1}</span>
+                  <input
+                    type="text"
+                    value={phase.name}
+                    onChange={(e) => {
+                      const updated = [...project.payment_phases];
+                      updated[idx] = { ...updated[idx], name: e.target.value };
+                      setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                    }}
+                    onBlur={async () => {
+                      const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
+                      if (error) alert("Failed to save phase name: " + error.message);
+                    }}
+                    className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-400 transition"
+                  />
+                  <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={phase.percentage}
+                      onChange={(e) => {
+                        const updated = [...project.payment_phases];
+                        updated[idx] = { ...updated[idx], percentage: toNum(e.target.value) };
+                        setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                      }}
+                      onBlur={async () => {
+                        const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
+                        if (error) alert("Failed to save phase %: " + error.message);
+                      }}
+                      className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
+                    />
+                    <span className="text-[10px] font-bold text-slate-400">%</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 w-20 text-right">
+                    ${phaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (project.payment_phases.length <= 1) return alert("Must have at least one phase.");
+                      if (!confirm(`Remove "${phase.name}"?`)) return;
+                      const updated = project.payment_phases.filter((_: any, i: number) => i !== idx);
+                      setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                      const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
+                      if (error) alert("Failed to remove phase: " + error.message);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition shrink-0 p-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Add Phase Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                const currentPhases = Array.isArray(project?.payment_phases) ? [...project.payment_phases] : [];
+                const usedPercent = currentPhases.reduce((s: number, p: any) => s + toNum(p.percentage), 0);
+                const remaining = Math.max(0, 100 - usedPercent);
+                const updated = [...currentPhases, { name: "New Phase", percentage: remaining }];
+                setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
+                if (error) alert("Failed to add phase: " + error.message);
+              }}
+              className="w-full border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl py-2.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-wider transition outline-none"
+            >
+              + Add Draw Phase
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ITEMS MANAGER LEDGER CARD CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 pt-6 space-y-6">
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
