@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ClientProviders from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
-  display: "swap", // Forces browser to instantly use clean system text if network lags
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} font-sans bg-[#f8fafc] text-slate-900 antialiased`}>
-        {children}
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 export default function MultiTierEstimatorCreator() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function MultiTierEstimatorCreator() {
   const [duration, setDuration] = useState("9 Weeks");
   const [depositPercent, setDepositPercent] = useState(20);
   const [goalsPrompt, setGoalsPrompt] = useState("");
-  
+
   const [attachedFileName, setAttachedFileName] = useState("");
   const [extractedFileText, setExtractedFileText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -34,7 +35,7 @@ export default function MultiTierEstimatorCreator() {
       const normalizedText = fullResultText
         .replace(/[^\x20-\x7E\n\r\t]/g, " ")
         .replace(/\s+/g, " ");
-      
+
       setExtractedFileText(normalizedText);
     };
     reader.readAsText(file);
@@ -42,33 +43,33 @@ export default function MultiTierEstimatorCreator() {
 
   const runAiEstimatorEngine = async () => {
     if (!goalsPrompt.trim() && !extractedFileText) {
-      return alert("Please describe your remodeling goals or upload a design package document.");
+      return toast("Please describe your remodeling goals or upload a design package document.", "error");
     }
     setIsGenerating(true);
-    
+
     try {
       const res = await fetch("/api/generate-scope", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           prompt: goalsPrompt.trim(),
           fileContext: extractedFileText,
-          address: streetAddress.trim() || "Project Address", 
-          zipcode: zipCode.trim() || "Omaha" 
+          address: streetAddress.trim() || "Project Address",
+          zipcode: zipCode.trim() || "Omaha"
         }),
       });
-      
+
       const responseData = await res.json();
 
       if (responseData.items && Array.isArray(responseData.items)) {
         setGeneratedItems(responseData.items);
-        alert("AI Estimation sheet populated successfully!");
+        toast("Estimation generated successfully", "success");
       } else {
-        alert(responseData.error || "Could not parse items from the provided parameters.");
+        toast(responseData.error || "Could not parse items from the provided parameters.", "error");
       }
     } catch (err) {
       console.error(err);
-      alert("AI compiler failure mapping scope metrics components.");
+      toast("AI compiler failure mapping scope metrics components.", "error");
     } finally {
       setIsGenerating(false);
     }
@@ -76,7 +77,7 @@ export default function MultiTierEstimatorCreator() {
 
   const deployLiveProposalRecord = async () => {
     if (!clientName.trim()) {
-      return alert("Please fill out the Client Name before deploying.");
+      return toast("Please fill out the client name", "error");
     }
     setIsDeploying(true);
 
@@ -125,10 +126,10 @@ export default function MultiTierEstimatorCreator() {
       if (error) throw error;
       if (data) {
         setProposalLink(`${window.location.origin}/invoice/${data.id}`);
-        alert("Live proposal channel broadcasted successfully!");
+        toast("Proposal deployed successfully", "success");
       }
     } catch (err: any) {
-      alert("Database dispatch pipeline error: " + err.message);
+      toast("Database dispatch pipeline error: " + err.message, "error");
     } finally {
       setIsDeploying(false);
     }
@@ -136,71 +137,71 @@ export default function MultiTierEstimatorCreator() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl max-w-4xl w-full space-y-6">
-        
+      <div className="bg-white border border-slate-200/60 rounded-2xl p-8 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] max-w-4xl w-full space-y-6">
+
         {/* Title and Navigation Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
-          <h1 className="text-xl font-black text-slate-900 tracking-tight uppercase">
-            Multi-Tier Estimate Creator Workspace
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            New Estimate
           </h1>
           <button
             type="button"
             onClick={() => router.push("/admin/projects")}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[11px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm outline-none shrink-0"
+            className="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-[11px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm outline-none shrink-0"
           >
-            📁 View Active Projects Ledger →
+            Projects
           </button>
         </div>
 
         {/* Input Metadata Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <input type="text" placeholder="Client Name" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full p-3 bg-slate-50/50 border rounded-xl outline-none font-bold text-slate-800" />
-          <input type="email" placeholder="Client Email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="w-full p-3 bg-slate-50/50 border rounded-xl outline-none font-bold text-slate-800" />
-          <input type="text" placeholder="Street Address" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} className="w-full p-3 bg-slate-50/50 border rounded-xl outline-none font-bold text-slate-800" />
-          <input type="text" placeholder="Zip Code" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-full p-3 bg-slate-50/50 border rounded-xl outline-none font-bold text-slate-800" />
+          <input type="text" placeholder="Client Name" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
+          <input type="email" placeholder="Client Email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
+          <input type="text" placeholder="Street Address" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
+          <input type="text" placeholder="Zip Code" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div>
-            <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Estimated Start Date</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full p-3 bg-slate-50/50 border rounded-xl outline-none font-bold text-slate-800" />
+            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Estimated Start Date</label>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
           </div>
           <div>
-            <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Project Duration</label>
-            <input type="text" placeholder="e.g., 9 Weeks" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full p-3 bg-slate-50/50 border rounded-xl outline-none font-bold text-slate-800" />
+            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Project Duration</label>
+            <input type="text" placeholder="e.g., 9 Weeks" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
           </div>
           <div>
-            <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Mobilization Deposit (%)</label>
-            <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseInt(e.target.value) || 0)} className="w-full p-3 bg-slate-50/50 border rounded-xl outline-none font-bold text-slate-800" />
+            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Mobilization Deposit (%)</label>
+            <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseInt(e.target.value) || 0)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
           </div>
         </div>
 
         {/* DUAL CONTENT DEPLOYER CONTROL DROPZONE */}
-        <div className="border border-blue-100 bg-blue-50/30 p-5 rounded-2xl space-y-4 text-xs">
+        <div className="border border-blue-200/40 bg-gradient-to-br from-blue-50/60 to-slate-50/40 p-6 rounded-2xl space-y-4 text-xs">
           <div>
-            <h4 className="font-black text-slate-900 uppercase tracking-wide text-[11px]">⚡ Intelligent Document Extraction Input</h4>
-            <p className="text-slate-400 font-medium text-[11px] mt-0.5">Describe structural goals or attach estimation summary packets to process custom contracting specifications layout metrics.</p>
+            <h4 className="font-black text-slate-900 uppercase tracking-wide text-[11px]">AI Scope Generator</h4>
+            <p className="text-slate-400 font-medium text-[11px] mt-0.5">Describe the project scope or upload a design document.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <input 
-              type="text" 
-              placeholder="Provide complementary contextual instructions or describe project metrics..." 
-              value={goalsPrompt} 
+            <input
+              type="text"
+              placeholder="Provide complementary contextual instructions or describe project metrics..."
+              value={goalsPrompt}
               onChange={(e) => setGoalsPrompt(e.target.value)}
-              className="w-full sm:flex-1 p-3 bg-white border border-slate-200 focus:border-blue-400 rounded-xl outline-none font-semibold text-slate-800 shadow-sm" 
+              className="w-full sm:flex-1 py-3.5 px-4 bg-white border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-xl outline-none font-semibold text-slate-800 shadow-sm transition-all"
             />
-            
-            <label className="w-full sm:w-auto bg-white border border-slate-200 hover:border-slate-400 p-3 rounded-xl shadow-sm text-center font-bold text-slate-600 cursor-pointer transition-colors whitespace-nowrap">
-              {attachedFileName ? `📎 ${attachedFileName.slice(0, 15)}...` : "📁 Upload Package"}
+
+            <label className="w-full sm:w-auto bg-white border border-slate-200 hover:border-slate-400 py-3.5 px-4 rounded-xl shadow-sm text-center font-bold text-slate-600 cursor-pointer transition-colors whitespace-nowrap">
+              {attachedFileName ? `📎 ${attachedFileName.slice(0, 15)}...` : "Upload File"}
               <input type="file" onChange={handleClientSideFileLoad} className="hidden" />
             </label>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={runAiEstimatorEngine}
               disabled={isGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black px-6 py-3 rounded-xl uppercase tracking-wider transition shadow-sm whitespace-nowrap"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black px-6 py-3 rounded-xl uppercase tracking-wider shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap"
             >
               {isGenerating ? "Processing..." : "Run AI Estimator"}
             </button>
@@ -208,15 +209,15 @@ export default function MultiTierEstimatorCreator() {
         </div>
 
         {generatedItems.length > 0 && (
-          <div className="border rounded-xl bg-slate-50 p-4 space-y-2 max-h-48 overflow-y-auto text-xs shadow-inner animate-fadeIn">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 mb-2">Calculated Estimation Lines Queue</p>
+          <div className="border rounded-2xl bg-slate-50 p-4 space-y-2 max-h-48 overflow-y-auto text-xs shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] animate-fadeIn">
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b pb-1 mb-2">Generated Line Items</p>
             {generatedItems.map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm gap-4">
+              <div key={idx} className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)] gap-4">
                 <div className="text-left">
                   <span className="font-extrabold text-slate-800 block text-xs">{item.title}</span>
                   <span className="text-[10px] text-slate-400 font-medium block mt-0.5">{item.mid_description || item.description}</span>
                 </div>
-                <span className="font-sans font-black text-slate-900 text-sm shrink-0">${toNum(item.mid_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span className="font-sans font-black text-slate-900 text-sm shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(item.mid_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
             ))}
           </div>
@@ -224,23 +225,23 @@ export default function MultiTierEstimatorCreator() {
 
         {/* Global Broadcast Actions Block */}
         <div className="space-y-3 pt-2">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={deployLiveProposalRecord}
             disabled={isDeploying || generatedItems.length === 0}
-            className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest transition-all shadow-md outline-none"
+            className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-sm hover:shadow-md transition-all duration-200 outline-none"
           >
-            {isDeploying ? "Deploying Parameters Link..." : "Deploy Live Proposal Link"}
+            {isDeploying ? "Deploying Parameters Link..." : "Create Proposal"}
           </button>
 
           {proposalLink && (
-            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-center text-xs animate-fadeIn">
+            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl shadow-sm text-center text-xs animate-fadeIn">
               <p className="text-emerald-800 font-extrabold">✓ Live Client Channel Active & Secure</p>
-              <input 
-                type="text" 
-                readOnly 
-                value={proposalLink} 
-                className="w-full text-center font-mono font-bold bg-white text-slate-700 p-2 rounded-lg border border-emerald-200 mt-2 outline-none select-all" 
+              <input
+                type="text"
+                readOnly
+                value={proposalLink}
+                className="w-full text-center font-mono font-bold bg-white text-slate-700 p-2 rounded-lg border border-emerald-200 mt-2 outline-none select-all"
               />
             </div>
           )}

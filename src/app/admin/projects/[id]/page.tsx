@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 export default function ProjectWorkspaceControlHub() {
   const router = useRouter();
@@ -98,9 +99,9 @@ export default function ProjectWorkspaceControlHub() {
       }));
       
       setIsEditModalOpen(false);
-      alert("Client profile parameters synchronized successfully across all portals!");
+      toast("Client profile updated successfully", "success");
     } catch (err: any) {
-      alert("Profile mutation pipeline failure: " + err.message);
+      toast("Profile update failed: " + err.message, "error");
     } finally {
       setIsSaving(false);
     }
@@ -146,14 +147,14 @@ export default function ProjectWorkspaceControlHub() {
         amount: data[0].amount
       }));
     } catch (err: any) {
-      alert("Error saving: " + err.message);
+      toast("Error saving: " + err.message, "error");
       fetchComprehensiveProjectData();
     }
   }
 
   const insertNewLineRow = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newMidCost) return alert("Please fill out item title and standard mid-cost parameters.");
+    if (!newTitle.trim() || !newMidCost) return toast("Please fill out item title and standard cost", "info");
 
     flushPendingDebounce();
 
@@ -265,9 +266,9 @@ export default function ProjectWorkspaceControlHub() {
       setAttachedPhotoBase64("");
       setAttachedPhotoName("");
       setAttachedPhotoFile(null);
-      alert("Daily operations log with image snapshot filed successfully!");
+      toast("Daily log saved", "success");
     } catch (err: any) {
-      alert("Failed to submit field log entry: " + err.message);
+      toast("Failed to submit field log: " + err.message, "error");
     } finally {
       setIsLogging(false);
     }
@@ -283,7 +284,7 @@ export default function ProjectWorkspaceControlHub() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left">
       
       {/* Navigation Header Banner */}
-      <div className="bg-slate-900 text-white shadow-sm border-b border-slate-800">
+      <div className="bg-slate-900 text-white shadow-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between">
           <div className="space-y-0.5">
             <button onClick={() => router.push("/admin/projects")} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition block mb-1">
@@ -294,17 +295,17 @@ export default function ProjectWorkspaceControlHub() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-wider">
+            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] rounded-full px-3 py-1 font-black uppercase tracking-wider">
               PROPOSAL STATE: {project?.status || "PENDING"}
             </span>
-            <button 
+            <button
               onClick={() => {
                 navigator.clipboard.writeText(`${window.location.origin}/invoice/${projectId}`);
-                alert("Live portal invitation link copied to system clipboard!");
+                toast("Portal link copied", "success");
               }}
-              className="bg-white hover:bg-slate-50 text-slate-900 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm outline-none"
+              className="bg-white hover:bg-slate-50 text-slate-900 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
             >
-              COPY LIVE PORTAL LINK
+              Copy Link
             </button>
           </div>
         </div>
@@ -314,7 +315,7 @@ export default function ProjectWorkspaceControlHub() {
       <div className="max-w-7xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* PROJECT ADDRESS CARD */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4 relative overflow-hidden flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b pb-2 mb-2">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PROJECT ADDRESS</p>
@@ -322,7 +323,7 @@ export default function ProjectWorkspaceControlHub() {
                 onClick={() => setIsEditModalOpen(true)}
                 className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wider transition outline-none"
               >
-                ✏️ EDIT PROFILE
+                Edit
               </button>
             </div>
             <h3 className="font-extrabold text-slate-900 text-sm leading-relaxed mb-1">{project?.job_address || "No address specified."}</h3>
@@ -340,10 +341,10 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         {/* PROJECT COST METRIC CARD */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 flex flex-col justify-between">
           <div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-3">PROJECT COST</p>
-            <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans">
+            <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans" style={{fontVariantNumeric:'tabular-nums'}}>
               ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </h2>
           </div>
@@ -358,7 +359,7 @@ export default function ProjectWorkspaceControlHub() {
                 .eq("id", projectId);
               if (error) {
                 setProject((prev: any) => ({ ...prev, deposit_cleared: !newVal }));
-                alert("Failed to update deposit status: " + error.message);
+                toast("Failed to update deposit status: " + error.message, "error");
               }
             }}
             className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border mt-4 cursor-pointer hover:bg-slate-100 transition outline-none"
@@ -371,7 +372,7 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         {/* PORTAL ANALYTICS FEED CARD */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-3">
           <div className="flex justify-between items-center border-b pb-2">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PORTAL ANALYTICS</p>
             <span className="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-0.5 rounded-md border border-blue-100">Views: {project?.view_count || 0}</span>
@@ -418,7 +419,7 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* GANTT BLUEPRINT SCHEDULER HORIZON TRACK */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
             🗓️ PRODUCTION PHASE GANTT BLUEPRINT SCHEDULER
           </h3>
@@ -435,9 +436,9 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* PAYMENT SCHEDULE & DEPOSIT MANAGER */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-5">
           <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">💰 PAYMENT SCHEDULE & DEPOSIT</h3>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">💰 PAYMENT SCHEDULE & DEPOSIT</h3>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Configure deposit percentage and payment draw phases. Changes sync instantly to the homeowner portal.</p>
           </div>
 
@@ -459,12 +460,12 @@ export default function ProjectWorkspaceControlHub() {
                     .from("invoices")
                     .update({ deposit_percentage: project?.deposit_percentage ?? 20 })
                     .eq("id", projectId);
-                  if (error) alert("Failed to save deposit %: " + error.message);
+                  if (error) toast("Failed to save deposit %: " + error.message, "error");
                 }}
-                className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:border-slate-400"
+                className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
               />
             </div>
-            <div className="text-xs text-slate-500 font-medium">
+            <div className="text-xs text-slate-500 font-medium" style={{fontVariantNumeric:'tabular-nums'}}>
               <span className="font-black text-slate-800">${(toNum(project?.amount) * (toNum(project?.deposit_percentage ?? 20) / 100)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> of ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
             </div>
           </div>
@@ -498,9 +499,9 @@ export default function ProjectWorkspaceControlHub() {
                     }}
                     onBlur={async () => {
                       const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
-                      if (error) alert("Failed to save phase name: " + error.message);
+                      if (error) toast("Failed to save phase name: " + error.message, "error");
                     }}
-                    className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:border-slate-400 transition"
+                    className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                   />
                   <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
                     <input
@@ -564,10 +565,10 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* ITEMS MANAGER LEDGER CARD CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 pt-6 space-y-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-6">
           <div className="border-b pb-3 flex items-start justify-between">
             <div>
-              <h2 className="text-base font-black text-slate-900 uppercase tracking-wide">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
                 ITEMS
               </h2>
               <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify descriptions, values, or append new line scopes directly into the contract ledger structure.</p>
@@ -583,7 +584,7 @@ export default function ProjectWorkspaceControlHub() {
                   .eq("id", projectId);
                 if (error) {
                   setProject((prev: any) => ({ ...prev, show_luxury_tier: !newVal }));
-                  alert("Failed to update luxury tier visibility: " + error.message);
+                  toast("Failed to update luxury tier visibility: " + error.message, "error");
                 }
               }}
               className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl transition outline-none shrink-0"
@@ -615,7 +616,7 @@ export default function ProjectWorkspaceControlHub() {
                     value={item.title || ""} 
                     onChange={(e) => updateInlineItemField(idx, "title", e.target.value)}
                     placeholder="Core Specification Group Title"
-                    className="flex-1 bg-white border p-2 rounded-xl text-xs font-black text-slate-900 outline-none focus:border-slate-400 transition shadow-sm" 
+                    className="flex-1 bg-white border py-3 px-4 rounded-xl text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm" 
                   />
                 </div>
 
@@ -639,7 +640,7 @@ export default function ProjectWorkspaceControlHub() {
                       value={item.mid_description || item.description || ""} 
                       onChange={(e) => updateInlineItemField(idx, "mid_description", e.target.value)}
                       placeholder="Mid-tier grade specification materials context..."
-                      className="w-full bg-slate-50/50 border p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:border-slate-300 transition"
+                      className="w-full bg-slate-50/50 border p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                       rows={2}
                     />
                   </div>

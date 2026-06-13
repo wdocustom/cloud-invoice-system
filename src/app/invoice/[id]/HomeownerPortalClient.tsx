@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 import type { Invoice } from "@/lib/types";
 
 interface HomeownerPortalProps {
@@ -174,7 +175,7 @@ export default function HomeownerPortalClient({
   const executeOneClickCoApproval = async (coId: string) => {
     if (!confirm("Authorize and append this change order supplement to your project contract?")) return;
     const { error } = await supabase.from("invoices").update({ status: "approved" }).eq("id", coId);
-    if (error) alert("Approval exception processing validation token.");
+    if (error) toast("Approval exception processing validation token.", "error");
     else fetchInvoiceData();
   };
 
@@ -195,10 +196,10 @@ export default function HomeownerPortalClient({
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || "Payment session could not be created.");
+        toast(data.error || "Payment session could not be created.", "error");
       }
     } catch {
-      alert("Payment service temporarily unavailable.");
+      toast("Payment service temporarily unavailable.", "error");
     } finally {
       setIsPaymentLoading(false);
     }
@@ -206,7 +207,7 @@ export default function HomeownerPortalClient({
 
   const handleApprove = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!typedSignature.trim()) return alert("Please sign with your name to authorize approval.");
+    if (!typedSignature.trim()) return toast("Please sign your name to approve", "error");
     setIsSubmitting(true);
     const timestamp = new Date().toISOString();
 
@@ -286,10 +287,10 @@ export default function HomeownerPortalClient({
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
 
       {/* Top Professional Accent Header Bar */}
-      <div className="bg-slate-900 text-white shadow-sm border-b border-slate-800">
+      <div className="bg-slate-900 text-white shadow-md border-b border-slate-800">
         <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
           <h1 className="text-sm font-black tracking-wider uppercase text-slate-200">WDO Custom Client Hub</h1>
-          <span className={`px-3 py-1 rounded-md text-[9px] font-black tracking-widest uppercase border ${
+          <span className={`px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border ${
             isLocked ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
           }`}>
             • {invoice.status}
@@ -300,7 +301,7 @@ export default function HomeownerPortalClient({
       {/* Contractor & Project Info Cards */}
       <div className="max-w-6xl mx-auto px-4 pt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-1.5">
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-1.5">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-2">Contractor</p>
             <p className="font-black text-slate-900 text-sm tracking-tight">WDO Custom</p>
             <p className="text-xs font-bold text-slate-700">Skyler Camacho</p>
@@ -308,7 +309,7 @@ export default function HomeownerPortalClient({
             <p className="text-[11px] font-bold text-slate-500">402-819-8558</p>
             <p className="text-[11px] font-mono font-bold text-slate-500">skyler@wdocustom.com</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-1.5">
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-1.5">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-2">Project Details</p>
             <p className="font-black text-slate-900 text-sm tracking-tight">{invoice.homeowner_name || "Client"}</p>
             <p className="text-xs font-bold text-slate-700">{invoice.job_address || "Address Pending"}</p>
@@ -341,16 +342,16 @@ export default function HomeownerPortalClient({
 
             {/* Global Tier Option Selector Card */}
             {!isLocked && (invoice as any).show_luxury_tier && (
-              <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="space-y-0.5 text-left">
                   <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">Project Specification Grade</h4>
                   <p className="text-[11px] text-slate-400 font-medium">Toggle configuration tiers to view alternative finish options and live project cost updates instantly.</p>
                 </div>
                 <div className="bg-slate-100 p-0.5 rounded-lg flex w-full sm:w-auto border border-slate-200/40 shadow-inner shrink-0">
-                  <button type="button" onClick={() => setTier("mid")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all duration-150 ${tier === 'mid' ? 'bg-white text-slate-900 shadow-sm font-black border' : 'text-slate-500 hover:text-slate-900'}`}>
+                  <button type="button" onClick={() => setTier("mid")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all duration-200 ${tier === 'mid' ? 'bg-white text-slate-900 shadow-sm font-black border' : 'text-slate-500 hover:text-slate-900'}`}>
                     Standard Mid-Tier
                   </button>
-                  <button type="button" onClick={() => setTier("high")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${tier === 'high' ? 'bg-slate-900 text-white shadow-sm font-black' : 'text-slate-600 hover:text-slate-900'}`}>
+                  <button type="button" onClick={() => setTier("high")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 ${tier === 'high' ? 'bg-slate-900 text-white shadow-md font-black' : 'text-slate-600 hover:text-slate-900'}`}>
                     💎 Luxury High-Tier
                   </button>
                 </div>
@@ -358,14 +359,14 @@ export default function HomeownerPortalClient({
             )}
 
             {isLocked && (
-              <div className="bg-emerald-50/60 border border-emerald-200/60 rounded-xl p-4 text-xs text-slate-700 leading-relaxed">
+              <div className="bg-emerald-50/60 border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-xs text-slate-700 leading-relaxed">
                 <strong>✓ Contract Bounds Signed & Live.</strong> Skyler Camacho is delighted to bring production frameworks onto your home! Monitor active milestones on site targets via the tracker sub-ledgers below.
               </div>
             )}
 
             {/* HIGH-DENSITY INTERACTIVE SCHEDULE PROGRESS TRACKER */}
             {isLocked && (
-              <div className="bg-white border border-slate-200/60 rounded-xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.01)] space-y-4">
+              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-4">
                 <div className="text-left border-b pb-2.5 border-slate-100 flex justify-between items-center">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Construction Stage Progress Tracker</p>
                   <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md border ${invoice.deposit_cleared ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
@@ -396,7 +397,7 @@ export default function HomeownerPortalClient({
 
             {/* SOPHISTICATED AUTOMATED NESTED GANTT CHART VIEW FOR CLIENT VIEW */}
             {isLocked && scheduleTasks.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-3">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">🗓️ Live Construction Timeline Gantt Grid</h3>
                 <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 text-xs shadow-inner">
                   {masterMilestones.map((milestone) => {
@@ -446,7 +447,7 @@ export default function HomeownerPortalClient({
 
             {/* HOMEOWNER ACCORDION LOG COMPONENT BLOCK */}
             {isLocked && dailyLogs.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-3">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">📸 Field Progress Updates & Logs</h3>
                 <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto pr-1 text-xs">
                   {dailyLogs.map((log) => (
@@ -472,7 +473,7 @@ export default function HomeownerPortalClient({
             )}
 
             {/* HUMAN-FRIENDLY ONBOARDING INSTRUCTION BLOCK */}
-            <div className="bg-slate-100/70 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.01)] select-none">
+            <div className="bg-slate-100/70 border border-slate-200/60 text-slate-600 px-6 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] select-none">
               <span className="text-blue-500 text-sm">💡</span>
               <p>Click the <span className="font-black text-slate-800 bg-white border border-slate-200 px-1 py-0.2 rounded">+</span> button on any milestone line item to see the full details and project descriptions.</p>
             </div>
@@ -486,7 +487,7 @@ export default function HomeownerPortalClient({
                 return (
                   <div
                     key={idx}
-                    className={`px-5 py-3 rounded-xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-all duration-150 text-xs ${
+                    className={`px-5 py-3 rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] transition-all duration-200 text-xs ${
                       !isActive ? 'opacity-30 select-none border-dashed bg-slate-50/50' : 'hover:border-slate-300'
                     }`}
                   >
@@ -495,7 +496,7 @@ export default function HomeownerPortalClient({
                         <button
                           type="button"
                           onClick={() => toggleExpandDescription(idx)}
-                          className="flex items-center justify-center w-5 h-5 rounded border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 transition-all font-sans font-black text-xs bg-slate-50/60 shrink-0 outline-none"
+                          className="flex items-center justify-center w-5 h-5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 font-sans font-black text-xs bg-slate-50/60 shrink-0 outline-none"
                         >
                           {isExpanded ? "−" : "+"}
                         </button>
@@ -514,7 +515,7 @@ export default function HomeownerPortalClient({
                               type="button"
                               onClick={() => handleRemoveIndex(idx)}
                               title="remove item"
-                              className="w-5 h-5 flex items-center justify-center rounded bg-red-50 hover:bg-red-500 text-red-500 hover:text-white border border-red-100 transition-all duration-150 outline-none font-sans font-black text-[10px]"
+                              className="w-5 h-5 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white border border-red-100 transition-all duration-150 outline-none font-sans font-black text-[10px]"
                             >
                               ✕
                             </button>
@@ -522,7 +523,7 @@ export default function HomeownerPortalClient({
                             <button
                               type="button"
                               onClick={() => handleReinstateIndex(idx)}
-                              className="bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[9px] px-2 py-1 rounded uppercase tracking-wider shadow-sm transition-all outline-none"
+                              className="bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[9px] px-2 py-1 rounded uppercase tracking-wider shadow-sm transition-all duration-200 outline-none"
                             >
                               Include
                             </button>
@@ -592,7 +593,7 @@ export default function HomeownerPortalClient({
                     setInvoice((prev: any) => ({ ...prev, questions: updated }));
                     setQaMessage("");
                   } catch {
-                    alert("Failed to send message. Please try again.");
+                    toast("Failed to send message. Please try again.", "error");
                   } finally {
                     setIsSendingQa(false);
                   }
@@ -653,10 +654,10 @@ export default function HomeownerPortalClient({
           <div className="space-y-4 sticky top-20">
 
             {/* COMPACT CLEAN SIDEBAR VALUE HUB */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_4px_12px_rgba(15,23,42,0.02)] space-y-5 text-left relative overflow-hidden">
+            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] space-y-5 text-left relative overflow-hidden">
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJECT TOTAL</p>
-                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight">
+                <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
                   ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
