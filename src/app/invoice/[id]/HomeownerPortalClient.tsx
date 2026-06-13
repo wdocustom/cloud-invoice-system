@@ -605,12 +605,12 @@ export default function HomeownerPortalClient({
                   value={qaMessage}
                   onChange={(e) => setQaMessage(e.target.value)}
                   placeholder="Type your question here..."
-                  className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-400 focus:bg-white transition shadow-sm"
+                  className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm"
                 />
                 <button
                   type="submit"
                   disabled={isSendingQa || !qaMessage.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition shadow-md shrink-0"
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg shrink-0"
                 >
                   {isSendingQa ? "..." : "Send"}
                 </button>
@@ -619,7 +619,7 @@ export default function HomeownerPortalClient({
 
             {/* DYNAMIC DESIGN CHOICE BOARD MODULE */}
             {isLocked && invoice.homeowner_options && invoice.homeowner_options.length > 0 && (
-              <div className="border border-slate-200/60 bg-white rounded-xl p-5 text-left space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.01)] relative overflow-hidden">
+              <div className="border border-slate-200/60 bg-white rounded-2xl p-6 text-left space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-slate-900" />
                 <div>
                   <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">🎨 Project Materials Selection Board</h3>
@@ -701,7 +701,7 @@ export default function HomeownerPortalClient({
                   <p className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5">Timestamp: {new Date(invoice.signed_at || "").toLocaleString()}</p>
                 </div>
               ) : (
-                <form onSubmit={handleApprove} className="bg-white border border-slate-200/80 rounded-xl p-5 space-y-3 shadow-md">
+                <form onSubmit={handleApprove} className="bg-white border border-slate-200/60 rounded-2xl p-6 space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)]">
                   <div className="text-left">
                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
                   </div>
@@ -716,7 +716,7 @@ export default function HomeownerPortalClient({
             </div>
 
             {/* DRAW PHASES MATRIX */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm text-left space-y-3">
+            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left space-y-3">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
@@ -751,7 +751,7 @@ export default function HomeownerPortalClient({
                           type="button"
                           disabled={isPaymentLoading}
                           onClick={() => initiateStripePayment(phaseVal, `${phase.name} - ${invoice.homeowner_name}`, idx)}
-                          className="mt-2 w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] py-2 rounded-lg tracking-wider uppercase transition shadow-sm outline-none"
+                          className="mt-2 w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] py-2 rounded-lg tracking-wider uppercase transition-all duration-200 shadow-sm outline-none"
                         >
                           {isPaymentLoading ? "Connecting..." : `Pay $${toNum(phaseVal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} via Stripe`}
                         </button>
@@ -764,7 +764,7 @@ export default function HomeownerPortalClient({
 
             {/* PENDING CHANGE ORDERS MODULE */}
             {isLocked && changeOrders.length > 0 && (
-              <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm space-y-2.5 text-left">
+              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-2.5 text-left">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Scope Modifications</h3>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {changeOrders.map((co: any) => {
@@ -782,7 +782,7 @@ export default function HomeownerPortalClient({
                               {isCoApproved && <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoPaid ? 'bg-blue-50 text-blue-700':'bg-red-50 text-red-700'}`}>{isCoPaid ? "PAID":"UNPD"}</span>}
                             </div>
                           </div>
-                          <span className="font-sans font-extrabold text-slate-900">${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                          <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                         </div>
                         {isExpanded && (
                           <div className="p-2.5 bg-slate-50 border-t space-y-2.5 animate-fadeIn">
@@ -795,8 +795,8 @@ export default function HomeownerPortalClient({
                               ))}
                             </div>
                             {!isCoApproved && (
-                              <button type="button" onClick={() => executeOneClickCoApproval(co.id)} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl tracking-wider uppercase transition shadow-sm outline-none">
-                                🔒 Execute Change Order Supplement
+                              <button type="button" onClick={() => executeOneClickCoApproval(co.id)} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl tracking-wider uppercase transition-all duration-200 shadow-sm outline-none">
+                                Approve Change Order
                               </button>
                             )}
                           </div>
@@ -810,7 +810,7 @@ export default function HomeownerPortalClient({
 
             {/* DEPOSIT REMITTANCE DOCK */}
             {isLocked && !invoice.deposit_cleared && (
-              <div className="border border-slate-200 rounded-xl bg-white p-5 text-left space-y-3 shadow-sm animate-fadeIn">
+              <div className="border border-slate-200/60 rounded-2xl bg-white p-6 text-left space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] animate-fadeIn">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Deposit Remittance Channel</h3>
                 <div className="grid grid-cols-2 gap-2 text-xs font-bold">
                   <button type="button" onClick={() => setPaymentMethod("stripe")} className={`p-2.5 border rounded-xl text-center transition-all duration-200 ${paymentMethod === 'stripe' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Pay Online</button>
@@ -825,7 +825,7 @@ export default function HomeownerPortalClient({
                       type="button"
                       disabled={isPaymentLoading}
                       onClick={() => initiateStripePayment(depositAmount, `Construction Deposit - ${invoice.homeowner_name}`, 0)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all shadow-md shadow-blue-900/10 outline-none"
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all duration-200 shadow-md hover:shadow-lg shadow-blue-900/10 outline-none"
                     >
                       {isPaymentLoading ? "Connecting to Stripe..." : `Pay $${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} Deposit`}
                     </button>
@@ -839,8 +839,8 @@ export default function HomeownerPortalClient({
             )}
 
             {/* LEGAL TERMS ACCORDION */}
-            <div className="border border-slate-200 bg-white rounded-xl overflow-hidden shadow-sm text-left">
-              <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-50 px-4 py-2.5 font-bold text-[10px] uppercase tracking-wider flex justify-between items-center text-slate-400 hover:text-slate-700 transition-all outline-none border-0"  >
+            <div className="border border-slate-200/60 bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left">
+              <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-50 px-4 py-2.5 font-bold text-[10px] uppercase tracking-wider flex justify-between items-center text-slate-400 hover:text-slate-700 transition-all duration-200 outline-none border-0"  >
                 <span>⚖️ Binding Terms (Omaha Law Standard)</span>
                 <span className="text-[10px] text-slate-400 font-semibold">{showTerms ? "Hide ▲" : "View ▼"}</span>
               </button>

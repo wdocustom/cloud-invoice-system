@@ -420,7 +420,7 @@ export default function ProjectWorkspaceControlHub() {
       {/* GANTT BLUEPRINT SCHEDULER HORIZON TRACK */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
         <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4">
-          <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
             🗓️ PRODUCTION PHASE GANTT BLUEPRINT SCHEDULER
           </h3>
           <p className="text-[11px] text-slate-400 font-medium -mt-2">Construct sub-tasks, nest trade rows, and update operational progress margins directly into live streams charts grids.</p>
@@ -516,26 +516,26 @@ export default function ProjectWorkspaceControlHub() {
                       }}
                       onBlur={async () => {
                         const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
-                        if (error) alert("Failed to save phase %: " + error.message);
+                        if (error) toast("Failed to save phase %: " + error.message, "error");
                       }}
                       className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
                     />
                     <span className="text-[10px] font-bold text-slate-400">%</span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 w-20 text-right">
+                  <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 w-20 text-right" style={{fontVariantNumeric:'tabular-nums'}}>
                     ${phaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                   <button
                     type="button"
                     onClick={async () => {
-                      if (project.payment_phases.length <= 1) return alert("Must have at least one phase.");
+                      if (project.payment_phases.length <= 1) return toast("Must have at least one phase.", "info");
                       if (!confirm(`Remove "${phase.name}"?`)) return;
                       const updated = project.payment_phases.filter((_: any, i: number) => i !== idx);
                       setProject((prev: any) => ({ ...prev, payment_phases: updated }));
                       const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
-                      if (error) alert("Failed to remove phase: " + error.message);
+                      if (error) toast("Failed to remove phase: " + error.message, "error");
                     }}
-                    className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition shrink-0 p-1"
+                    className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all duration-200 shrink-0 p-1"
                   >
                     ✕
                   </button>
@@ -553,9 +553,9 @@ export default function ProjectWorkspaceControlHub() {
                 const updated = [...currentPhases, { name: "New Phase", percentage: remaining }];
                 setProject((prev: any) => ({ ...prev, payment_phases: updated }));
                 const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
-                if (error) alert("Failed to add phase: " + error.message);
+                if (error) toast("Failed to add phase: " + error.message, "error");
               }}
-              className="w-full border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl py-2.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-wider transition outline-none"
+              className="w-full border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl py-2.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-wider transition-all duration-200 outline-none"
             >
               + Add Draw Phase
             </button>
@@ -761,7 +761,7 @@ export default function ProjectWorkspaceControlHub() {
                   value={dailyNotes}
                   onChange={(e) => setDailyNotes(e.target.value)}
                   placeholder="Describe trade workflow status..." 
-                  className="w-full bg-white border p-3 rounded-xl text-xs font-semibold outline-none focus:border-slate-300 min-h-[90px] shadow-sm mb-2"
+                  className="w-full bg-white border py-3 px-4 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all min-h-[90px] shadow-sm mb-2"
                 />
 
                 {/* IMAGE DROPZONE FIELD INPUT SYSTEM */}
@@ -773,9 +773,9 @@ export default function ProjectWorkspaceControlHub() {
               <button 
                 type="submit"
                 disabled={isLogging || (!dailyNotes.trim() && !attachedPhotoBase64)}
-                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition shadow-sm"
+                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition-all duration-200 hover:shadow-md shadow-sm"
               >
-                {isLogging ? "SAVING LOG..." : "SUBMIT FIELD LOG"}
+                {isLogging ? "SAVING LOG..." : "Save Log"}
               </button>
             </div>
             
@@ -806,9 +806,9 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* Q&A COMMUNICATION THREAD */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
           <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">💬 CLIENT Q&A THREAD</h3>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Messages</h3>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Messages sent here appear on the homeowner portal. Use this to answer questions and drive toward proposal approval.</p>
           </div>
 
@@ -849,7 +849,7 @@ export default function ProjectWorkspaceControlHub() {
                                 setProject((prev: any) => ({ ...prev, questions: currentMessages }));
                                 setEditingQaIndex(null);
                               } catch (err: any) {
-                                alert("Failed to update message: " + err.message);
+                                toast("Failed to update message: " + err.message, "error");
                               }
                             }}
                             className="text-[9px] font-black text-emerald-400 hover:text-emerald-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg transition"
@@ -885,7 +885,7 @@ export default function ProjectWorkspaceControlHub() {
                                     if (error) throw error;
                                     setProject((prev: any) => ({ ...prev, questions: currentMessages }));
                                   } catch (err: any) {
-                                    alert("Failed to delete message: " + err.message);
+                                    toast("Failed to delete message: " + err.message, "error");
                                   }
                                 }}
                                 className="text-[9px] font-bold text-red-400/60 hover:text-red-400 transition"
@@ -919,7 +919,7 @@ export default function ProjectWorkspaceControlHub() {
                 setProject((prev: any) => ({ ...prev, questions: updated }));
                 setQaMessage("");
               } catch (err: any) {
-                alert("Failed to send message: " + err.message);
+                toast("Failed to send message: " + err.message, "error");
               } finally {
                 setIsSendingQa(false);
               }
@@ -931,12 +931,12 @@ export default function ProjectWorkspaceControlHub() {
               value={qaMessage}
               onChange={(e) => setQaMessage(e.target.value)}
               placeholder="Type a reply to your client..."
-              className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-slate-400 focus:bg-white transition shadow-sm"
+              className="flex-1 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm"
             />
             <button
               type="submit"
               disabled={isSendingQa || !qaMessage.trim()}
-              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition shadow-sm shrink-0"
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
             >
               {isSendingQa ? "Sending..." : "Send"}
             </button>
@@ -949,7 +949,7 @@ export default function ProjectWorkspaceControlHub() {
         <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl text-left">
             <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Modify Client Profile Records</h3>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Edit Client Profile</h3>
               <p className="text-[11px] text-slate-400 font-medium">Updates made here instantly sync to the homeowner client portal and downstream data tables.</p>
             </div>
             
@@ -960,16 +960,16 @@ export default function ProjectWorkspaceControlHub() {
                   type="text" 
                   value={editName} 
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div>
                 <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Email Address Channel</label>
-                <input 
-                  type="email" 
-                  value={editEmail} 
+                <input
+                  type="email"
+                  value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div>
@@ -978,7 +978,7 @@ export default function ProjectWorkspaceControlHub() {
                   type="text"
                   value={editAddress}
                   onChange={(e) => setEditAddress(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div>
@@ -988,7 +988,7 @@ export default function ProjectWorkspaceControlHub() {
                   value={editProjectTitle}
                   onChange={(e) => setEditProjectTitle(e.target.value)}
                   placeholder="e.g. Bath Remodel, Basement Finish, Kitchen Remodel"
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
             </div>
@@ -1005,7 +1005,7 @@ export default function ProjectWorkspaceControlHub() {
                 type="button" 
                 onClick={saveClientProfileModifications}
                 disabled={isSaving}
-                className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition shadow-md"
+                className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-md"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>
