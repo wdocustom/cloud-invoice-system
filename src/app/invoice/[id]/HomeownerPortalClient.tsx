@@ -661,11 +661,11 @@ export default function HomeownerPortalClient({
                   ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
-                  <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md">
+                  <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md" style={{fontVariantNumeric:'tabular-nums'}}>
                     Contract Base: ${toNum(baseTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                   </span>
                   {approvedCoTotal > 0 && (
-                    <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-md shadow-sm">
+                    <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-md shadow-sm" style={{fontVariantNumeric:'tabular-nums'}}>
                       Appended Variations: +${toNum(approvedCoTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                     </span>
                   )}
@@ -675,7 +675,7 @@ export default function HomeownerPortalClient({
               <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-4 text-xs text-slate-600 space-y-2.5 font-semibold">
                 <div className="flex justify-between items-center border-b border-slate-200/40 pb-2">
                   <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage ?? 20}%):</span>
-                  <span className="font-sans font-black text-slate-950 text-sm">${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                  <span className="font-sans font-black text-slate-950 text-sm" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px] text-slate-500">
                   <span className="text-slate-500 font-medium">Estimated Build Timeline:</span>
@@ -706,8 +706,8 @@ export default function HomeownerPortalClient({
                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
                   </div>
                   <div className="space-y-2">
-                    <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:border-slate-900 font-bold transition-all shadow-inner placeholder:text-slate-400" />
-                    <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all shadow-md shadow-blue-900/10 outline-none">
+                    <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-3.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 font-bold transition-all shadow-inner placeholder:text-slate-400" />
+                    <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all duration-200 shadow-md hover:shadow-lg shadow-blue-900/10 outline-none">
                       Accept Proposal
                     </button>
                   </div>
@@ -729,22 +729,22 @@ export default function HomeownerPortalClient({
                   const canPayPhase = isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) && idx > 0;
 
                   return (
-                    <div key={idx} className="bg-slate-50/50 border border-slate-200/60 p-2.5 rounded-lg text-xs">
+                    <div key={idx} className="bg-slate-50/50 border border-slate-200/60 p-2.5 rounded-xl text-xs">
                       <div className="flex justify-between items-center">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-1.5">
                             <p className="font-extrabold text-slate-800 tracking-tight">{phase.name}</p>
                             {(isPaid || isFirstPhaseDepositPaid) ? (
-                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200/60">PAID</span>
+                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200/60">PAID</span>
                             ) : isPhaseActive ? (
-                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded bg-blue-100 text-blue-800 border border-blue-200/60 animate-pulse">ACTIVE</span>
+                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-blue-100 text-blue-800 border border-blue-200/60 animate-pulse">ACTIVE</span>
                             ) : (
-                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded bg-slate-200 text-slate-400">PEND</span>
+                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-slate-200 text-slate-400">PEND</span>
                             )}
                           </div>
                           <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {phase.percentage}%</p>
                         </div>
-                        <span className="font-sans font-extrabold text-slate-900">${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                       {canPayPhase && (
                         <button
@@ -813,8 +813,8 @@ export default function HomeownerPortalClient({
               <div className="border border-slate-200 rounded-xl bg-white p-5 text-left space-y-3 shadow-sm animate-fadeIn">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Deposit Remittance Channel</h3>
                 <div className="grid grid-cols-2 gap-2 text-xs font-bold">
-                  <button type="button" onClick={() => setPaymentMethod("stripe")} className={`p-2.5 border rounded-lg text-center transition-all ${paymentMethod === 'stripe' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Pay Online</button>
-                  <button type="button" onClick={() => setPaymentMethod("check")} className={`p-2.5 border rounded-lg text-center transition-all ${paymentMethod === 'check' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Physical Check</button>
+                  <button type="button" onClick={() => setPaymentMethod("stripe")} className={`p-2.5 border rounded-xl text-center transition-all duration-200 ${paymentMethod === 'stripe' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Pay Online</button>
+                  <button type="button" onClick={() => setPaymentMethod("check")} className={`p-2.5 border rounded-xl text-center transition-all duration-200 ${paymentMethod === 'check' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Physical Check</button>
                 </div>
                 {paymentMethod === 'stripe' ? (
                   <div className="space-y-2.5">

@@ -646,9 +646,9 @@ export default function ProjectWorkspaceControlHub() {
                   </div>
 
                   {/* Luxury High Tier Configuration Box */}
-                  <div className="bg-white p-4 rounded-xl border border-blue-100 space-y-2 shadow-sm">
+                  <div className="bg-gradient-to-br from-indigo-50/30 to-white p-4 rounded-xl border border-indigo-200/60 space-y-2 shadow-sm">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black text-blue-500 uppercase tracking-wider">💎 Luxury High-Tier Upgrade</span>
+                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">💎 Luxury High-Tier Upgrade</span>
                       <div className="flex items-center bg-blue-50/30 border border-blue-100 rounded-lg px-2 gap-1 max-w-[120px]">
                         <span className="text-[10px] font-bold text-blue-400">$</span>
                         <input 
@@ -663,7 +663,7 @@ export default function ProjectWorkspaceControlHub() {
                       value={item.high_description || ""} 
                       onChange={(e) => updateInlineItemField(idx, "high_description", e.target.value)}
                       placeholder="High-tier luxury grade premium specification upgrade options..."
-                      className="w-full bg-blue-50/10 border border-blue-50 p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:border-blue-200 transition"
+                      className="w-full bg-blue-50/10 border border-blue-50 p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                       rows={2}
                     />
                   </div>
@@ -686,14 +686,14 @@ export default function ProjectWorkspaceControlHub() {
                 placeholder="Core Specification Group Name (e.g., Backsplash Tile Install)" 
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="sm:col-span-3 p-2.5 bg-white border rounded-xl outline-none font-bold text-xs text-slate-800 shadow-sm focus:border-blue-300"
+                className="sm:col-span-3 py-3 px-4 bg-white border rounded-xl outline-none font-bold text-xs text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
               />
               <input 
                 type="number" 
                 placeholder="Standard Cost ($)" 
                 value={newMidCost}
                 onChange={(e) => setNewMidCost(e.target.value)}
-                className="p-2.5 bg-white border rounded-xl outline-none font-black text-xs text-slate-800 shadow-sm text-right focus:border-blue-300"
+                className="py-3 px-4 bg-white border rounded-xl outline-none font-black text-xs text-slate-800 shadow-sm text-right focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
               />
             </div>
 
@@ -705,7 +705,7 @@ export default function ProjectWorkspaceControlHub() {
                   placeholder="Standard grade materials specifications descriptions details..."
                   value={newMidDescription}
                   onChange={(e) => setNewMidDescription(e.target.value)}
-                  className="w-full p-2.5 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:border-slate-300"
+                  className="w-full py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div className="space-y-1.5">
@@ -719,14 +719,14 @@ export default function ProjectWorkspaceControlHub() {
                     placeholder="Premium luxury upgrade options data metrics description..."
                     value={newHighDescription}
                     onChange={(e) => setNewHighDescription(e.target.value)}
-                    className="flex-1 p-2.5 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:border-blue-200"
+                    className="flex-1 py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                   />
                   <input 
                     type="number"
                     placeholder="Luxury ($)"
                     value={newHighCost}
                     onChange={(e) => setNewHighCost(e.target.value)}
-                    className="w-24 p-2.5 bg-white border rounded-xl outline-none font-black text-right text-slate-800 shadow-sm focus:border-blue-200"
+                    className="w-24 py-3 px-4 bg-white border rounded-xl outline-none font-black text-right text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                   />
                 </div>
               </div>
@@ -735,9 +735,9 @@ export default function ProjectWorkspaceControlHub() {
             <div className="flex justify-end pt-2">
               <button 
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition shadow-md shrink-0"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
               >
-                Inject Row Component
+                + Add Line Item
               </button>
             </div>
           </form>
@@ -747,9 +747,9 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* FIELD OPERATIONS DAILY LOG WORKBENCH WITH CAMERA ATTACHMENTS RESTORED */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-6">
           <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">📸 FIELD OPERATIONS DAILY LOG</h3>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Daily Log</h3>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Record construction notes, site progress logs, and snap layout photos straight from your device camera into the client portal.</p>
           </div>
 
