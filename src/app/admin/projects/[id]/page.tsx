@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
+import { toast } from "@/lib/toast";
 
 export default function ProjectWorkspaceControlHub() {
   const router = useRouter();
@@ -98,9 +99,9 @@ export default function ProjectWorkspaceControlHub() {
       }));
       
       setIsEditModalOpen(false);
-      alert("Client profile parameters synchronized successfully across all portals!");
+      toast("Client profile updated successfully", "success");
     } catch (err: any) {
-      alert("Profile mutation pipeline failure: " + err.message);
+      toast("Profile update failed: " + err.message, "error");
     } finally {
       setIsSaving(false);
     }
@@ -146,14 +147,14 @@ export default function ProjectWorkspaceControlHub() {
         amount: data[0].amount
       }));
     } catch (err: any) {
-      alert("Error saving: " + err.message);
+      toast("Error saving: " + err.message, "error");
       fetchComprehensiveProjectData();
     }
   }
 
   const insertNewLineRow = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim() || !newMidCost) return alert("Please fill out item title and standard mid-cost parameters.");
+    if (!newTitle.trim() || !newMidCost) return toast("Please fill out item title and standard cost", "info");
 
     flushPendingDebounce();
 
@@ -265,9 +266,9 @@ export default function ProjectWorkspaceControlHub() {
       setAttachedPhotoBase64("");
       setAttachedPhotoName("");
       setAttachedPhotoFile(null);
-      alert("Daily operations log with image snapshot filed successfully!");
+      toast("Daily log saved", "success");
     } catch (err: any) {
-      alert("Failed to submit field log entry: " + err.message);
+      toast("Failed to submit field log: " + err.message, "error");
     } finally {
       setIsLogging(false);
     }
@@ -283,7 +284,7 @@ export default function ProjectWorkspaceControlHub() {
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left">
       
       {/* Navigation Header Banner */}
-      <div className="bg-slate-900 text-white shadow-sm border-b border-slate-800">
+      <div className="bg-slate-900 text-white shadow-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between">
           <div className="space-y-0.5">
             <button onClick={() => router.push("/admin/projects")} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition block mb-1">
@@ -294,17 +295,17 @@ export default function ProjectWorkspaceControlHub() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] px-3 py-1.5 rounded-lg font-black uppercase tracking-wider">
+            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] rounded-full px-3 py-1 font-black uppercase tracking-wider">
               PROPOSAL STATE: {project?.status || "PENDING"}
             </span>
-            <button 
+            <button
               onClick={() => {
                 navigator.clipboard.writeText(`${window.location.origin}/invoice/${projectId}`);
-                alert("Live portal invitation link copied to system clipboard!");
+                toast("Portal link copied", "success");
               }}
-              className="bg-white hover:bg-slate-50 text-slate-900 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm outline-none"
+              className="bg-white hover:bg-slate-50 text-slate-900 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
             >
-              COPY LIVE PORTAL LINK
+              Copy Link
             </button>
           </div>
         </div>
@@ -314,7 +315,7 @@ export default function ProjectWorkspaceControlHub() {
       <div className="max-w-7xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* PROJECT ADDRESS CARD */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4 relative overflow-hidden flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b pb-2 mb-2">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PROJECT ADDRESS</p>
@@ -322,7 +323,7 @@ export default function ProjectWorkspaceControlHub() {
                 onClick={() => setIsEditModalOpen(true)}
                 className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wider transition outline-none"
               >
-                ✏️ EDIT PROFILE
+                Edit
               </button>
             </div>
             <h3 className="font-extrabold text-slate-900 text-sm leading-relaxed mb-1">{project?.job_address || "No address specified."}</h3>
@@ -340,10 +341,10 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         {/* PROJECT COST METRIC CARD */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 flex flex-col justify-between">
           <div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-3">PROJECT COST</p>
-            <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans">
+            <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans" style={{fontVariantNumeric:'tabular-nums'}}>
               ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </h2>
           </div>
@@ -358,7 +359,7 @@ export default function ProjectWorkspaceControlHub() {
                 .eq("id", projectId);
               if (error) {
                 setProject((prev: any) => ({ ...prev, deposit_cleared: !newVal }));
-                alert("Failed to update deposit status: " + error.message);
+                toast("Failed to update deposit status: " + error.message, "error");
               }
             }}
             className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border mt-4 cursor-pointer hover:bg-slate-100 transition outline-none"
@@ -371,7 +372,7 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         {/* PORTAL ANALYTICS FEED CARD */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-3">
           <div className="flex justify-between items-center border-b pb-2">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PORTAL ANALYTICS</p>
             <span className="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-0.5 rounded-md border border-blue-100">Views: {project?.view_count || 0}</span>
@@ -418,8 +419,8 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* GANTT BLUEPRINT SCHEDULER HORIZON TRACK */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-          <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4">
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
             🗓️ PRODUCTION PHASE GANTT BLUEPRINT SCHEDULER
           </h3>
           <p className="text-[11px] text-slate-400 font-medium -mt-2">Construct sub-tasks, nest trade rows, and update operational progress margins directly into live streams charts grids.</p>
@@ -433,12 +434,141 @@ export default function ProjectWorkspaceControlHub() {
         </div>
       </div>
 
+      {/* PAYMENT SCHEDULE & DEPOSIT MANAGER */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-5">
+          <div className="border-b pb-3 border-slate-100">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">💰 PAYMENT SCHEDULE & DEPOSIT</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Configure deposit percentage and payment draw phases. Changes sync instantly to the homeowner portal.</p>
+          </div>
+
+          {/* Deposit Percentage */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit %</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={project?.deposit_percentage ?? 20}
+                onChange={(e) => {
+                  const val = Math.min(100, Math.max(0, toNum(e.target.value)));
+                  setProject((prev: any) => ({ ...prev, deposit_percentage: val }));
+                }}
+                onBlur={async () => {
+                  const { error } = await supabase
+                    .from("invoices")
+                    .update({ deposit_percentage: project?.deposit_percentage ?? 20 })
+                    .eq("id", projectId);
+                  if (error) toast("Failed to save deposit %: " + error.message, "error");
+                }}
+                className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+              />
+            </div>
+            <div className="text-xs text-slate-500 font-medium" style={{fontVariantNumeric:'tabular-nums'}}>
+              <span className="font-black text-slate-800">${(toNum(project?.amount) * (toNum(project?.deposit_percentage ?? 20) / 100)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> of ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
+            </div>
+          </div>
+
+          {/* Phase Rows */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Draw Phases</p>
+              <p className="text-[9px] font-bold text-slate-400">
+                Total: <span className={`font-black ${
+                  (project?.payment_phases || []).reduce((s: number, p: any) => s + toNum(p.percentage), 0) === 100
+                    ? "text-emerald-600" : "text-red-500"
+                }`}>
+                  {(project?.payment_phases || []).reduce((s: number, p: any) => s + toNum(p.percentage), 0)}%
+                </span>
+              </p>
+            </div>
+
+            {Array.isArray(project?.payment_phases) && project.payment_phases.map((phase: any, idx: number) => {
+              const phaseAmount = toNum(project?.amount) * (toNum(phase.percentage) / 100);
+              return (
+                <div key={idx} className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group">
+                  <span className="text-[9px] font-black text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">#{idx + 1}</span>
+                  <input
+                    type="text"
+                    value={phase.name}
+                    onChange={(e) => {
+                      const updated = [...project.payment_phases];
+                      updated[idx] = { ...updated[idx], name: e.target.value };
+                      setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                    }}
+                    onBlur={async () => {
+                      const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
+                      if (error) toast("Failed to save phase name: " + error.message, "error");
+                    }}
+                    className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  />
+                  <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={phase.percentage}
+                      onChange={(e) => {
+                        const updated = [...project.payment_phases];
+                        updated[idx] = { ...updated[idx], percentage: toNum(e.target.value) };
+                        setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                      }}
+                      onBlur={async () => {
+                        const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
+                        if (error) toast("Failed to save phase %: " + error.message, "error");
+                      }}
+                      className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
+                    />
+                    <span className="text-[10px] font-bold text-slate-400">%</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 w-20 text-right" style={{fontVariantNumeric:'tabular-nums'}}>
+                    ${phaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (project.payment_phases.length <= 1) return toast("Must have at least one phase.", "info");
+                      if (!confirm(`Remove "${phase.name}"?`)) return;
+                      const updated = project.payment_phases.filter((_: any, i: number) => i !== idx);
+                      setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                      const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
+                      if (error) toast("Failed to remove phase: " + error.message, "error");
+                    }}
+                    className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all duration-200 shrink-0 p-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Add Phase Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                const currentPhases = Array.isArray(project?.payment_phases) ? [...project.payment_phases] : [];
+                const usedPercent = currentPhases.reduce((s: number, p: any) => s + toNum(p.percentage), 0);
+                const remaining = Math.max(0, 100 - usedPercent);
+                const updated = [...currentPhases, { name: "New Phase", percentage: remaining }];
+                setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
+                if (error) toast("Failed to add phase: " + error.message, "error");
+              }}
+              className="w-full border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl py-2.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-wider transition-all duration-200 outline-none"
+            >
+              + Add Draw Phase
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* ITEMS MANAGER LEDGER CARD CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 pt-6 space-y-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-6">
           <div className="border-b pb-3 flex items-start justify-between">
             <div>
-              <h2 className="text-base font-black text-slate-900 uppercase tracking-wide">
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
                 ITEMS
               </h2>
               <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify descriptions, values, or append new line scopes directly into the contract ledger structure.</p>
@@ -454,7 +584,7 @@ export default function ProjectWorkspaceControlHub() {
                   .eq("id", projectId);
                 if (error) {
                   setProject((prev: any) => ({ ...prev, show_luxury_tier: !newVal }));
-                  alert("Failed to update luxury tier visibility: " + error.message);
+                  toast("Failed to update luxury tier visibility: " + error.message, "error");
                 }
               }}
               className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl transition outline-none shrink-0"
@@ -486,7 +616,7 @@ export default function ProjectWorkspaceControlHub() {
                     value={item.title || ""} 
                     onChange={(e) => updateInlineItemField(idx, "title", e.target.value)}
                     placeholder="Core Specification Group Title"
-                    className="flex-1 bg-white border p-2 rounded-xl text-xs font-black text-slate-900 outline-none focus:border-slate-400 transition shadow-sm" 
+                    className="flex-1 bg-white border py-3 px-4 rounded-xl text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm" 
                   />
                 </div>
 
@@ -510,15 +640,15 @@ export default function ProjectWorkspaceControlHub() {
                       value={item.mid_description || item.description || ""} 
                       onChange={(e) => updateInlineItemField(idx, "mid_description", e.target.value)}
                       placeholder="Mid-tier grade specification materials context..."
-                      className="w-full bg-slate-50/50 border p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:border-slate-300 transition"
+                      className="w-full bg-slate-50/50 border p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                       rows={2}
                     />
                   </div>
 
                   {/* Luxury High Tier Configuration Box */}
-                  <div className="bg-white p-4 rounded-xl border border-blue-100 space-y-2 shadow-sm">
+                  <div className="bg-gradient-to-br from-indigo-50/30 to-white p-4 rounded-xl border border-indigo-200/60 space-y-2 shadow-sm">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black text-blue-500 uppercase tracking-wider">💎 Luxury High-Tier Upgrade</span>
+                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">💎 Luxury High-Tier Upgrade</span>
                       <div className="flex items-center bg-blue-50/30 border border-blue-100 rounded-lg px-2 gap-1 max-w-[120px]">
                         <span className="text-[10px] font-bold text-blue-400">$</span>
                         <input 
@@ -533,7 +663,7 @@ export default function ProjectWorkspaceControlHub() {
                       value={item.high_description || ""} 
                       onChange={(e) => updateInlineItemField(idx, "high_description", e.target.value)}
                       placeholder="High-tier luxury grade premium specification upgrade options..."
-                      className="w-full bg-blue-50/10 border border-blue-50 p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:border-blue-200 transition"
+                      className="w-full bg-blue-50/10 border border-blue-50 p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                       rows={2}
                     />
                   </div>
@@ -556,14 +686,14 @@ export default function ProjectWorkspaceControlHub() {
                 placeholder="Core Specification Group Name (e.g., Backsplash Tile Install)" 
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="sm:col-span-3 p-2.5 bg-white border rounded-xl outline-none font-bold text-xs text-slate-800 shadow-sm focus:border-blue-300"
+                className="sm:col-span-3 py-3 px-4 bg-white border rounded-xl outline-none font-bold text-xs text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
               />
               <input 
                 type="number" 
                 placeholder="Standard Cost ($)" 
                 value={newMidCost}
                 onChange={(e) => setNewMidCost(e.target.value)}
-                className="p-2.5 bg-white border rounded-xl outline-none font-black text-xs text-slate-800 shadow-sm text-right focus:border-blue-300"
+                className="py-3 px-4 bg-white border rounded-xl outline-none font-black text-xs text-slate-800 shadow-sm text-right focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
               />
             </div>
 
@@ -575,7 +705,7 @@ export default function ProjectWorkspaceControlHub() {
                   placeholder="Standard grade materials specifications descriptions details..."
                   value={newMidDescription}
                   onChange={(e) => setNewMidDescription(e.target.value)}
-                  className="w-full p-2.5 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:border-slate-300"
+                  className="w-full py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div className="space-y-1.5">
@@ -589,14 +719,14 @@ export default function ProjectWorkspaceControlHub() {
                     placeholder="Premium luxury upgrade options data metrics description..."
                     value={newHighDescription}
                     onChange={(e) => setNewHighDescription(e.target.value)}
-                    className="flex-1 p-2.5 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:border-blue-200"
+                    className="flex-1 py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                   />
                   <input 
                     type="number"
                     placeholder="Luxury ($)"
                     value={newHighCost}
                     onChange={(e) => setNewHighCost(e.target.value)}
-                    className="w-24 p-2.5 bg-white border rounded-xl outline-none font-black text-right text-slate-800 shadow-sm focus:border-blue-200"
+                    className="w-24 py-3 px-4 bg-white border rounded-xl outline-none font-black text-right text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                   />
                 </div>
               </div>
@@ -605,9 +735,9 @@ export default function ProjectWorkspaceControlHub() {
             <div className="flex justify-end pt-2">
               <button 
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition shadow-md shrink-0"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
               >
-                Inject Row Component
+                + Add Line Item
               </button>
             </div>
           </form>
@@ -617,9 +747,9 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* FIELD OPERATIONS DAILY LOG WORKBENCH WITH CAMERA ATTACHMENTS RESTORED */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-6">
           <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">📸 FIELD OPERATIONS DAILY LOG</h3>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Daily Log</h3>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Record construction notes, site progress logs, and snap layout photos straight from your device camera into the client portal.</p>
           </div>
 
@@ -631,7 +761,7 @@ export default function ProjectWorkspaceControlHub() {
                   value={dailyNotes}
                   onChange={(e) => setDailyNotes(e.target.value)}
                   placeholder="Describe trade workflow status..." 
-                  className="w-full bg-white border p-3 rounded-xl text-xs font-semibold outline-none focus:border-slate-300 min-h-[90px] shadow-sm mb-2"
+                  className="w-full bg-white border py-3 px-4 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all min-h-[90px] shadow-sm mb-2"
                 />
 
                 {/* IMAGE DROPZONE FIELD INPUT SYSTEM */}
@@ -643,9 +773,9 @@ export default function ProjectWorkspaceControlHub() {
               <button 
                 type="submit"
                 disabled={isLogging || (!dailyNotes.trim() && !attachedPhotoBase64)}
-                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition shadow-sm"
+                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition-all duration-200 hover:shadow-md shadow-sm"
               >
-                {isLogging ? "SAVING LOG..." : "SUBMIT FIELD LOG"}
+                {isLogging ? "SAVING LOG..." : "Save Log"}
               </button>
             </div>
             
@@ -676,9 +806,9 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* Q&A COMMUNICATION THREAD */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
           <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">💬 CLIENT Q&A THREAD</h3>
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Messages</h3>
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Messages sent here appear on the homeowner portal. Use this to answer questions and drive toward proposal approval.</p>
           </div>
 
@@ -719,7 +849,7 @@ export default function ProjectWorkspaceControlHub() {
                                 setProject((prev: any) => ({ ...prev, questions: currentMessages }));
                                 setEditingQaIndex(null);
                               } catch (err: any) {
-                                alert("Failed to update message: " + err.message);
+                                toast("Failed to update message: " + err.message, "error");
                               }
                             }}
                             className="text-[9px] font-black text-emerald-400 hover:text-emerald-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg transition"
@@ -755,7 +885,7 @@ export default function ProjectWorkspaceControlHub() {
                                     if (error) throw error;
                                     setProject((prev: any) => ({ ...prev, questions: currentMessages }));
                                   } catch (err: any) {
-                                    alert("Failed to delete message: " + err.message);
+                                    toast("Failed to delete message: " + err.message, "error");
                                   }
                                 }}
                                 className="text-[9px] font-bold text-red-400/60 hover:text-red-400 transition"
@@ -789,7 +919,7 @@ export default function ProjectWorkspaceControlHub() {
                 setProject((prev: any) => ({ ...prev, questions: updated }));
                 setQaMessage("");
               } catch (err: any) {
-                alert("Failed to send message: " + err.message);
+                toast("Failed to send message: " + err.message, "error");
               } finally {
                 setIsSendingQa(false);
               }
@@ -801,12 +931,12 @@ export default function ProjectWorkspaceControlHub() {
               value={qaMessage}
               onChange={(e) => setQaMessage(e.target.value)}
               placeholder="Type a reply to your client..."
-              className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-slate-400 focus:bg-white transition shadow-sm"
+              className="flex-1 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm"
             />
             <button
               type="submit"
               disabled={isSendingQa || !qaMessage.trim()}
-              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition shadow-sm shrink-0"
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
             >
               {isSendingQa ? "Sending..." : "Send"}
             </button>
@@ -819,7 +949,7 @@ export default function ProjectWorkspaceControlHub() {
         <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl text-left">
             <div>
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Modify Client Profile Records</h3>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Edit Client Profile</h3>
               <p className="text-[11px] text-slate-400 font-medium">Updates made here instantly sync to the homeowner client portal and downstream data tables.</p>
             </div>
             
@@ -830,16 +960,16 @@ export default function ProjectWorkspaceControlHub() {
                   type="text" 
                   value={editName} 
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div>
                 <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Email Address Channel</label>
-                <input 
-                  type="email" 
-                  value={editEmail} 
+                <input
+                  type="email"
+                  value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div>
@@ -848,7 +978,7 @@ export default function ProjectWorkspaceControlHub() {
                   type="text"
                   value={editAddress}
                   onChange={(e) => setEditAddress(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
               <div>
@@ -858,7 +988,7 @@ export default function ProjectWorkspaceControlHub() {
                   value={editProjectTitle}
                   onChange={(e) => setEditProjectTitle(e.target.value)}
                   placeholder="e.g. Bath Remodel, Basement Finish, Kitchen Remodel"
-                  className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:border-slate-400 transition-all"
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
             </div>
@@ -875,7 +1005,7 @@ export default function ProjectWorkspaceControlHub() {
                 type="button" 
                 onClick={saveClientProfileModifications}
                 disabled={isSaving}
-                className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition shadow-md"
+                className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-md"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>
