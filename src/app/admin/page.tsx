@@ -22,6 +22,7 @@ export default function MultiTierEstimatorCreator() {
   const [isDeploying, setIsDeploying] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<any[]>([]);
   const [proposalLink, setProposalLink] = useState("");
+  const [generatingPhase, setGeneratingPhase] = useState("");
 
   const handleClientSideFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,6 +47,20 @@ export default function MultiTierEstimatorCreator() {
       return toast("Please describe your remodeling goals or upload a design package document.", "error");
     }
     setIsGenerating(true);
+    setGeneratingPhase("Analyzing scope parameters...");
+
+    const phases = [
+      "Analyzing scope parameters...",
+      "Mapping material specifications...",
+      "Crafting tiered line items...",
+      "Calculating labor allocations...",
+      "Finalizing estimate matrix..."
+    ];
+    let phaseIdx = 0;
+    const interval = setInterval(() => {
+      phaseIdx = (phaseIdx + 1) % phases.length;
+      setGeneratingPhase(phases[phaseIdx]);
+    }, 2200);
 
     try {
       const res = await fetch("/api/generate-scope", {
@@ -71,7 +86,9 @@ export default function MultiTierEstimatorCreator() {
       console.error(err);
       toast("AI compiler failure mapping scope metrics components.", "error");
     } finally {
+      clearInterval(interval);
       setIsGenerating(false);
+      setGeneratingPhase("");
     }
   };
 
@@ -90,7 +107,6 @@ export default function MultiTierEstimatorCreator() {
       { name: "Flawless Properties turnover handoff", percentage: 100 - (depositPercent + 24 + 24) }
     ];
 
-    // Generate a fallback string to satisfy the database constraint rule
     const primaryDatabaseSummaryText = goalsPrompt.trim() || `Residential renovation project scope manifest for ${clientName}.`;
 
     try {
@@ -101,7 +117,7 @@ export default function MultiTierEstimatorCreator() {
             homeowner_name: clientName.trim(),
             homeowner_email: clientEmail.trim() || null,
             job_address: `${streetAddress.trim()}, Omaha, NE ${zipCode.trim()}`,
-            description: primaryDatabaseSummaryText, // Added to fix the database constraint error
+            description: primaryDatabaseSummaryText,
             amount: calculatedBaseTotal,
             status: "pending",
             deposit_percentage: depositPercent,
@@ -136,112 +152,144 @@ export default function MultiTierEstimatorCreator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200/60 rounded-2xl p-8 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] max-w-4xl w-full space-y-6">
+    <div className="min-h-screen bg-brand-alabaster text-brand-charcoal font-sans antialiased pb-24 text-left flex items-center justify-center p-4">
+      <div className="bg-white border border-brand-stone/40 rounded-3xl p-8 sm:p-10 shadow-premium max-w-4xl w-full space-y-8 animate-fade-in">
 
-        {/* Title and Navigation Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            New Estimate
-          </h1>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-stone/40 pb-6">
+          <div>
+            <h1 className="font-editorial text-2xl font-bold tracking-tight text-brand-charcoal">
+              New Estimate
+            </h1>
+            <p className="text-sm text-brand-muted font-medium mt-1">Create a tiered proposal for your client</p>
+          </div>
           <button
             type="button"
             onClick={() => router.push("/admin/projects")}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-[11px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm outline-none shrink-0"
+            className="bg-brand-charcoal hover:bg-brand-charcoal/90 text-white font-semibold text-[11px] px-5 py-2.5 rounded-xl tracking-wide transition-all duration-200 hover:shadow-elevated outline-none shrink-0"
           >
-            Projects
+            View Projects →
           </button>
         </div>
 
-        {/* Input Metadata Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <input type="text" placeholder="Client Name" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
-          <input type="email" placeholder="Client Email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
-          <input type="text" placeholder="Street Address" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
-          <input type="text" placeholder="Zip Code" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div>
-            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Estimated Start Date</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
-          </div>
-          <div>
-            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Project Duration</label>
-            <input type="text" placeholder="e.g., 9 Weeks" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
-          </div>
-          <div>
-            <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Mobilization Deposit (%)</label>
-            <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseInt(e.target.value) || 0)} className="w-full py-3.5 px-4 bg-white border border-slate-200 rounded-xl outline-none font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all" />
+        {/* Client Info Grid */}
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Client Information</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" placeholder="Client Name *" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
+            <input type="email" placeholder="Client Email (optional)" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
+            <input type="text" placeholder="Street Address" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
+            <input type="text" placeholder="Zip Code" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
           </div>
         </div>
 
-        {/* DUAL CONTENT DEPLOYER CONTROL DROPZONE */}
-        <div className="border border-blue-200/40 bg-gradient-to-br from-blue-50/60 to-slate-50/40 p-6 rounded-2xl space-y-4 text-xs">
+        {/* Project Parameters */}
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Project Parameters</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-medium text-brand-muted/80 block">Start Date</label>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full py-3 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-medium text-brand-muted/80 block">Duration</label>
+              <input type="text" placeholder="e.g., 9 Weeks" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full py-3 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-medium text-brand-muted/80 block">Deposit %</label>
+              <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseInt(e.target.value) || 0)} className="w-full py-3 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
+            </div>
+          </div>
+        </div>
+
+        {/* AI Scope Engine */}
+        <div className="border border-brand-stone/40 bg-gradient-to-br from-brand-warm to-white p-6 rounded-2xl space-y-4 relative overflow-hidden">
+          {isGenerating && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-2xl">
+              <div className="w-10 h-10 rounded-full border-2 border-luxury-gold border-t-transparent animate-spin mb-3" />
+              <p className="text-sm font-semibold text-brand-charcoal animate-pulse">{generatingPhase}</p>
+            </div>
+          )}
           <div>
-            <h4 className="font-black text-slate-900 uppercase tracking-wide text-[11px]">AI Scope Generator</h4>
-            <p className="text-slate-400 font-medium text-[11px] mt-0.5">Describe the project scope or upload a design document.</p>
+            <h4 className="font-semibold text-brand-charcoal text-sm tracking-tight">AI Scope Engine</h4>
+            <p className="text-[12px] text-brand-muted font-medium mt-0.5">Describe the renovation scope in detail — the AI will generate tiered line items with pricing.</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3">
-            <input
-              type="text"
-              placeholder="Provide complementary contextual instructions or describe project metrics..."
+          <div className="flex flex-col sm:flex-row items-stretch gap-3">
+            <textarea
+              placeholder="Describe your project in detail: rooms, scope of work, material preferences, special requirements..."
               value={goalsPrompt}
               onChange={(e) => setGoalsPrompt(e.target.value)}
-              className="w-full sm:flex-1 py-3.5 px-4 bg-white border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 rounded-xl outline-none font-semibold text-slate-800 shadow-sm transition-all"
+              rows={3}
+              className="w-full sm:flex-1 py-3 px-4 bg-white border border-brand-stone/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 resize-none transition-all"
             />
+            <div className="flex sm:flex-col gap-2 shrink-0">
+              <label className="flex-1 sm:flex-none bg-white border border-brand-stone/60 hover:border-brand-muted py-3 px-4 rounded-xl text-center font-semibold text-xs text-brand-muted cursor-pointer transition-colors flex items-center justify-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                {attachedFileName ? attachedFileName.slice(0, 12) + "..." : "Attach"}
+                <input type="file" onChange={handleClientSideFileLoad} className="hidden" />
+              </label>
 
-            <label className="w-full sm:w-auto bg-white border border-slate-200 hover:border-slate-400 py-3.5 px-4 rounded-xl shadow-sm text-center font-bold text-slate-600 cursor-pointer transition-colors whitespace-nowrap">
-              {attachedFileName ? `📎 ${attachedFileName.slice(0, 15)}...` : "Upload File"}
-              <input type="file" onChange={handleClientSideFileLoad} className="hidden" />
-            </label>
-
-            <button
-              type="button"
-              onClick={runAiEstimatorEngine}
-              disabled={isGenerating}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black px-6 py-3 rounded-xl uppercase tracking-wider shadow-sm hover:shadow-md transition-all duration-200 whitespace-nowrap"
-            >
-              {isGenerating ? "Processing..." : "Run AI Estimator"}
-            </button>
+              <button
+                type="button"
+                onClick={runAiEstimatorEngine}
+                disabled={isGenerating}
+                className="flex-1 sm:flex-none bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-40 text-white font-semibold text-xs px-5 py-3 rounded-xl tracking-wide transition-all duration-200 hover:shadow-elevated whitespace-nowrap"
+              >
+                Generate
+              </button>
+            </div>
           </div>
         </div>
 
+        {/* Generated Items Preview */}
         {generatedItems.length > 0 && (
-          <div className="border rounded-2xl bg-slate-50 p-4 space-y-2 max-h-48 overflow-y-auto text-xs shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] animate-fadeIn">
-            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider border-b pb-1 mb-2">Generated Line Items</p>
-            {generatedItems.map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200 shadow-[0_1px_2px_rgba(0,0,0,0.04)] gap-4">
-                <div className="text-left">
-                  <span className="font-extrabold text-slate-800 block text-xs">{item.title}</span>
-                  <span className="text-[10px] text-slate-400 font-medium block mt-0.5">{item.mid_description || item.description}</span>
+          <div className="border border-brand-stone/40 rounded-2xl bg-white overflow-hidden shadow-card animate-fade-in">
+            <div className="px-5 py-3 border-b border-brand-stone/30 bg-brand-warm/50">
+              <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Generated Line Items · {generatedItems.length} items</p>
+            </div>
+            <div className="max-h-64 overflow-y-auto divide-y divide-brand-stone/20">
+              {generatedItems.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-start px-5 py-3.5 gap-4 hover:bg-brand-warm/30 transition-colors">
+                  <div className="text-left min-w-0 flex-1">
+                    <span className="font-semibold text-brand-charcoal block text-sm tracking-tight">{item.title}</span>
+                    <span className="text-[12px] text-brand-muted font-medium block mt-0.5 truncate">{item.mid_description || item.description}</span>
+                  </div>
+                  <span className="font-semibold text-brand-charcoal text-sm shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(item.mid_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                 </div>
-                <span className="font-sans font-black text-slate-900 text-sm shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(item.mid_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="px-5 py-3 border-t border-brand-stone/30 bg-brand-warm/30 flex justify-between items-center">
+              <span className="text-xs font-medium text-brand-muted">Standard Tier Total</span>
+              <span className="font-bold text-brand-charcoal text-base" style={{fontVariantNumeric:'tabular-nums'}}>
+                ${generatedItems.reduce((s, i) => s + toNum(i.mid_cost), 0).toLocaleString(undefined, {minimumFractionDigits: 2})}
+              </span>
+            </div>
           </div>
         )}
 
-        {/* Global Broadcast Actions Block */}
+        {/* Deploy Action */}
         <div className="space-y-3 pt-2">
           <button
             type="button"
             onClick={deployLiveProposalRecord}
             disabled={isDeploying || generatedItems.length === 0}
-            className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-black text-xs py-3.5 rounded-xl uppercase tracking-widest shadow-sm hover:shadow-md transition-all duration-200 outline-none"
+            className="w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:bg-brand-stone disabled:text-brand-muted text-white font-semibold text-sm py-4 rounded-xl tracking-wide shadow-soft hover:shadow-elevated transition-all duration-300 outline-none"
           >
-            {isDeploying ? "Deploying Parameters Link..." : "Create Proposal"}
+            {isDeploying ? "Creating proposal..." : "Create & Deploy Proposal"}
           </button>
 
           {proposalLink && (
-            <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl shadow-sm text-center text-xs animate-fadeIn">
-              <p className="text-emerald-800 font-extrabold">✓ Live Client Channel Active & Secure</p>
+            <div className="p-5 bg-sage-50 border border-sage-200 rounded-2xl shadow-soft text-center animate-fade-in">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-sage-500" />
+                <p className="text-sage-700 font-semibold text-sm">Proposal Live</p>
+              </div>
               <input
                 type="text"
                 readOnly
                 value={proposalLink}
-                className="w-full text-center font-mono font-bold bg-white text-slate-700 p-2 rounded-lg border border-emerald-200 mt-2 outline-none select-all"
+                className="w-full text-center font-mono text-xs bg-white text-brand-charcoal p-3 rounded-xl border border-sage-200 outline-none select-all"
               />
             </div>
           )}

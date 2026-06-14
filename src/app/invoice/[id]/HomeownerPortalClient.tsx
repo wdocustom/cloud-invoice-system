@@ -262,7 +262,7 @@ export default function HomeownerPortalClient({
     setIsSubmitting(false);
   };
 
-  if (!invoice) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans text-slate-700 font-bold">Proposal data missing.</div>;
+  if (!invoice) return <div className="min-h-screen bg-brand-alabaster flex items-center justify-center font-sans text-brand-muted font-medium text-sm">Proposal data unavailable.</div>;
 
   let dynamicTimelineIndex = 0;
   if (isLocked) {
@@ -285,89 +285,108 @@ export default function HomeownerPortalClient({
   const getSubTasksForMilestone = (parentId: string) => scheduleTasks.filter(t => t.parent_id === parentId);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left selection:bg-slate-900/10 tracking-normal">
+    <div className="min-h-screen bg-brand-alabaster text-brand-charcoal font-sans antialiased pb-24 text-left selection:bg-luxury-gold/10 tracking-normal">
 
-      {/* Top Professional Accent Header Bar */}
-      <div className="bg-slate-900 text-white shadow-md border-b border-slate-800">
-        <div className="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between">
-          <h1 className="text-sm font-black tracking-wider uppercase text-slate-200">WDO Custom Client Hub</h1>
-          <span className={`px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border ${
-            isLocked ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+      {/* Minimal Premium Header */}
+      <div className="border-b border-brand-stone/60 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-brand-charcoal flex items-center justify-center">
+              <span className="text-white text-[10px] font-bold">WDO</span>
+            </div>
+            <div>
+              <h1 className="text-sm font-semibold tracking-tight text-brand-charcoal">WDO Custom</h1>
+              <p className="text-[10px] text-brand-muted font-medium">Client Portal</p>
+            </div>
+          </div>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wide border ${
+            isLocked
+              ? 'bg-sage-50 text-sage-700 border-sage-200'
+              : 'bg-luxury-soft text-luxury-ochre border-luxury-champagne'
           }`}>
-            • {invoice.status}
+            <span className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-sage-500' : 'bg-luxury-gold'}`} />
+            {isLocked ? "Active" : "Review"}
           </span>
         </div>
       </div>
 
-      {/* Contractor & Project Info Cards */}
-      <div className="max-w-6xl mx-auto px-4 pt-6">
+      {/* Contractor & Project Info */}
+      <div className="max-w-6xl mx-auto px-6 pt-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-1.5">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-2">Contractor</p>
-            <p className="font-black text-slate-900 text-sm tracking-tight">WDO Custom</p>
-            <p className="text-xs font-bold text-slate-700">Skyler Camacho</p>
-            <p className="text-[11px] font-bold text-slate-500">LIC-1901422</p>
-            <p className="text-[11px] font-bold text-slate-500">402-819-8558</p>
-            <p className="text-[11px] font-mono font-bold text-slate-500">skyler@wdocustom.com</p>
+          <div className="bg-white rounded-2xl p-6 shadow-soft border border-brand-stone/30 space-y-2.5">
+            <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Your Contractor</p>
+            <div className="space-y-1">
+              <p className="font-semibold text-brand-charcoal text-[15px] tracking-tight">Skyler Camacho</p>
+              <p className="text-[13px] text-brand-muted font-medium">WDO Custom · LIC-1901422</p>
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-[12px] text-brand-muted font-medium">402-819-8558</span>
+                <span className="text-brand-stone">·</span>
+                <span className="text-[12px] text-brand-muted font-medium">skyler@wdocustom.com</span>
+              </div>
+            </div>
           </div>
-          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-1.5">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-2">Project Details</p>
-            <p className="font-black text-slate-900 text-sm tracking-tight">{invoice.homeowner_name || "Client"}</p>
-            <p className="text-xs font-bold text-slate-700">{invoice.job_address || "Address Pending"}</p>
-            {(invoice as any).project_title && (
-              <p className="text-[11px] font-black text-blue-600 uppercase tracking-wide mt-1">{(invoice as any).project_title}</p>
-            )}
+          <div className="bg-white rounded-2xl p-6 shadow-soft border border-brand-stone/30 space-y-2.5">
+            <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Project</p>
+            <div className="space-y-1">
+              <p className="font-semibold text-brand-charcoal text-[15px] tracking-tight">{invoice.homeowner_name || "Client"}</p>
+              <p className="text-[13px] text-brand-muted font-medium">{invoice.job_address || "Address Pending"}</p>
+              {(invoice as any).project_title && (
+                <p className="text-[12px] font-semibold text-luxury-gold mt-1">{(invoice as any).project_title}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 pt-6">
+      <div className="max-w-6xl mx-auto px-6 pt-6">
 
         {/* Payment Status Banner */}
         {paymentStatus === "success" && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 text-xs text-emerald-800 font-bold flex items-center gap-2">
-            <span className="text-base">✓</span> Payment received successfully. Your account will be updated shortly.
+          <div className="bg-sage-50 border border-sage-200 rounded-2xl p-4 mb-6 text-sm text-sage-700 font-medium flex items-center gap-3">
+            <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px]">✓</span>
+            Payment received. Your account will be updated shortly.
           </div>
         )}
         {paymentStatus === "cancelled" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-xs text-amber-800 font-bold flex items-center gap-2">
-            <span className="text-base">⚠</span> Payment was cancelled. You can retry at any time using the payment options below.
+          <div className="bg-luxury-soft border border-luxury-champagne rounded-2xl p-4 mb-6 text-sm text-luxury-ochre font-medium flex items-center gap-3">
+            <span className="w-5 h-5 rounded-full bg-luxury-gold text-white flex items-center justify-center text-[10px]">!</span>
+            Payment cancelled. You can retry using the payment options below.
           </div>
         )}
 
-        {/* TAB NAVIGATION BAR */}
-        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-1.5 mb-6 flex gap-1 overflow-x-auto scrollbar-none">
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-1.5 mb-6 flex gap-1 overflow-x-auto scrollbar-none">
           {(isLocked
             ? [
-                { key: "overview", label: "Overview", icon: "📋" },
-                { key: "messages", label: "Messages", icon: "💬" },
-                { key: "selections", label: "Selections", icon: "🎨" },
-                { key: "payments", label: "Payments", icon: "💳" },
+                { key: "overview", label: "Overview" },
+                { key: "messages", label: "Messages" },
+                { key: "selections", label: "Selections" },
+                { key: "payments", label: "Payments" },
               ]
             : [
-                { key: "proposal", label: "Proposal", icon: "📄" },
-                { key: "messages", label: "Messages", icon: "💬" },
-                { key: "schedule", label: "Schedule", icon: "📅" },
+                { key: "proposal", label: "Proposal" },
+                { key: "messages", label: "Messages" },
+                { key: "schedule", label: "Schedule" },
               ]
           ).map((tab) => {
             const tabKey = tab.key;
-            const isActive = activeTab === tabKey || (!isLocked && activeTab === "overview" && tabKey === "proposal") || (isLocked && activeTab === "proposal" && tabKey === "overview");
+            const isTabActive = activeTab === tabKey || (!isLocked && activeTab === "overview" && tabKey === "proposal") || (isLocked && activeTab === "proposal" && tabKey === "overview");
+            const msgCount = Array.isArray((invoice as any).questions) ? (invoice as any).questions.length : 0;
             return (
               <button
                 key={tabKey}
                 type="button"
                 onClick={() => setActiveTab(tabKey)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 whitespace-nowrap shrink-0 outline-none ${
-                  isActive
-                    ? "bg-slate-900 text-white shadow-md font-black"
-                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-200 whitespace-nowrap shrink-0 outline-none ${
+                  isTabActive
+                    ? "bg-brand-charcoal text-white shadow-soft"
+                    : "text-brand-muted hover:text-brand-charcoal hover:bg-brand-warm"
                 }`}
               >
-                <span className="text-sm">{tab.icon}</span>
                 {tab.label}
-                {tabKey === "messages" && Array.isArray((invoice as any).questions) && (invoice as any).questions.length > 0 && (
-                  <span className="bg-blue-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full min-w-[16px] text-center leading-none">
-                    {(invoice as any).questions.length}
+                {tabKey === "messages" && msgCount > 0 && (
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none ${isTabActive ? 'bg-white/20 text-white' : 'bg-brand-charcoal/10 text-brand-charcoal'}`}>
+                    {msgCount}
                   </span>
                 )}
               </button>
@@ -377,28 +396,28 @@ export default function HomeownerPortalClient({
 
         {/* Progress Tracker — always visible post-approval */}
         {isLocked && (
-          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-4 mb-6">
-            <div className="text-left border-b pb-2.5 border-slate-100 flex justify-between items-center">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Construction Stage Progress Tracker</p>
-              <span className={`text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md border ${invoice.deposit_cleared ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
-                {invoice.deposit_cleared ? `Active: ${invoice.payment_phases?.[invoice.current_phase_index || 0]?.name || "Staging"}` : "Staging: Awaiting Clearance"}
+          <div className="bg-white rounded-2xl p-6 shadow-soft border border-brand-stone/30 space-y-4 mb-6">
+            <div className="text-left flex justify-between items-center">
+              <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Progress</p>
+              <span className={`text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-lg border ${invoice.deposit_cleared ? 'bg-sage-50 text-sage-700 border-sage-200' : 'bg-luxury-soft text-luxury-ochre border-luxury-champagne'}`}>
+                {invoice.deposit_cleared ? `Active: ${invoice.payment_phases?.[invoice.current_phase_index || 0]?.name || "In Progress"}` : "Awaiting Deposit"}
               </span>
             </div>
-            <div className="relative flex items-center justify-between w-full pt-2 pb-1 overflow-x-auto scrollbar-none">
-              <div className="absolute left-4 right-4 top-[18px] h-0.5 bg-slate-100 z-0">
-                <div className="h-full bg-slate-900 transition-all duration-500 rounded-full shadow-sm" style={{ width: `${(dynamicTimelineIndex / (standardMilestones.length - 1)) * 100}%` }} />
+            <div className="relative flex items-center justify-between w-full pt-3 pb-2 overflow-x-auto scrollbar-none">
+              <div className="absolute left-6 right-6 top-[22px] h-[2px] bg-brand-stone/50 z-0 rounded-full">
+                <div className="h-full bg-brand-charcoal transition-all duration-700 rounded-full" style={{ width: `${(dynamicTimelineIndex / (standardMilestones.length - 1)) * 100}%` }} />
               </div>
               {standardMilestones.map((step, idx) => {
                 const isCompleted = idx < dynamicTimelineIndex;
                 const isCurrent = idx === dynamicTimelineIndex;
                 return (
                   <div key={idx} className="flex flex-col items-center relative z-10 text-center shrink-0 w-16 sm:w-20">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] border transition-all duration-300 ${
-                      isCompleted ? 'bg-slate-900 border-slate-900 text-white' :
-                      isCurrent ? 'bg-white border-blue-600 text-blue-600 scale-110 ring-4 ring-blue-50 font-black' :
-                      'bg-white border-slate-200 text-slate-300'
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold border-2 transition-all duration-300 ${
+                      isCompleted ? 'bg-brand-charcoal border-brand-charcoal text-white' :
+                      isCurrent ? 'bg-white border-luxury-gold text-luxury-gold scale-110 ring-4 ring-luxury-soft shadow-glow-gold' :
+                      'bg-white border-brand-stone/60 text-brand-muted/50'
                     }`}>{isCompleted ? "✓" : idx + 1}</div>
-                    <p className={`text-[9px] font-black mt-2 uppercase tracking-wide ${isCurrent ? 'text-blue-600 font-extrabold' : isCompleted ? 'text-slate-800' : 'text-slate-400'}`}>{step.title}</p>
+                    <p className={`text-[9px] font-semibold mt-2 tracking-wide ${isCurrent ? 'text-luxury-gold font-bold' : isCompleted ? 'text-brand-charcoal' : 'text-brand-muted/50'}`}>{step.title}</p>
                   </div>
                 );
               })}
@@ -406,10 +425,11 @@ export default function HomeownerPortalClient({
           </div>
         )}
 
-        {/* Signed contract banner — always visible post-approval */}
+        {/* Signed contract banner */}
         {isLocked && (
-          <div className="bg-emerald-50/60 border border-slate-200/60 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-xs text-slate-700 leading-relaxed mb-6">
-            <strong>✓ Contract Bounds Signed & Live.</strong> Skyler Camacho is delighted to bring production frameworks onto your home! Navigate the tabs above to view project details.
+          <div className="bg-sage-50 border border-sage-200 rounded-2xl p-5 shadow-soft text-[13px] text-sage-700 font-medium leading-relaxed mb-6 flex items-start gap-3">
+            <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">✓</span>
+            <p>Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, communicate, and manage payments.</p>
           </div>
         )}
 
@@ -417,65 +437,72 @@ export default function HomeownerPortalClient({
 
         {/* ── PRE-APPROVAL: PROPOSAL TAB (default) ── */}
         {!isLocked && (activeTab === "proposal" || activeTab === "overview") && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start animate-fade-in">
             <div className="lg:col-span-2 space-y-4">
 
+              {/* Tier Toggle — Premium Pricing Matrix Style */}
               {(invoice as any).show_luxury_tier && (
-                <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="space-y-0.5 text-left">
-                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">Project Specification Grade</h4>
-                    <p className="text-[11px] text-slate-400 font-medium">Toggle configuration tiers to view alternative finish options and live project cost updates instantly.</p>
+                <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="space-y-0.5 text-left">
+                      <h4 className="text-[13px] font-semibold text-brand-charcoal">Specification Grade</h4>
+                      <p className="text-[12px] text-brand-muted font-medium">Switch between tier options to compare pricing.</p>
+                    </div>
+                    <div className="bg-brand-warm p-1 rounded-xl flex w-full sm:w-auto border border-brand-stone/40 shrink-0">
+                      <button type="button" onClick={() => setTier("mid")} className={`px-5 py-2.5 text-[12px] font-medium rounded-lg transition-all duration-300 ${tier === 'mid' ? 'bg-white text-brand-charcoal shadow-soft font-semibold' : 'text-brand-muted hover:text-brand-charcoal'}`}>
+                        Standard
+                      </button>
+                      <button type="button" onClick={() => setTier("high")} className={`px-5 py-2.5 text-[12px] font-medium rounded-lg transition-all duration-300 ${tier === 'high' ? 'bg-brand-charcoal text-white shadow-elevated' : 'text-brand-muted hover:text-brand-charcoal'}`}>
+                        Luxury
+                      </button>
+                    </div>
                   </div>
-                  <div className="bg-slate-100 p-0.5 rounded-lg flex w-full sm:w-auto border border-slate-200/40 shadow-inner shrink-0">
-                    <button type="button" onClick={() => setTier("mid")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all duration-200 ${tier === 'mid' ? 'bg-white text-slate-900 shadow-sm font-black border' : 'text-slate-500 hover:text-slate-900'}`}>
-                      Standard Mid-Tier
-                    </button>
-                    <button type="button" onClick={() => setTier("high")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 ${tier === 'high' ? 'bg-slate-900 text-white shadow-md font-black' : 'text-slate-600 hover:text-slate-900'}`}>
-                      💎 Luxury High-Tier
-                    </button>
-                  </div>
+                  {tier === 'high' && (
+                    <div className="mt-3 pt-3 border-t border-luxury-champagne/50">
+                      <p className="text-[11px] font-medium text-luxury-ochre flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-luxury-gold" />
+                        Luxury tier includes premium materials, upgraded finishes, and extended warranties.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
-              <div className="bg-slate-100/70 border border-slate-200/60 text-slate-600 px-6 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] select-none">
-                <span className="text-blue-500 text-sm">💡</span>
-                <p>Click the <span className="font-black text-slate-800 bg-white border border-slate-200 px-1 py-0.2 rounded">+</span> button on any line item to see the full details and description.</p>
-              </div>
-
-              <div className="space-y-2 bg-transparent">
+              {/* Line Items */}
+              <div className="space-y-2">
                 {masterItems.map((item: any, idx: number) => {
                   const isItemActive = activeIndices.includes(idx);
                   const isExpanded = expandedIndices.includes(idx);
                   return (
                     <div
                       key={idx}
-                      className={`px-5 py-3 rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] transition-all duration-200 text-xs ${
-                        !isItemActive ? 'opacity-30 select-none border-dashed bg-slate-50/50' : 'hover:border-slate-300'
+                      className={`px-5 py-4 rounded-2xl border bg-white shadow-soft transition-all duration-200 ${
+                        !isItemActive ? 'opacity-35 border-dashed border-brand-stone/40 bg-brand-warm/30' : 'border-brand-stone/30 hover:shadow-card hover:border-brand-stone/50'
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                          <button type="button" onClick={() => toggleExpandDescription(idx)} className="flex items-center justify-center w-5 h-5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 font-sans font-black text-xs bg-slate-50/60 shrink-0 outline-none">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <button type="button" onClick={() => toggleExpandDescription(idx)} className="flex items-center justify-center w-6 h-6 rounded-lg border border-brand-stone/40 text-brand-muted hover:text-brand-charcoal hover:bg-brand-warm hover:border-brand-stone transition-all duration-150 text-xs shrink-0 outline-none">
                             {isExpanded ? "−" : "+"}
                           </button>
-                          <h4 className="font-extrabold text-slate-900 text-sm tracking-tight truncate">
+                          <h4 className="font-semibold text-brand-charcoal text-[14px] tracking-tight truncate">
                             {tier === 'mid' ? item.title : item.high_title}
                           </h4>
                         </div>
                         <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
-                          <span className="font-sans font-extrabold text-slate-950 text-sm tracking-tight">
+                          <span className="font-semibold text-brand-charcoal text-[15px] tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
                             ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                           {isItemActive ? (
-                            <button type="button" onClick={() => handleRemoveIndex(idx)} title="remove item" className="w-5 h-5 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white border border-red-100 transition-all duration-150 outline-none font-sans font-black text-[10px]">✕</button>
+                            <button type="button" onClick={() => handleRemoveIndex(idx)} title="remove item" className="w-6 h-6 flex items-center justify-center rounded-lg text-brand-muted hover:bg-red-50 hover:text-red-500 border border-brand-stone/40 hover:border-red-200 transition-all duration-150 outline-none text-[11px]">✕</button>
                           ) : (
-                            <button type="button" onClick={() => handleReinstateIndex(idx)} className="bg-blue-50 border border-blue-100 text-blue-700 font-bold text-[9px] px-2 py-1 rounded uppercase tracking-wider shadow-sm transition-all duration-200 outline-none">Include</button>
+                            <button type="button" onClick={() => handleReinstateIndex(idx)} className="bg-brand-warm border border-brand-stone/40 text-brand-charcoal font-medium text-[11px] px-3 py-1.5 rounded-lg hover:border-brand-charcoal/30 transition-all duration-200 outline-none">Add back</button>
                           )}
                         </div>
                       </div>
                       {isExpanded && (
-                        <div className="mt-2.5 pt-2.5 border-t border-slate-100 pl-7 max-w-3xl text-left animate-fadeIn">
-                          <p className="text-slate-500 font-medium leading-relaxed">
+                        <div className="mt-3 pt-3 border-t border-brand-stone/30 pl-9 max-w-3xl text-left animate-fade-in">
+                          <p className="text-[13px] text-brand-muted font-medium leading-relaxed">
                             {tier === 'mid' ? item.mid_description : item.high_description}
                           </p>
                         </div>
@@ -486,59 +513,54 @@ export default function HomeownerPortalClient({
               </div>
             </div>
 
-            {/* Sidebar — project total + signature + schedule */}
+            {/* Sidebar */}
             <div className="space-y-4 sticky top-20">
-              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] space-y-5 text-left relative overflow-hidden">
+              <div className="bg-white rounded-2xl p-6 shadow-premium border border-brand-stone/30 space-y-5 text-left">
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJECT TOTAL</p>
-                  <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
+                  <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Project Total</p>
+                  <h2 className="text-3xl font-bold text-brand-charcoal mt-1.5 tracking-tight font-editorial" style={{fontVariantNumeric:'tabular-nums'}}>
                     ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h2>
-                  <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
-                    <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md" style={{fontVariantNumeric:'tabular-nums'}}>
-                      Contract Base: ${toNum(baseTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+                </div>
+                <div className="bg-brand-warm rounded-xl border border-brand-stone/40 p-4 text-[13px] text-brand-charcoal space-y-3 font-medium">
+                  <div className="flex justify-between items-center pb-2.5 border-b border-brand-stone/40">
+                    <span className="text-brand-muted">Deposit ({invoice.deposit_percentage ?? 20}%)</span>
+                    <span className="font-semibold" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-brand-muted">Timeline</span>
+                    <span className="font-semibold">{invoice.project_length || "9 Weeks"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-brand-muted">Start Date</span>
+                    <span className="font-semibold">
+                      {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "TBD"}
                     </span>
                   </div>
                 </div>
-                <div className="bg-slate-50 rounded-xl border border-slate-200/60 p-4 text-xs text-slate-600 space-y-2.5 font-semibold">
-                  <div className="flex justify-between items-center border-b border-slate-200/40 pb-2">
-                    <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage ?? 20}%):</span>
-                    <span className="font-sans font-black text-slate-950 text-sm" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px] text-slate-500">
-                    <span className="text-slate-500 font-medium">Estimated Build Timeline:</span>
-                    <span className="font-extrabold text-slate-800 uppercase tracking-wide">{invoice.project_length || "9 Weeks"}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px] text-slate-500">
-                    <span className="text-slate-500 font-medium">Start Date*:</span>
-                    <span className="font-extrabold text-slate-800">
-                      {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-[9px] text-slate-400 font-semibold italic leading-normal px-0.5">* Timelines and milestone sequencing execute immediately following initial deposit clearance log signatures.</p>
               </div>
 
-              <form onSubmit={handleApprove} className="bg-white border border-slate-200/60 rounded-2xl p-6 space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)]">
+              {/* Signature */}
+              <form onSubmit={handleApprove} className="bg-white rounded-2xl p-6 space-y-4 shadow-soft border border-brand-stone/30">
                 <div className="text-left">
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Project Approval Signature</h3>
+                  <h3 className="text-[13px] font-semibold text-brand-charcoal">Approve & Sign</h3>
+                  <p className="text-[11px] text-brand-muted mt-0.5">Type your full legal name to authorize this proposal.</p>
                 </div>
-                <div className="space-y-2">
-                  <input type="text" required placeholder="Type legal signature..." value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-3.5 rounded-xl outline-none text-xs text-slate-900 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 font-bold transition-all shadow-inner placeholder:text-slate-400" />
-                  <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all duration-200 shadow-md hover:shadow-lg shadow-blue-900/10 outline-none">
-                    Accept Proposal
-                  </button>
-                </div>
+                <input type="text" required placeholder="Your full name" value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-3.5 rounded-xl outline-none text-sm text-brand-charcoal bg-brand-alabaster border border-brand-stone/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 font-medium transition-all placeholder:text-brand-muted/50" />
+                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:bg-brand-stone disabled:text-brand-muted text-white font-semibold text-sm py-3.5 rounded-xl tracking-wide transition-all duration-300 shadow-soft hover:shadow-elevated outline-none">
+                  {isSubmitting ? "Processing..." : "Accept Proposal"}
+                </button>
               </form>
 
-              <div className="border border-slate-200/60 bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left">
-                <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-50 px-4 py-2.5 font-bold text-[10px] uppercase tracking-wider flex justify-between items-center text-slate-400 hover:text-slate-700 transition-all duration-200 outline-none border-0">
-                  <span>⚖️ Binding Terms (Omaha Law Standard)</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">{showTerms ? "Hide ▲" : "View ▼"}</span>
+              {/* Legal Terms */}
+              <div className="bg-white rounded-2xl overflow-hidden shadow-soft border border-brand-stone/30 text-left">
+                <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full px-5 py-3 font-medium text-[12px] flex justify-between items-center text-brand-muted hover:text-brand-charcoal transition-all duration-200 outline-none">
+                  <span>Terms & Conditions</span>
+                  <span className="text-[11px]">{showTerms ? "▲" : "▼"}</span>
                 </button>
                 {showTerms && (
-                  <div className="p-4 text-[11px] text-slate-400 space-y-2 max-h-40 overflow-y-scroll border-t bg-white leading-relaxed font-medium shadow-inner">
-                    <p>This agreement is configured specifically under the building framework of the City of Omaha, Douglas County, Nebraska. All modifications, materials, structural deviations, and framing updates shall be performed in accordance with the International Residential Code (IRC) as amended by local Omaha ordinances.</p>
+                  <div className="px-5 pb-4 text-[12px] text-brand-muted space-y-2 max-h-40 overflow-y-scroll leading-relaxed font-medium border-t border-brand-stone/30 pt-3">
+                    <p>This agreement is configured under the building framework of the City of Omaha, Douglas County, Nebraska. All modifications, materials, structural deviations, and framing updates shall be performed in accordance with the International Residential Code (IRC) as amended by local Omaha ordinances.</p>
                   </div>
                 )}
               </div>
@@ -701,37 +723,36 @@ export default function HomeownerPortalClient({
 
         {/* ── MESSAGES TAB (both pre and post approval) ── */}
         {activeTab === "messages" && (
-          <div className="max-w-3xl mx-auto">
-            <div className="border-2 border-blue-200 bg-white rounded-2xl p-5 shadow-md text-left space-y-4 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-600" />
-              <div className="pt-1">
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                  💬 Questions & Answers
-                </h3>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">Have a question about the proposal? Ask below and we'll respond directly.</p>
+          <div className="max-w-3xl mx-auto animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 overflow-hidden">
+              <div className="px-6 py-4 border-b border-brand-stone/30">
+                <h3 className="text-[15px] font-semibold text-brand-charcoal">Messages</h3>
+                <p className="text-[12px] text-brand-muted mt-0.5">Questions about your project? We typically respond within a few hours.</p>
               </div>
 
-              <div className="border border-slate-100 rounded-xl max-h-[420px] overflow-y-auto p-4 space-y-3 bg-slate-50/40">
+              <div className="max-h-[440px] overflow-y-auto p-5 space-y-3 bg-brand-warm/30">
                 {Array.isArray((invoice as any).questions) && (invoice as any).questions.length > 0 ? (
                   (invoice as any).questions.map((msg: any, i: number) => (
                     <div key={i} className={`flex ${msg.author === "homeowner" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
+                      <div className={`max-w-[78%] px-4 py-3 rounded-2xl text-[13px] font-medium leading-relaxed ${
                         msg.author === "homeowner"
-                          ? "bg-blue-600 text-white rounded-br-md"
-                          : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
+                          ? "bg-brand-charcoal text-white rounded-br-md shadow-soft"
+                          : "bg-white border border-brand-stone/40 text-brand-charcoal rounded-bl-md shadow-soft"
                       }`}>
                         <p>{msg.text}</p>
-                        <p className={`text-[9px] mt-1.5 font-bold ${msg.author === "homeowner" ? "text-blue-200" : "text-slate-400"}`}>
+                        <p className={`text-[10px] mt-2 font-medium ${msg.author === "homeowner" ? "text-white/50" : "text-brand-muted"}`}>
                           {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 space-y-2">
-                    <p className="text-3xl">💬</p>
-                    <p className="text-xs font-bold text-slate-500">No messages yet</p>
-                    <p className="text-[11px] text-slate-400 font-medium">Ask a question about materials, timeline, pricing — we're here to help!</p>
+                  <div className="text-center py-12 space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-brand-warm mx-auto flex items-center justify-center border border-brand-stone/40">
+                      <svg className="w-5 h-5 text-brand-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    </div>
+                    <p className="text-sm font-medium text-brand-charcoal">No messages yet</p>
+                    <p className="text-[12px] text-brand-muted">Ask about materials, timeline, pricing — we're here to help.</p>
                   </div>
                 )}
               </div>
@@ -755,19 +776,19 @@ export default function HomeownerPortalClient({
                     setIsSendingQa(false);
                   }
                 }}
-                className="flex gap-2"
+                className="flex gap-2 p-4 border-t border-brand-stone/30 bg-white"
               >
                 <input
                   type="text"
                   value={qaMessage}
                   onChange={(e) => setQaMessage(e.target.value)}
-                  placeholder="Type your question here..."
-                  className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm"
+                  placeholder="Type your message..."
+                  className="flex-1 p-3.5 bg-brand-alabaster border border-brand-stone/60 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 focus:bg-white transition-all placeholder:text-brand-muted/60"
                 />
                 <button
                   type="submit"
                   disabled={isSendingQa || !qaMessage.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 shadow-md hover:shadow-lg shrink-0"
+                  className="bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-30 text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 shadow-soft hover:shadow-elevated shrink-0"
                 >
                   {isSendingQa ? "..." : "Send"}
                 </button>
