@@ -21,9 +21,9 @@ module.exports = {
         ],
         editorial: [
           "var(--font-editorial)",
-          "Georgia",
-          '"Times New Roman"',
-          "serif"
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif"
         ],
       },
       colors: {
