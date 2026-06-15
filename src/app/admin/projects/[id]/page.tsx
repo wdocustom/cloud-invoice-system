@@ -45,6 +45,9 @@ export default function ProjectWorkspaceControlHub() {
   const [editingQaIndex, setEditingQaIndex] = useState<number | null>(null);
   const [editingQaText, setEditingQaText] = useState("");
 
+  // Document Upload States
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+
   useEffect(() => {
     if (projectId) {
       fetchComprehensiveProjectData();
@@ -117,7 +120,10 @@ export default function ProjectWorkspaceControlHub() {
   }
 
   async function saveGlobalScopeItemChanges(updatedItems: any[]) {
-    const calculatedNewTotal = updatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0);
+    const isApproved = project?.status === "approved";
+    const calculatedNewTotal = isApproved
+      ? updatedItems.reduce((sum, item) => sum + toNum(item.actual_cost ?? item.cost ?? item.mid_cost), 0)
+      : updatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0);
 
     setProject((prev: any) => ({
       ...prev,
@@ -203,10 +209,14 @@ export default function ProjectWorkspaceControlHub() {
       ...currentItems[index],
       [field]: value
     };
+    const isApproved = project?.status === "approved";
+    const newTotal = isApproved
+      ? currentItems.reduce((sum: number, item: any) => sum + toNum(item.actual_cost ?? item.cost ?? item.mid_cost), 0)
+      : currentItems.reduce((sum: number, item: any) => sum + toNum(item.mid_cost), 0);
     setProject((prev: any) => ({
       ...prev,
       items: currentItems,
-      amount: currentItems.reduce((sum: number, item: any) => sum + toNum(item.mid_cost), 0)
+      amount: newTotal
     }));
     debouncedSave(currentItems);
   };
@@ -344,9 +354,32 @@ export default function ProjectWorkspaceControlHub() {
         <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 flex flex-col justify-between">
           <div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-3">PROJECT COST</p>
-            <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans" style={{fontVariantNumeric:'tabular-nums'}}>
-              ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </h2>
+            {(() => {
+              const items = Array.isArray(project?.items) ? project.items : [];
+              const hasActuals = project?.status === "approved" && items.some((i: any) => i.actual_cost != null);
+              const bidTotal = items.reduce((s: number, i: any) => s + toNum(i.cost || i.mid_cost), 0);
+              const actualTotal = items.reduce((s: number, i: any) => s + toNum(i.actual_cost ?? i.cost ?? i.mid_cost), 0);
+              if (hasActuals) {
+                return (
+                  <div className="space-y-1.5">
+                    <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans" style={{fontVariantNumeric:'tabular-nums'}}>
+                      ${actualTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </h2>
+                    <div className="flex items-center gap-2 text-[10px]">
+                      <span className="text-slate-400 font-bold">Bid: <span className="text-slate-600 font-black">${bidTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></span>
+                      <span className={`font-black ${actualTotal > bidTotal ? 'text-red-500' : 'text-emerald-600'}`}>
+                        {actualTotal > bidTotal ? '▲' : '▼'} ${Math.abs(actualTotal - bidTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans" style={{fontVariantNumeric:'tabular-nums'}}>
+                  ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </h2>
+              );
+            })()}
           </div>
           <button
             type="button"
@@ -620,24 +653,61 @@ export default function ProjectWorkspaceControlHub() {
                   />
                 </div>
 
-                {/* Dual Column Layout Matrix Split Tier */}
+                {/* Cost+ Bid vs Actual (post-approval) */}
+                {project?.status === "approved" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">Bid Amount</span>
+                      <p className="text-sm font-black text-slate-800" style={{fontVariantNumeric:'tabular-nums'}}>
+                        ${toNum(item.cost || item.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div className={`p-3 rounded-xl border ${item.actual_cost != null ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/50 border-amber-200'}`}>
+                      <span className={`text-[9px] font-black uppercase tracking-wider block mb-1.5 ${item.actual_cost != null ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        Actual Cost
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-bold text-slate-400">$</span>
+                        <input
+                          type="number"
+                          value={item.actual_cost ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value === "" ? null : toNum(e.target.value);
+                            updateInlineItemField(idx, "actual_cost", val);
+                          }}
+                          placeholder="Enter actual"
+                          className="w-full bg-transparent text-sm font-black text-slate-900 outline-none"
+                          style={{fontVariantNumeric:'tabular-nums'}}
+                        />
+                      </div>
+                      {item.actual_cost != null && (
+                        <p className={`text-[9px] font-bold mt-1 ${toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? 'text-red-500' : 'text-emerald-600'}`}>
+                          {toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? '▲' : '▼'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)).toLocaleString(undefined, {minimumFractionDigits:2})} ({toNum(item.cost || item.mid_cost) > 0 ? ((toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)) / toNum(item.cost || item.mid_cost) * 100).toFixed(1) : '0'}%)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dual Column Layout Matrix Split Tier (pre-approval editing) */}
+                {project?.status !== "approved" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Standard Mid Tier Configuration Box */}
                   <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 shadow-sm">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">🛠️ Standard Mid-Tier Spec</span>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Standard Mid-Tier Spec</span>
                       <div className="flex items-center bg-slate-50 border rounded-lg px-2 gap-1 max-w-[120px]">
                         <span className="text-[10px] font-bold text-slate-400">$</span>
-                        <input 
-                          type="number" 
-                          value={item.mid_cost || ""} 
+                        <input
+                          type="number"
+                          value={item.mid_cost || ""}
                           onChange={(e) => updateInlineItemField(idx, "mid_cost", toNum(e.target.value))}
-                          className="w-full bg-transparent py-1.5 text-xs font-black text-slate-900 outline-none text-right" 
+                          className="w-full bg-transparent py-1.5 text-xs font-black text-slate-900 outline-none text-right"
                         />
                       </div>
                     </div>
-                    <textarea 
-                      value={item.mid_description || item.description || ""} 
+                    <textarea
+                      value={item.mid_description || item.description || ""}
                       onChange={(e) => updateInlineItemField(idx, "mid_description", e.target.value)}
                       placeholder="Mid-tier grade specification materials context..."
                       className="w-full bg-slate-50/50 border p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
@@ -648,19 +718,19 @@ export default function ProjectWorkspaceControlHub() {
                   {/* Luxury High Tier Configuration Box */}
                   <div className="bg-gradient-to-br from-indigo-50/30 to-white p-4 rounded-xl border border-indigo-200/60 space-y-2 shadow-sm">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">💎 Luxury High-Tier Upgrade</span>
+                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">Luxury High-Tier Upgrade</span>
                       <div className="flex items-center bg-blue-50/30 border border-blue-100 rounded-lg px-2 gap-1 max-w-[120px]">
                         <span className="text-[10px] font-bold text-blue-400">$</span>
-                        <input 
-                          type="number" 
-                          value={item.high_cost || ""} 
+                        <input
+                          type="number"
+                          value={item.high_cost || ""}
                           onChange={(e) => updateInlineItemField(idx, "high_cost", toNum(e.target.value))}
-                          className="w-full bg-transparent py-1.5 text-xs font-black text-blue-900 outline-none text-right" 
+                          className="w-full bg-transparent py-1.5 text-xs font-black text-blue-900 outline-none text-right"
                         />
                       </div>
                     </div>
-                    <textarea 
-                      value={item.high_description || ""} 
+                    <textarea
+                      value={item.high_description || ""}
                       onChange={(e) => updateInlineItemField(idx, "high_description", e.target.value)}
                       placeholder="High-tier luxury grade premium specification upgrade options..."
                       className="w-full bg-blue-50/10 border border-blue-50 p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
@@ -668,6 +738,7 @@ export default function ProjectWorkspaceControlHub() {
                     />
                   </div>
                 </div>
+                )}
 
               </div>
             ))}
@@ -941,6 +1012,104 @@ export default function ProjectWorkspaceControlHub() {
               {isSendingQa ? "Sending..." : "Send"}
             </button>
           </form>
+        </div>
+      </div>
+
+      {/* PROJECT DOCUMENTS UPLOAD */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
+          <div className="border-b pb-3 border-slate-100">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Documents</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Upload contracts, permits, plans, and other project documents. These appear in the homeowner's Docs tab.</p>
+          </div>
+
+          <label className={`flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-xl py-4 cursor-pointer transition-all ${isUploadingDoc ? 'opacity-50 pointer-events-none' : ''}`}>
+            <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /></svg>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{isUploadingDoc ? "Uploading..." : "Upload Document"}</span>
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.heic"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setIsUploadingDoc(true);
+                try {
+                  const filePath = `project-docs/${projectId}/${Date.now()}-${file.name}`;
+                  const { error: uploadError } = await supabase.storage
+                    .from("project-photos")
+                    .upload(filePath, file);
+                  if (uploadError) throw uploadError;
+                  const { data: urlData } = supabase.storage
+                    .from("project-photos")
+                    .getPublicUrl(filePath);
+                  const docEntry = {
+                    name: file.name,
+                    url: urlData.publicUrl,
+                    uploaded_at: new Date().toISOString(),
+                    size: file.size
+                  };
+                  const currentDocs = Array.isArray(project?.documents) ? [...project.documents] : [];
+                  const updatedDocs = [...currentDocs, docEntry];
+                  const { error } = await supabase.from("invoices").update({ documents: updatedDocs }).eq("id", projectId);
+                  if (error) throw error;
+                  setProject((prev: any) => ({ ...prev, documents: updatedDocs }));
+                  toast("Document uploaded", "success");
+                } catch (err: any) {
+                  toast("Upload failed: " + err.message, "error");
+                } finally {
+                  setIsUploadingDoc(false);
+                  e.target.value = "";
+                }
+              }}
+            />
+          </label>
+
+          {Array.isArray(project?.documents) && project.documents.length > 0 ? (
+            <div className="divide-y divide-slate-100">
+              {project.documents.map((doc: any, i: number) => (
+                <div key={i} className="flex items-center justify-between py-2.5 group">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center shrink-0">
+                      <span className="text-[9px] font-black text-slate-500 uppercase">{doc.name?.split('.').pop()?.slice(0, 4)}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">{doc.name}</p>
+                      <p className="text-[9px] text-slate-400 font-medium">
+                        {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wider transition outline-none"
+                    >
+                      View
+                    </a>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!confirm(`Remove "${doc.name}"?`)) return;
+                        const updatedDocs = project.documents.filter((_: any, idx: number) => idx !== i);
+                        setProject((prev: any) => ({ ...prev, documents: updatedDocs }));
+                        const { error } = await supabase.from("invoices").update({ documents: updatedDocs }).eq("id", projectId);
+                        if (error) toast("Failed to remove: " + error.message, "error");
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all p-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center italic text-slate-400 text-xs py-4">No documents uploaded yet.</p>
+          )}
         </div>
       </div>
 

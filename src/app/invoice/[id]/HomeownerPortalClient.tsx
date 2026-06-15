@@ -373,11 +373,13 @@ export default function HomeownerPortalClient({
                 { key: "messages", label: "Messages" },
                 { key: "selections", label: "Selections" },
                 { key: "payments", label: "Payments" },
+                { key: "docs", label: "Docs" },
               ]
             : [
                 { key: "proposal", label: "Proposal" },
                 { key: "messages", label: "Messages" },
                 { key: "schedule", label: "Schedule" },
+                { key: "docs", label: "Docs" },
               ]
           ).map((tab) => {
             const tabKey = tab.key;
@@ -675,9 +677,21 @@ export default function HomeownerPortalClient({
                           </button>
                           <h4 className="font-extrabold text-slate-900 text-sm tracking-tight truncate">{item.title}</h4>
                         </div>
-                        <span className="font-sans font-extrabold text-slate-950 text-sm tracking-tight shrink-0">
-                          ${toNum(item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
+                        <div className="flex items-center gap-3 shrink-0">
+                          {item.actual_cost != null && (
+                            <span className="text-[10px] text-brand-muted font-medium line-through" style={{fontVariantNumeric:'tabular-nums'}}>
+                              ${toNum(item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          )}
+                          <span className="font-sans font-extrabold text-slate-950 text-sm tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
+                            ${toNum(item.actual_cost ?? item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          {item.actual_cost != null && (
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${toNum(item.actual_cost) > toNum(item.cost) ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                              {toNum(item.actual_cost) > toNum(item.cost) ? '▲' : '▼'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost)).toLocaleString(undefined, {minimumFractionDigits:2})}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {isExpanded && (
                         <div className="mt-2.5 pt-2.5 border-t border-slate-100 pl-7 max-w-3xl text-left animate-fadeIn">
@@ -1024,6 +1038,56 @@ export default function HomeownerPortalClient({
                   ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DOCS TAB (both pre and post approval) ── */}
+        {activeTab === "docs" && (
+          <div className="max-w-3xl mx-auto animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-6 space-y-4">
+              <div className="border-b border-brand-stone/30 pb-3">
+                <h3 className="text-[15px] font-semibold text-brand-charcoal">Project Documents</h3>
+                <p className="text-[12px] text-brand-muted mt-0.5">Contracts, permits, plans, and other project files shared by your contractor.</p>
+              </div>
+
+              {Array.isArray((invoice as any).documents) && (invoice as any).documents.length > 0 ? (
+                <div className="divide-y divide-brand-stone/30">
+                  {(invoice as any).documents.map((doc: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 bg-brand-warm border border-brand-stone/40 rounded-xl flex items-center justify-center shrink-0">
+                          <span className="text-[9px] font-bold text-brand-muted uppercase">{doc.name?.split('.').pop()?.slice(0, 4)}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-semibold text-brand-charcoal truncate">{doc.name}</p>
+                          <p className="text-[11px] text-brand-muted font-medium">
+                            {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
+                          </p>
+                        </div>
+                      </div>
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[11px] font-semibold text-brand-charcoal bg-brand-warm border border-brand-stone/50 hover:border-brand-charcoal/30 hover:shadow-soft transition-all duration-200 outline-none shrink-0"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        View
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-brand-warm mx-auto flex items-center justify-center border border-brand-stone/40">
+                    <svg className="w-5 h-5 text-brand-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                  </div>
+                  <p className="text-sm font-medium text-brand-charcoal">No documents yet</p>
+                  <p className="text-[12px] text-brand-muted">Your contractor will upload project documents here as they become available.</p>
+                </div>
+              )}
             </div>
           </div>
         )}

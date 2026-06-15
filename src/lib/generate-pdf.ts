@@ -179,14 +179,19 @@ export function generateProposalPdf(invoice: PdfInvoiceData) {
 
   let runningTotal = 0;
 
+  const hasAnyActuals = isApproved && invoice.items.some((item: any) => item.actual_cost != null);
+
   invoice.items.forEach((item: any, idx: number) => {
     const title = item.title || item.high_title || "Untitled";
-    const cost = toNum(item.cost || item.mid_cost);
+    const bidCost = toNum(item.cost || item.mid_cost);
+    const actualCost = item.actual_cost != null ? toNum(item.actual_cost) : null;
+    const displayCost = actualCost ?? bidCost;
     const desc = item.description || item.mid_description || "";
-    runningTotal += cost;
+    runningTotal += displayCost;
 
     const descLines = desc ? doc.splitTextToSize(desc, CONTENT_W - 24) : [];
-    const rowH = 8 + (descLines.length > 0 ? descLines.length * 3.5 + 1 : 0);
+    const hasActualLine = hasAnyActuals && actualCost != null;
+    const rowH = 8 + (descLines.length > 0 ? descLines.length * 3.5 + 1 : 0) + (hasActualLine ? 4 : 0);
 
     y = checkPageBreak(doc, y, rowH + 2);
 
@@ -212,13 +217,20 @@ export function generateProposalPdf(invoice: PdfInvoiceData) {
     doc.setTextColor(26, 26, 26);
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
-    doc.text(`$${cost.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, PAGE_W - MARGIN - 4, y + 5, { align: "right" });
+    doc.text(`$${displayCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, PAGE_W - MARGIN - 4, y + 5, { align: "right" });
+
+    if (hasActualLine) {
+      doc.setFontSize(6);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(156, 149, 144);
+      doc.text(`Bid: $${bidCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, PAGE_W - MARGIN - 4, y + 9, { align: "right" });
+    }
 
     if (descLines.length > 0) {
       doc.setFontSize(6.5);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(140, 140, 140);
-      doc.text(descLines, MARGIN + 14, y + 9.5);
+      doc.text(descLines, MARGIN + 14, y + 9.5 + (hasActualLine ? 4 : 0));
     }
 
     y += rowH;
