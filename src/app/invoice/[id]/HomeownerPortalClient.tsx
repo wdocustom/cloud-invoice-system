@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import type { Invoice } from "@/lib/types";
+import { generateProposalPdf } from "@/lib/generate-pdf";
 
 interface HomeownerPortalProps {
   id: string;
@@ -299,14 +300,24 @@ export default function HomeownerPortalClient({
               <p className="text-[10px] text-brand-muted font-medium">Client Portal</p>
             </div>
           </div>
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wide border ${
-            isLocked
-              ? 'bg-sage-50 text-sage-700 border-sage-200'
-              : 'bg-luxury-soft text-luxury-ochre border-luxury-champagne'
-          }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-sage-500' : 'bg-luxury-gold'}`} />
-            {isLocked ? "Active" : "Review"}
-          </span>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => generateProposalPdf(invoice as any)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[11px] font-semibold text-brand-charcoal bg-brand-warm border border-brand-stone/50 hover:border-brand-charcoal/30 hover:shadow-soft transition-all duration-200 outline-none"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              Download PDF
+            </button>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wide border ${
+              isLocked
+                ? 'bg-sage-50 text-sage-700 border-sage-200'
+                : 'bg-luxury-soft text-luxury-ochre border-luxury-champagne'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-sage-500' : 'bg-luxury-gold'}`} />
+              {isLocked ? "Active" : "Review"}
+            </span>
+          </div>
         </div>
       </div>
 
