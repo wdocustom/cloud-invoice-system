@@ -1158,9 +1158,13 @@ export default function HomeownerPortalClient({
                           type="button"
                           disabled={isPaymentLoading}
                           onClick={() => initiateStripePayment(phaseVal, `${phase.name} - ${invoice.homeowner_name}`, idx)}
-                          className="mt-2 w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] py-2 rounded-lg tracking-wider uppercase transition-all duration-200 shadow-sm outline-none"
+                          className="mt-2 w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-40 text-white font-semibold text-[11px] py-2.5 rounded-xl tracking-wide transition-all duration-200 shadow-soft hover:shadow-elevated outline-none flex items-center justify-center gap-2"
                         >
-                          {isPaymentLoading ? "Connecting..." : `Pay $${toNum(phaseVal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} via Stripe`}
+                          {isPaymentLoading ? "Connecting..." : (
+                            <>
+                              Pay Now — ${toNum(phaseVal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+                            </>
+                          )}
                         </button>
                       )}
                     </div>

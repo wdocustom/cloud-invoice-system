@@ -51,6 +51,9 @@ export default function ProjectWorkspaceControlHub() {
   // Email States
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
+  // Payment Reminder States
+  const [sendingReminderIdx, setSendingReminderIdx] = useState<number | null>(null);
+
   // Change Order States
   const [coDescription, setCoDescription] = useState("");
   const [coItems, setCoItems] = useState<any[]>([]);
@@ -766,59 +769,108 @@ export default function ProjectWorkspaceControlHub() {
 
             {Array.isArray(project?.payment_phases) && project.payment_phases.map((phase: any, idx: number) => {
               const phaseAmount = toNum(project?.amount) * (toNum(phase.percentage) / 100);
+              const isApprovedProject = project?.status === "approved";
+              const activePhaseIdx = project?.current_phase_index || 0;
+              const isPhasePaid = isApprovedProject && project?.deposit_cleared && (idx === 0 || idx < activePhaseIdx);
+              const isPhaseActive = isApprovedProject && (idx === activePhaseIdx || (idx === 0 && !project?.deposit_cleared));
+              const canRemind = isApprovedProject && isPhaseActive && !isPhasePaid;
               return (
-                <div key={idx} className="flex items-center gap-2 bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group">
-                  <span className="text-[9px] font-black text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">#{idx + 1}</span>
-                  <input
-                    type="text"
-                    value={phase.name}
-                    onChange={(e) => {
-                      const updated = [...project.payment_phases];
-                      updated[idx] = { ...updated[idx], name: e.target.value };
-                      setProject((prev: any) => ({ ...prev, payment_phases: updated }));
-                    }}
-                    onBlur={async () => {
-                      const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
-                      if (error) toast("Failed to save phase name: " + error.message, "error");
-                    }}
-                    className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                  />
-                  <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
+                <div key={idx} className="bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">#{idx + 1}</span>
                     <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={phase.percentage}
+                      type="text"
+                      value={phase.name}
                       onChange={(e) => {
                         const updated = [...project.payment_phases];
-                        updated[idx] = { ...updated[idx], percentage: toNum(e.target.value) };
+                        updated[idx] = { ...updated[idx], name: e.target.value };
                         setProject((prev: any) => ({ ...prev, payment_phases: updated }));
                       }}
                       onBlur={async () => {
                         const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
-                        if (error) toast("Failed to save phase %: " + error.message, "error");
+                        if (error) toast("Failed to save phase name: " + error.message, "error");
                       }}
-                      className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
+                      className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                     />
-                    <span className="text-[10px] font-bold text-slate-400">%</span>
+                    <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={phase.percentage}
+                        onChange={(e) => {
+                          const updated = [...project.payment_phases];
+                          updated[idx] = { ...updated[idx], percentage: toNum(e.target.value) };
+                          setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                        }}
+                        onBlur={async () => {
+                          const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
+                          if (error) toast("Failed to save phase %: " + error.message, "error");
+                        }}
+                        className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
+                      />
+                      <span className="text-[10px] font-bold text-slate-400">%</span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 w-20 text-right" style={{fontVariantNumeric:'tabular-nums'}}>
+                      ${phaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    {isApprovedProject && isPhasePaid && (
+                      <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">Paid</span>
+                    )}
+                    {isApprovedProject && isPhaseActive && !isPhasePaid && (
+                      <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 animate-pulse shrink-0">Due</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (project.payment_phases.length <= 1) return toast("Must have at least one phase.", "info");
+                        if (!confirm(`Remove "${phase.name}"?`)) return;
+                        const updated = project.payment_phases.filter((_: any, i: number) => i !== idx);
+                        setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                        const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
+                        if (error) toast("Failed to remove phase: " + error.message, "error");
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all duration-200 shrink-0 p-1"
+                    >
+                      ✕
+                    </button>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 w-20 text-right" style={{fontVariantNumeric:'tabular-nums'}}>
-                    ${phaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (project.payment_phases.length <= 1) return toast("Must have at least one phase.", "info");
-                      if (!confirm(`Remove "${phase.name}"?`)) return;
-                      const updated = project.payment_phases.filter((_: any, i: number) => i !== idx);
-                      setProject((prev: any) => ({ ...prev, payment_phases: updated }));
-                      const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
-                      if (error) toast("Failed to remove phase: " + error.message, "error");
-                    }}
-                    className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all duration-200 shrink-0 p-1"
-                  >
-                    ✕
-                  </button>
+                  {canRemind && (
+                    <button
+                      type="button"
+                      disabled={sendingReminderIdx === idx}
+                      onClick={async () => {
+                        if (!project?.homeowner_email) return toast("No email on file.", "error");
+                        setSendingReminderIdx(idx);
+                        try {
+                          const totalPaid = (project.payment_history || []).reduce((s: number, p: any) => s + toNum(p.amount), 0);
+                          const totalRemaining = toNum(project.amount) - totalPaid;
+                          const res = await fetch("/api/send-payment-reminder", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              invoice_id: projectId,
+                              phase_name: phase.name,
+                              phase_amount: phaseAmount,
+                              total_remaining: totalRemaining,
+                              base_url: window.location.origin,
+                            }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || "Failed");
+                          toast(`Reminder sent to ${data.sent_to}`, "success");
+                        } catch (err: any) {
+                          toast("Reminder failed: " + err.message, "error");
+                        } finally {
+                          setSendingReminderIdx(null);
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-black text-[9px] py-1.5 rounded-lg uppercase tracking-wider transition-all duration-200 outline-none"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                      {sendingReminderIdx === idx ? "Sending..." : "Send Payment Reminder"}
+                    </button>
+                  )}
                 </div>
               );
             })}
