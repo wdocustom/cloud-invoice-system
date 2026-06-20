@@ -43,6 +43,22 @@ export default function HomeownerPortalClient({
   const [isSendingQa, setIsSendingQa] = useState(false);
   const [activeTab, setActiveTab] = useState("proposal");
   const [now, setNow] = useState(Date.now());
+  const [lastSeenMessages, setLastSeenMessages] = useState<string | null>(null);
+
+  // Load last-seen timestamp from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(`wdo_msgs_seen_${id}`);
+    setLastSeenMessages(stored);
+  }, [id]);
+
+  // Mark messages as seen when Messages tab is active
+  useEffect(() => {
+    if (activeTab === "messages") {
+      const ts = new Date().toISOString();
+      localStorage.setItem(`wdo_msgs_seen_${id}`, ts);
+      setLastSeenMessages(ts);
+    }
+  }, [activeTab, id]);
 
   // Live countdown timer
   const expiresAt = (invoice as any)?.proposal_expires_at;
@@ -480,22 +496,35 @@ export default function HomeownerPortalClient({
           ).map((tab) => {
             const tabKey = tab.key;
             const isTabActive = activeTab === tabKey || (!isLocked && activeTab === "overview" && tabKey === "proposal") || (isLocked && activeTab === "proposal" && tabKey === "overview");
-            const msgCount = Array.isArray((invoice as any).questions) ? (invoice as any).questions.length : 0;
+            const messages = Array.isArray((invoice as any).questions) ? (invoice as any).questions : [];
+            const unreadCount = tabKey === "messages" ? messages.filter((m: any) => m.author === "contractor" && (!lastSeenMessages || new Date(m.timestamp) > new Date(lastSeenMessages))).length : 0;
+            const hasUnread = tabKey === "messages" && unreadCount > 0 && activeTab !== "messages";
             return (
               <button
                 key={tabKey}
                 type="button"
                 onClick={() => setActiveTab(tabKey)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-200 whitespace-nowrap shrink-0 outline-none ${
+                className={`relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-200 whitespace-nowrap shrink-0 outline-none ${
                   isTabActive
                     ? "bg-brand-charcoal text-white shadow-soft"
-                    : "text-brand-muted hover:text-brand-charcoal hover:bg-brand-warm"
+                    : hasUnread
+                      ? "bg-luxury-soft text-luxury-ochre border border-luxury-champagne font-semibold"
+                      : "text-brand-muted hover:text-brand-charcoal hover:bg-brand-warm"
                 }`}
               >
                 {tab.label}
-                {tabKey === "messages" && msgCount > 0 && (
+                {hasUnread && (
+                  <span className="flex items-center gap-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-luxury-gold opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-luxury-gold" />
+                    </span>
+                    <span className="text-[9px] font-bold text-luxury-ochre leading-none">{unreadCount}</span>
+                  </span>
+                )}
+                {tabKey === "messages" && !hasUnread && messages.length > 0 && (
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none ${isTabActive ? 'bg-white/20 text-white' : 'bg-brand-charcoal/10 text-brand-charcoal'}`}>
-                    {msgCount}
+                    {messages.length}
                   </span>
                 )}
               </button>
