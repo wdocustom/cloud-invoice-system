@@ -348,28 +348,42 @@ export default function HomeownerPortalClient({
 
       {/* Proposal Countdown Timer — sticky below header */}
       {hasExpiration && !isLocked && (
-        <div className={`sticky top-[57px] z-10 border-b transition-colors duration-500 ${
-          isExpired
-            ? 'bg-red-50 border-red-200'
-            : isUrgent
-              ? 'bg-amber-50/80 border-amber-200/60'
-              : 'bg-brand-warm border-brand-stone/40'
-        }`}>
+        <div
+          onClick={() => {
+            if (isExpired) return;
+            const el = document.getElementById('approve-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}
+          className={`sticky top-[57px] z-10 border-b transition-colors duration-500 group ${
+            isExpired
+              ? 'bg-red-50 border-red-200'
+              : isUrgent
+                ? 'bg-amber-50/80 border-amber-200/60 cursor-pointer'
+                : 'bg-brand-warm border-brand-stone/40 cursor-pointer'
+          }`}
+        >
           <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5 min-w-0">
               <svg className={`w-4 h-4 shrink-0 ${isExpired ? 'text-red-500' : isUrgent ? 'text-amber-600' : 'text-brand-muted'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {isExpired ? (
-                <p className="text-[12px] sm:text-[13px] font-semibold text-red-700">This proposal has expired and your schedule hold has been released. Contact your contractor for availability.</p>
-              ) : (
-                <p className={`text-[12px] sm:text-[13px] font-medium ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`}>
-                  Your pricing and schedule hold expires{' '}
-                  <span className="font-semibold">
-                    {new Date(expiresAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-                  </span>
-                </p>
-              )}
+              <div className="min-w-0">
+                {isExpired ? (
+                  <p className="text-[12px] sm:text-[13px] font-semibold text-red-700">This proposal has expired and your schedule hold has been released. Contact your contractor for availability.</p>
+                ) : (
+                  <>
+                    <p className={`text-[12px] sm:text-[13px] font-medium ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`}>
+                      Your pricing and schedule hold expires{' '}
+                      <span className="font-semibold">
+                        {new Date(expiresAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </span>
+                    </p>
+                    <p className={`text-[10px] sm:text-[11px] font-medium mt-0.5 transition-opacity duration-200 opacity-60 group-hover:opacity-100 ${isUrgent ? 'text-amber-700' : 'text-brand-muted'}`}>
+                      Approve your proposal to secure your spot ↓
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
             {!isExpired && (() => {
               const cd = formatCountdown();
@@ -636,6 +650,7 @@ export default function HomeownerPortalClient({
               </div>
 
               {/* Signature */}
+              <div id="approve-section">
               {isExpired ? (
                 <div className="bg-red-50 rounded-2xl p-6 space-y-3 shadow-soft border border-red-200">
                   <div className="text-left">
@@ -658,6 +673,7 @@ export default function HomeownerPortalClient({
                   </button>
                 </form>
               )}
+              </div>
 
               {/* Legal Terms */}
               <div className="bg-white rounded-2xl overflow-hidden shadow-soft border border-brand-stone/30 text-left">
