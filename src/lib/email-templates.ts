@@ -24,6 +24,14 @@ interface ApprovalEmailData {
   items: { title: string; cost: number }[];
 }
 
+interface ContractorMessageNotificationData {
+  homeowner_name: string;
+  project_title?: string;
+  job_address: string;
+  portal_url: string;
+  message_preview: string;
+}
+
 function formatMoney(n: number) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -430,6 +438,56 @@ export function buildContractorApprovalNotificationHtml(data: ApprovalEmailData)
   </td></tr>
   <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
     <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">WDO Custom &middot; Automated Notification</p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── New Message Notification (to homeowner) ───
+
+export function buildMessageNotificationHtml(data: ContractorMessageNotificationData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">WDO Custom</span>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.homeowner_name.split(" ")[0]},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      Skyler from WDO Custom sent you a message about your ${data.project_title || data.job_address} project:
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;border-left:3px solid #1A1A1A;border-radius:0 12px 12px 0;">
+      <tr><td style="padding:16px 20px;">
+        <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin:0;font-style:italic;">"${data.message_preview}"</p>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+      <tr><td align="center">
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+          View & Reply
+        </a>
+      </td></tr>
+    </table>
+
+    <p style="font-size:12px;color:#9C9590;margin:0;">Skyler Camacho &middot; WDO Custom &middot; 402-819-8558</p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;line-height:1.6;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
   </td></tr>
 </table>
 

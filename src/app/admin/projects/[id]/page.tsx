@@ -1235,6 +1235,21 @@ export default function ProjectWorkspaceControlHub() {
                 const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", projectId);
                 if (error) throw error;
                 setProject((prev: any) => ({ ...prev, questions: updated }));
+                // Notify homeowner via email (fire-and-forget)
+                if (project?.homeowner_email) {
+                  fetch("/api/send-message-notification", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      homeowner_name: project.homeowner_name,
+                      homeowner_email: project.homeowner_email,
+                      project_title: project.project_title,
+                      job_address: project.job_address,
+                      message_text: newMsg.text,
+                      portal_url: `${window.location.origin}/invoice/${projectId}`,
+                    }),
+                  }).catch(() => {});
+                }
                 setQaMessage("");
               } catch (err: any) {
                 toast("Failed to send message: " + err.message, "error");
