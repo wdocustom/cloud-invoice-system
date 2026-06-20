@@ -485,6 +485,51 @@ export default function ProjectWorkspaceControlHub() {
 
       </div>
 
+      {/* PROJECT DETAILS — start date & timeline */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-5">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            <div className="flex-1 space-y-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Estimated Start Date</label>
+              <input
+                type="date"
+                value={project?.estimated_start_date || ""}
+                onChange={(e) => {
+                  setProject((prev: any) => ({ ...prev, estimated_start_date: e.target.value || null }));
+                }}
+                onBlur={async () => {
+                  const { error } = await supabase
+                    .from("invoices")
+                    .update({ estimated_start_date: project?.estimated_start_date || null })
+                    .eq("id", projectId);
+                  if (error) toast("Failed to save start date: " + error.message, "error");
+                }}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+              />
+            </div>
+            <div className="flex-1 space-y-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Project Timeline</label>
+              <input
+                type="text"
+                placeholder="e.g. 8–10 Weeks"
+                value={project?.project_length || ""}
+                onChange={(e) => {
+                  setProject((prev: any) => ({ ...prev, project_length: e.target.value }));
+                }}
+                onBlur={async () => {
+                  const { error } = await supabase
+                    .from("invoices")
+                    .update({ project_length: project?.project_length || null })
+                    .eq("id", projectId);
+                  if (error) toast("Failed to save timeline: " + error.message, "error");
+                }}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* PROPOSAL EXPIRATION TIMER — only pre-approval */}
       {project?.status !== "approved" && (
         <div className="max-w-7xl mx-auto px-4 pt-6">
