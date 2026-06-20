@@ -1160,6 +1160,16 @@ export default function HomeownerPortalClient({
                                 Approve Change Order
                               </button>
                             )}
+                            {isCoApproved && !isCoPaid && (
+                              <button
+                                type="button"
+                                disabled={isPaymentLoading}
+                                onClick={() => initiateStripePayment(toNum(co.amount), `Change Order - ${co.description} - ${invoice.homeowner_name}`)}
+                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] py-2.5 rounded-xl tracking-wider uppercase transition-all duration-200 shadow-sm outline-none"
+                              >
+                                {isPaymentLoading ? "Connecting..." : `Pay $${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2})} via Stripe`}
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1170,13 +1180,49 @@ export default function HomeownerPortalClient({
             )}
 
             {/* Project Total Summary */}
-            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left">
+            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left space-y-4">
               <div className="flex justify-between items-center">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">TOTAL PROJECT VALUE</p>
                 <h2 className="text-2xl font-black text-slate-950 tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
                   ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h2>
               </div>
+              {Array.isArray(invoice.payment_history) && invoice.payment_history.length > 0 && (
+                <div className="border-t border-slate-100 pt-3 space-y-2">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Payment Receipts</p>
+                  {invoice.payment_history.map((pmt: any, i: number) => (
+                    <div key={i} className="flex justify-between items-center bg-emerald-50/50 border border-emerald-100 p-2.5 rounded-lg text-xs">
+                      <div className="space-y-0.5">
+                        <p className="font-bold text-emerald-800">
+                          {pmt.phase_index === 0 ? "Deposit" : `Phase ${pmt.phase_index} Draw`}
+                        </p>
+                        <p className="text-[9px] text-emerald-600 font-medium">
+                          {new Date(pmt.paid_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          {pmt.customer_email && ` · ${pmt.customer_email}`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-black text-emerald-800" style={{fontVariantNumeric:'tabular-nums'}}>
+                          ${toNum(pmt.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                        <p className="text-[8px] font-bold text-emerald-600 uppercase">Confirmed</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center pt-1 text-xs">
+                    <span className="text-slate-500 font-medium">Total Paid</span>
+                    <span className="font-black text-emerald-700" style={{fontVariantNumeric:'tabular-nums'}}>
+                      ${invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">Remaining Balance</span>
+                    <span className="font-black text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
+                      ${(combinedProjectTotal - invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
