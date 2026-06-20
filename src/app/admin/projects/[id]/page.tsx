@@ -544,6 +544,64 @@ export default function ProjectWorkspaceControlHub() {
         </div>
       </div>
 
+      {/* CLIENT ANNOUNCEMENT / PRIORITY BANNER */}
+      {project?.status === "approved" && (
+        <div className="max-w-7xl mx-auto px-4 pt-6">
+          <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                  Client Announcement
+                </h3>
+                <p className="text-[11px] text-slate-400 font-medium">This message appears as a priority banner at the top of the homeowner portal. Leave blank to show the default status message.</p>
+              </div>
+              {project?.announcement && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setProject((prev: any) => ({ ...prev, announcement: null }));
+                    const { error } = await supabase
+                      .from("invoices")
+                      .update({ announcement: null })
+                      .eq("id", projectId);
+                    if (error) toast("Failed to clear: " + error.message, "error");
+                    else toast("Announcement cleared", "success");
+                  }}
+                  className="text-red-400 hover:text-red-600 text-xs font-black transition p-2 rounded-lg hover:bg-red-50 shrink-0"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <textarea
+              value={project?.announcement || ""}
+              onChange={(e) => {
+                setProject((prev: any) => ({ ...prev, announcement: e.target.value }));
+              }}
+              onBlur={async () => {
+                const val = project?.announcement?.trim() || null;
+                const { error } = await supabase
+                  .from("invoices")
+                  .update({ announcement: val })
+                  .eq("id", projectId);
+                if (error) toast("Failed to save announcement: " + error.message, "error");
+                else if (val) toast("Announcement published", "success");
+              }}
+              placeholder="e.g. Tile selections are due by Friday — please visit the Selections tab and make your choices so we can stay on schedule."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 transition-all min-h-[60px]"
+              rows={2}
+            />
+            {project?.announcement && (
+              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                <span className="text-amber-600 text-sm shrink-0 mt-0.5">📢</span>
+                <p className="text-[11px] font-medium text-amber-800 leading-relaxed">Live on portal: "{project.announcement}"</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* PROPOSAL EXPIRATION TIMER — only pre-approval */}
       {project?.status !== "approved" && (
         <div className="max-w-7xl mx-auto px-4 pt-6">

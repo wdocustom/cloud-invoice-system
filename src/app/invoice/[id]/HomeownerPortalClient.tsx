@@ -574,12 +574,19 @@ export default function HomeownerPortalClient({
           </div>
         )}
 
-        {/* Signed contract banner */}
+        {/* Priority announcement / contract status banner */}
         {isLocked && (
-          <div className="bg-sage-50 border border-sage-200 rounded-2xl p-5 shadow-soft text-[13px] text-sage-700 font-medium leading-relaxed mb-6 flex items-start gap-3">
-            <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">✓</span>
-            <p>Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, communicate, and manage payments.</p>
-          </div>
+          (invoice as any).announcement ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-soft text-[13px] text-amber-900 font-medium leading-relaxed mb-6 flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">!</span>
+              <p>{(invoice as any).announcement}</p>
+            </div>
+          ) : (
+            <div className="bg-sage-50 border border-sage-200 rounded-2xl p-5 shadow-soft text-[13px] text-sage-700 font-medium leading-relaxed mb-6 flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">✓</span>
+              <p>Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, communicate, and manage payments.</p>
+            </div>
+          )
         )}
 
         {/* ═══════════════════════ TAB CONTENT AREA ═══════════════════════ */}
