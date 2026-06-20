@@ -48,6 +48,9 @@ export default function ProjectWorkspaceControlHub() {
   // Document Upload States
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
+  // Email States
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
   useEffect(() => {
     if (projectId) {
       fetchComprehensiveProjectData();
@@ -107,6 +110,30 @@ export default function ProjectWorkspaceControlHub() {
       toast("Profile update failed: " + err.message, "error");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function sendProposalEmail() {
+    if (!project?.homeowner_email) return toast("No email on file — add one in the client profile.", "error");
+    if (!confirm(`Send proposal to ${project.homeowner_email}?`)) return;
+    setIsSendingEmail(true);
+    try {
+      const res = await fetch("/api/send-proposal-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoice_id: projectId,
+          base_url: window.location.origin,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send");
+      toast(`Proposal sent to ${data.sent_to}`, "success");
+      fetchComprehensiveProjectData();
+    } catch (err: any) {
+      toast("Email failed: " + err.message, "error");
+    } finally {
+      setIsSendingEmail(false);
     }
   }
 
@@ -316,6 +343,14 @@ export default function ProjectWorkspaceControlHub() {
               className="bg-white hover:bg-slate-50 text-slate-900 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
             >
               Copy Link
+            </button>
+            <button
+              onClick={sendProposalEmail}
+              disabled={isSendingEmail}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              {isSendingEmail ? "Sending..." : "Send Proposal"}
             </button>
           </div>
         </div>
@@ -528,6 +563,20 @@ export default function ProjectWorkspaceControlHub() {
               </div>
             )}
           </div>
+          {Array.isArray(project?.proposal_emails) && project.proposal_emails.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-slate-100">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">Email History</p>
+              <div className="flex flex-wrap gap-2">
+                {project.proposal_emails.map((log: any, i: number) => (
+                  <span key={i} className={`text-[9px] font-bold px-2.5 py-1 rounded-lg border ${
+                    log.type === 'reminder' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-blue-50 text-blue-700 border-blue-100'
+                  }`}>
+                    {log.type === 'reminder' ? `Reminder (${log.tier})` : 'Proposal sent'} · {new Date(log.sent_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -31,7 +31,7 @@ function checkPageBreak(doc: jsPDF, y: number, needed: number): number {
   return y;
 }
 
-export function generateProposalPdf(invoice: PdfInvoiceData) {
+function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const isApproved = invoice.status === "approved";
   const baseTotal = toNum(invoice.amount);
@@ -353,8 +353,23 @@ export function generateProposalPdf(invoice: PdfInvoiceData) {
     y + 4
   );
 
-  // ── Download ──
+  return doc;
+}
+
+export function generateProposalPdf(invoice: PdfInvoiceData) {
+  const doc = generatePdfDoc(invoice);
   const safeName = (invoice.homeowner_name || "client").replace(/[^a-zA-Z0-9]/g, "_");
-  const docType = isApproved ? "Contract" : "Proposal";
+  const docType = invoice.status === "approved" ? "Contract" : "Proposal";
   doc.save(`WDO_Custom_${docType}_${safeName}.pdf`);
+}
+
+export function generateProposalPdfBuffer(invoice: PdfInvoiceData): { buffer: Buffer; filename: string } {
+  const doc = generatePdfDoc(invoice);
+  const safeName = (invoice.homeowner_name || "client").replace(/[^a-zA-Z0-9]/g, "_");
+  const docType = invoice.status === "approved" ? "Contract" : "Proposal";
+  const arrayBuffer = doc.output("arraybuffer");
+  return {
+    buffer: Buffer.from(arrayBuffer),
+    filename: `WDO_Custom_${docType}_${safeName}.pdf`
+  };
 }
