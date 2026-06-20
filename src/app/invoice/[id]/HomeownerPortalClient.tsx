@@ -575,19 +575,35 @@ export default function HomeownerPortalClient({
         )}
 
         {/* Priority announcement / contract status banner */}
-        {isLocked && (
-          (invoice as any).announcement ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-soft text-[13px] text-amber-900 font-medium leading-relaxed mb-6 flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">!</span>
-              <p>{(invoice as any).announcement}</p>
+        {isLocked && (() => {
+          const hasAnnouncement = !!(invoice as any).announcement;
+          const daysSinceSigned = invoice.signed_at
+            ? (Date.now() - new Date(invoice.signed_at).getTime()) / 86400000
+            : 999;
+          const showNewContractBanner = daysSinceSigned <= 6;
+
+          if (hasAnnouncement) {
+            return (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-soft text-[13px] text-amber-900 font-medium leading-relaxed mb-6 flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">!</span>
+                <p>{(invoice as any).announcement}</p>
+              </div>
+            );
+          }
+          if (showNewContractBanner) {
+            return (
+              <div className="bg-sage-50 border border-sage-200 rounded-2xl p-5 shadow-soft text-[13px] text-sage-700 font-medium leading-relaxed mb-6 flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">✓</span>
+                <p>Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, selections, communicate, and manage payments.</p>
+              </div>
+            );
+          }
+          return (
+            <div className="bg-brand-warm border border-brand-stone/40 rounded-2xl px-5 py-3.5 shadow-soft text-[13px] text-brand-muted font-medium leading-relaxed mb-6">
+              Welcome back, {invoice.homeowner_name?.split(" ")[0] || "there"}. Use the tabs above to track progress, selections, communicate, and manage payments.
             </div>
-          ) : (
-            <div className="bg-sage-50 border border-sage-200 rounded-2xl p-5 shadow-soft text-[13px] text-sage-700 font-medium leading-relaxed mb-6 flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">✓</span>
-              <p>Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, communicate, and manage payments.</p>
-            </div>
-          )
-        )}
+          );
+        })()}
 
         {/* ═══════════════════════ TAB CONTENT AREA ═══════════════════════ */}
 
