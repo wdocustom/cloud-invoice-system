@@ -6,6 +6,7 @@ import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import type { Invoice } from "@/lib/types";
 import { generateProposalPdf } from "@/lib/generate-pdf";
+import { TERMS_AND_CONDITIONS } from "@/lib/terms";
 
 interface HomeownerPortalProps {
   id: string;
@@ -711,8 +712,14 @@ export default function HomeownerPortalClient({
                   <span className="text-[11px]">{showTerms ? "▲" : "▼"}</span>
                 </button>
                 {showTerms && (
-                  <div className="px-5 pb-4 text-[12px] text-brand-muted space-y-2 max-h-40 overflow-y-scroll leading-relaxed font-medium border-t border-brand-stone/30 pt-3">
-                    <p>This agreement is configured under the building framework of the City of Omaha, Douglas County, Nebraska. All modifications, materials, structural deviations, and framing updates shall be performed in accordance with the International Residential Code (IRC) as amended by local Omaha ordinances.</p>
+                  <div className="px-5 pb-4 text-[12px] text-brand-muted space-y-4 max-h-[50vh] overflow-y-scroll leading-relaxed font-medium border-t border-brand-stone/30 pt-4">
+                    <p className="text-[11px] font-semibold text-brand-charcoal">WDO Custom — General Contracting Terms & Conditions</p>
+                    {TERMS_AND_CONDITIONS.map((section, i) => (
+                      <div key={i} className="space-y-1">
+                        <p className="text-[11px] font-semibold text-brand-charcoal">{section.heading}</p>
+                        <p>{section.text}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -876,8 +883,14 @@ export default function HomeownerPortalClient({
                   <span className="text-[10px] text-slate-400 font-semibold">{showTerms ? "Hide ▲" : "View ▼"}</span>
                 </button>
                 {showTerms && (
-                  <div className="p-4 text-[11px] text-slate-400 space-y-2 max-h-40 overflow-y-scroll border-t bg-white leading-relaxed font-medium shadow-inner">
-                    <p>This agreement is configured specifically under the building framework of the City of Omaha, Douglas County, Nebraska. All modifications, materials, structural deviations, and framing updates shall be performed in accordance with the International Residential Code (IRC) as amended by local Omaha ordinances.</p>
+                  <div className="p-4 text-[11px] text-slate-400 space-y-4 max-h-[50vh] overflow-y-scroll border-t bg-white leading-relaxed font-medium shadow-inner">
+                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">WDO Custom — General Contracting Terms & Conditions</p>
+                    {TERMS_AND_CONDITIONS.map((section, i) => (
+                      <div key={i} className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-600">{section.heading}</p>
+                        <p>{section.text}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
