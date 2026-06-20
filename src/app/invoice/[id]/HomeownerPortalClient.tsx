@@ -1167,7 +1167,7 @@ export default function HomeownerPortalClient({
                                 onClick={() => initiateStripePayment(toNum(co.amount), `Change Order - ${co.description} - ${invoice.homeowner_name}`)}
                                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] py-2.5 rounded-xl tracking-wider uppercase transition-all duration-200 shadow-sm outline-none"
                               >
-                                {isPaymentLoading ? "Connecting..." : `Pay $${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2})} via Stripe`}
+                                {isPaymentLoading ? "Connecting..." : "Pay Now"}
                               </button>
                             )}
                           </div>

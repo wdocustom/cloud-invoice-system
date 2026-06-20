@@ -51,6 +51,13 @@ export default function ProjectWorkspaceControlHub() {
   // Email States
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
+  // Change Order States
+  const [coDescription, setCoDescription] = useState("");
+  const [coItems, setCoItems] = useState<any[]>([]);
+  const [isGeneratingCo, setIsGeneratingCo] = useState(false);
+  const [isDeployingCo, setIsDeployingCo] = useState(false);
+  const [changeOrders, setChangeOrders] = useState<any[]>([]);
+
   useEffect(() => {
     if (projectId) {
       fetchComprehensiveProjectData();
@@ -74,6 +81,13 @@ export default function ProjectWorkspaceControlHub() {
         setEditAddress(data.job_address || "");
         setEditProjectTitle(data.project_title || "");
       }
+
+      const { data: cos } = await supabase
+        .from("invoices")
+        .select("*")
+        .eq("parent_id", projectId)
+        .order("created_at", { ascending: true });
+      if (cos) setChangeOrders(cos);
     } catch (err) {
       console.error("Error retrieving database record profiles:", err);
     } finally {
@@ -1287,6 +1301,192 @@ export default function ProjectWorkspaceControlHub() {
           )}
         </div>
       </div>
+
+      {/* CHANGE ORDERS — only post-approval */}
+      {project?.status === "approved" && (
+        <div className="max-w-7xl mx-auto px-4 pt-6">
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
+            <div className="border-b pb-3 border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Change Orders</h3>
+              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Create scope modifications with AI-generated line items. Deployed change orders appear on the homeowner portal for approval.</p>
+            </div>
+
+            {/* Existing Change Orders */}
+            {changeOrders.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Deployed Change Orders</p>
+                {changeOrders.map((co: any) => (
+                  <div key={co.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-200/60 rounded-xl p-3 text-xs">
+                    <div className="space-y-0.5 min-w-0">
+                      <p className="font-bold text-slate-800 truncate">{co.description || co.project_title || "Change Order"}</p>
+                      <div className="flex gap-1.5">
+                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md border ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
+                          {co.status === 'approved' ? 'Approved' : 'Pending'}
+                        </span>
+                        {co.status === 'approved' && (
+                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md border ${co.deposit_cleared ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                            {co.deposit_cleared ? 'Paid' : 'Unpaid'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-mono font-black text-slate-900 shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>
+                      ${toNum(co.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Create New Change Order */}
+            <div className="border border-blue-100 bg-blue-50/20 rounded-2xl p-5 space-y-4">
+              <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-wider">+ Create Change Order</h4>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Describe the additional scope</label>
+                <textarea
+                  value={coDescription}
+                  onChange={(e) => setCoDescription(e.target.value)}
+                  placeholder="e.g. Add recessed lighting to living room, 6 cans on dimmers, patch and paint ceiling..."
+                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm min-h-[80px]"
+                  rows={3}
+                />
+              </div>
+              <button
+                type="button"
+                disabled={isGeneratingCo || !coDescription.trim()}
+                onClick={async () => {
+                  setIsGeneratingCo(true);
+                  setCoItems([]);
+                  try {
+                    const res = await fetch("/api/generate-scope", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        prompt: coDescription,
+                        address: project?.job_address || "",
+                        zipcode: "Omaha",
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Generation failed");
+                    setCoItems(data.items || []);
+                  } catch (err: any) {
+                    toast("AI generation failed: " + err.message, "error");
+                  } finally {
+                    setIsGeneratingCo(false);
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none flex items-center gap-1.5"
+              >
+                {isGeneratingCo ? (
+                  <>
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                    Generate Line Items with AI
+                  </>
+                )}
+              </button>
+
+              {/* Generated Items Preview */}
+              {coItems.length > 0 && (
+                <div className="space-y-3 pt-2 border-t border-blue-100">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Generated Items — edit costs before deploying</p>
+                  {coItems.map((item: any, idx: number) => (
+                    <div key={idx} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <input
+                          type="text"
+                          value={item.title || ""}
+                          onChange={(e) => {
+                            const updated = [...coItems];
+                            updated[idx] = { ...updated[idx], title: e.target.value };
+                            setCoItems(updated);
+                          }}
+                          className="flex-1 text-xs font-bold text-slate-900 bg-transparent outline-none"
+                        />
+                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
+                          <span className="text-[10px] font-bold text-slate-400">$</span>
+                          <input
+                            type="number"
+                            value={item.mid_cost || ""}
+                            onChange={(e) => {
+                              const updated = [...coItems];
+                              updated[idx] = { ...updated[idx], mid_cost: toNum(e.target.value) };
+                              setCoItems(updated);
+                            }}
+                            className="w-20 bg-transparent py-1.5 text-xs font-black text-slate-900 outline-none text-right"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setCoItems(coItems.filter((_, i) => i !== idx))}
+                          className="text-red-400 hover:text-red-600 text-xs font-black transition p-1"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{item.mid_description}</p>
+                    </div>
+                  ))}
+
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="text-xs font-bold text-slate-600">
+                      Total: <span className="font-black text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
+                        ${coItems.reduce((s, i) => s + toNum(i.mid_cost), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isDeployingCo || coItems.length === 0}
+                      onClick={async () => {
+                        if (!confirm("Deploy this change order to the homeowner portal?")) return;
+                        setIsDeployingCo(true);
+                        try {
+                          const finalItems = coItems.map((item) => ({
+                            title: item.title,
+                            description: item.mid_description,
+                            cost: toNum(item.mid_cost),
+                          }));
+                          const totalAmount = finalItems.reduce((s, i) => s + i.cost, 0);
+                          const { error } = await supabase.from("invoices").insert({
+                            parent_id: projectId,
+                            homeowner_name: project?.homeowner_name,
+                            homeowner_email: project?.homeowner_email,
+                            job_address: project?.job_address,
+                            project_title: project?.project_title,
+                            description: coDescription,
+                            items: finalItems,
+                            amount: totalAmount,
+                            status: "pending",
+                            deposit_percentage: 0,
+                            payment_phases: [{ name: "Full Payment", percentage: 100 }],
+                          });
+                          if (error) throw error;
+                          toast("Change order deployed", "success");
+                          setCoDescription("");
+                          setCoItems([]);
+                          fetchComprehensiveProjectData();
+                        } catch (err: any) {
+                          toast("Failed to deploy: " + err.message, "error");
+                        } finally {
+                          setIsDeployingCo(false);
+                        }
+                      }}
+                      className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none flex items-center gap-1.5"
+                    >
+                      {isDeployingCo ? "Deploying..." : "Deploy Change Order"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CLIENT SPEC PROFILE INTERACTION MODAL */}
       {isEditModalOpen && (
