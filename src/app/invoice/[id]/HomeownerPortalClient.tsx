@@ -361,10 +361,10 @@ export default function HomeownerPortalClient({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               {isExpired ? (
-                <p className="text-[12px] sm:text-[13px] font-semibold text-red-700">This proposal has expired. Contact your contractor for an updated quote.</p>
+                <p className="text-[12px] sm:text-[13px] font-semibold text-red-700">This proposal has expired and your schedule hold has been released. Contact your contractor for availability.</p>
               ) : (
                 <p className={`text-[12px] sm:text-[13px] font-medium ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`}>
-                  Reserved pricing expires{' '}
+                  Your pricing and schedule hold expires{' '}
                   <span className="font-semibold">
                     {new Date(expiresAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                   </span>
@@ -640,7 +640,7 @@ export default function HomeownerPortalClient({
                 <div className="bg-red-50 rounded-2xl p-6 space-y-3 shadow-soft border border-red-200">
                   <div className="text-left">
                     <h3 className="text-[13px] font-semibold text-red-800">Proposal Expired</h3>
-                    <p className="text-[11px] text-red-600 mt-0.5">This proposal is no longer available for acceptance. Please contact your contractor for an updated quote.</p>
+                    <p className="text-[11px] text-red-600 mt-0.5 leading-relaxed">Your reserved schedule slot and pricing have been released. Reach out to discuss availability and an updated proposal.</p>
                   </div>
                   <a href="tel:4028198558" className="block w-full bg-red-100 text-red-800 font-semibold text-sm py-3 rounded-xl tracking-wide text-center border border-red-200">
                     Call 402-819-8558
