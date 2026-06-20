@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
@@ -42,6 +42,30 @@ export default function HomeownerPortalClient({
   const [qaMessage, setQaMessage] = useState("");
   const [isSendingQa, setIsSendingQa] = useState(false);
   const [activeTab, setActiveTab] = useState("proposal");
+  const [now, setNow] = useState(Date.now());
+
+  // Live countdown timer
+  const expiresAt = (invoice as any)?.proposal_expires_at;
+  const hasExpiration = invoice?.status !== "approved" && !!expiresAt;
+  const expiresTime = hasExpiration ? new Date(expiresAt).getTime() : 0;
+  const timeLeft = expiresTime - now;
+  const isExpired = hasExpiration && timeLeft <= 0;
+  const isUrgent = hasExpiration && !isExpired && timeLeft < 86400000;
+
+  useEffect(() => {
+    if (!hasExpiration || isExpired) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [hasExpiration, isExpired]);
+
+  const formatCountdown = useCallback(() => {
+    if (timeLeft <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    const days = Math.floor(timeLeft / 86400000);
+    const hours = Math.floor((timeLeft % 86400000) / 3600000);
+    const minutes = Math.floor((timeLeft % 3600000) / 60000);
+    const seconds = Math.floor((timeLeft % 60000) / 1000);
+    return { days, hours, minutes, seconds };
+  }, [timeLeft]);
 
   useEffect(() => {
     if (initialInvoice?.items && activeIndices.length === 0) {
@@ -209,6 +233,7 @@ export default function HomeownerPortalClient({
 
   const handleApprove = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isExpired) return toast("This proposal has expired. Contact your contractor.", "error");
     if (!typedSignature.trim()) return toast("Please sign your name to approve", "error");
     setIsSubmitting(true);
     const timestamp = new Date().toISOString();
@@ -320,6 +345,63 @@ export default function HomeownerPortalClient({
           </div>
         </div>
       </div>
+
+      {/* Proposal Countdown Timer — sticky below header */}
+      {hasExpiration && !isLocked && (
+        <div className={`sticky top-[57px] z-10 border-b transition-colors duration-500 ${
+          isExpired
+            ? 'bg-red-50 border-red-200'
+            : isUrgent
+              ? 'bg-amber-50/80 border-amber-200/60'
+              : 'bg-brand-warm border-brand-stone/40'
+        }`}>
+          <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <svg className={`w-4 h-4 shrink-0 ${isExpired ? 'text-red-500' : isUrgent ? 'text-amber-600' : 'text-brand-muted'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {isExpired ? (
+                <p className="text-[12px] sm:text-[13px] font-semibold text-red-700">This proposal has expired. Contact your contractor for an updated quote.</p>
+              ) : (
+                <p className={`text-[12px] sm:text-[13px] font-medium ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`}>
+                  Reserved pricing expires{' '}
+                  <span className="font-semibold">
+                    {new Date(expiresAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </span>
+                </p>
+              )}
+            </div>
+            {!isExpired && (() => {
+              const cd = formatCountdown();
+              return (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {cd.days > 0 && (
+                    <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
+                      <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{cd.days}</p>
+                      <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>days</p>
+                    </div>
+                  )}
+                  <span className={`text-[13px] font-bold ${isUrgent ? 'text-amber-400' : 'text-brand-stone'}`}>:</span>
+                  <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
+                    <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{String(cd.hours).padStart(2, '0')}</p>
+                    <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>hrs</p>
+                  </div>
+                  <span className={`text-[13px] font-bold ${isUrgent ? 'text-amber-400' : 'text-brand-stone'}`}>:</span>
+                  <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
+                    <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{String(cd.minutes).padStart(2, '0')}</p>
+                    <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>min</p>
+                  </div>
+                  <span className={`text-[13px] font-bold ${isUrgent ? 'text-amber-400' : 'text-brand-stone'}`}>:</span>
+                  <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
+                    <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{String(cd.seconds).padStart(2, '0')}</p>
+                    <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>sec</p>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Contractor & Project Info */}
       <div className="max-w-6xl mx-auto px-6 pt-8">
@@ -554,16 +636,28 @@ export default function HomeownerPortalClient({
               </div>
 
               {/* Signature */}
-              <form onSubmit={handleApprove} className="bg-white rounded-2xl p-6 space-y-4 shadow-soft border border-brand-stone/30">
-                <div className="text-left">
-                  <h3 className="text-[13px] font-semibold text-brand-charcoal">Approve & Sign</h3>
-                  <p className="text-[11px] text-brand-muted mt-0.5">Type your full legal name to authorize this proposal.</p>
+              {isExpired ? (
+                <div className="bg-red-50 rounded-2xl p-6 space-y-3 shadow-soft border border-red-200">
+                  <div className="text-left">
+                    <h3 className="text-[13px] font-semibold text-red-800">Proposal Expired</h3>
+                    <p className="text-[11px] text-red-600 mt-0.5">This proposal is no longer available for acceptance. Please contact your contractor for an updated quote.</p>
+                  </div>
+                  <a href="tel:4028198558" className="block w-full bg-red-100 text-red-800 font-semibold text-sm py-3 rounded-xl tracking-wide text-center border border-red-200">
+                    Call 402-819-8558
+                  </a>
                 </div>
-                <input type="text" required placeholder="Your full name" value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-3.5 rounded-xl outline-none text-sm text-brand-charcoal bg-brand-alabaster border border-brand-stone/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 font-medium transition-all placeholder:text-brand-muted/50" />
-                <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:bg-brand-stone disabled:text-brand-muted text-white font-semibold text-sm py-3.5 rounded-xl tracking-wide transition-all duration-300 shadow-soft hover:shadow-elevated outline-none">
-                  {isSubmitting ? "Processing..." : "Accept Proposal"}
-                </button>
-              </form>
+              ) : (
+                <form onSubmit={handleApprove} className="bg-white rounded-2xl p-6 space-y-4 shadow-soft border border-brand-stone/30">
+                  <div className="text-left">
+                    <h3 className="text-[13px] font-semibold text-brand-charcoal">Approve & Sign</h3>
+                    <p className="text-[11px] text-brand-muted mt-0.5">Type your full legal name to authorize this proposal.</p>
+                  </div>
+                  <input type="text" required placeholder="Your full name" value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-3.5 rounded-xl outline-none text-sm text-brand-charcoal bg-brand-alabaster border border-brand-stone/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 font-medium transition-all placeholder:text-brand-muted/50" />
+                  <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:bg-brand-stone disabled:text-brand-muted text-white font-semibold text-sm py-3.5 rounded-xl tracking-wide transition-all duration-300 shadow-soft hover:shadow-elevated outline-none">
+                    {isSubmitting ? "Processing..." : "Accept Proposal"}
+                  </button>
+                </form>
+              )}
 
               {/* Legal Terms */}
               <div className="bg-white rounded-2xl overflow-hidden shadow-soft border border-brand-stone/30 text-left">

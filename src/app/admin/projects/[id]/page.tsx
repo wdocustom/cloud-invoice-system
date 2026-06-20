@@ -450,6 +450,87 @@ export default function ProjectWorkspaceControlHub() {
 
       </div>
 
+      {/* PROPOSAL EXPIRATION TIMER — only pre-approval */}
+      {project?.status !== "approved" && (
+        <div className="max-w-7xl mx-auto px-4 pt-6">
+          <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  Proposal Expiration
+                </h3>
+                <p className="text-[11px] text-slate-400 font-medium">Set a deadline for the client to accept this proposal. A countdown timer will appear on their portal.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="datetime-local"
+                  value={project?.proposal_expires_at ? new Date(new Date(project.proposal_expires_at).getTime() - new Date(project.proposal_expires_at).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => {
+                    const val = e.target.value ? new Date(e.target.value).toISOString() : null;
+                    setProject((prev: any) => ({ ...prev, proposal_expires_at: val }));
+                  }}
+                  onBlur={async () => {
+                    const { error } = await supabase
+                      .from("invoices")
+                      .update({ proposal_expires_at: project?.proposal_expires_at || null })
+                      .eq("id", projectId);
+                    if (error) toast("Failed to save expiration: " + error.message, "error");
+                    else toast("Expiration updated", "success");
+                  }}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                />
+                {project?.proposal_expires_at && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setProject((prev: any) => ({ ...prev, proposal_expires_at: null }));
+                      const { error } = await supabase
+                        .from("invoices")
+                        .update({ proposal_expires_at: null })
+                        .eq("id", projectId);
+                      if (error) toast("Failed to clear expiration: " + error.message, "error");
+                      else toast("Expiration removed", "success");
+                    }}
+                    className="text-red-400 hover:text-red-600 text-xs font-black transition p-2 rounded-lg hover:bg-red-50"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+            {project?.proposal_expires_at && (
+              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
+                {new Date(project.proposal_expires_at) > new Date() ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                    <p className="text-[11px] font-bold text-slate-600">
+                      Expires {new Date(project.proposal_expires_at).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      {' · '}
+                      <span className="text-amber-600">
+                        {(() => {
+                          const diff = new Date(project.proposal_expires_at).getTime() - Date.now();
+                          const days = Math.floor(diff / 86400000);
+                          const hours = Math.floor((diff % 86400000) / 3600000);
+                          if (days > 0) return `${days}d ${hours}h remaining`;
+                          const mins = Math.floor((diff % 3600000) / 60000);
+                          return `${hours}h ${mins}m remaining`;
+                        })()}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-red-500" />
+                    <p className="text-[11px] font-bold text-red-600">Proposal expired — client can no longer accept</p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* GANTT BLUEPRINT SCHEDULER HORIZON TRACK */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
         <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4">
