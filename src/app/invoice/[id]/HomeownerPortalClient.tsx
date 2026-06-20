@@ -299,6 +299,16 @@ export default function HomeownerPortalClient({
         console.error("Auto-Gantt orchestration failure:", ganttErr);
       }
 
+      // Fire approval confirmation emails (non-blocking)
+      fetch("/api/send-approval-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          invoice_id: id,
+          base_url: window.location.origin,
+        }),
+      }).catch((err) => console.error("Approval email failed:", err));
+
       fetchInvoiceData();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }

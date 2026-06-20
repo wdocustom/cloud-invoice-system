@@ -9,6 +9,21 @@ interface ProposalEmailData {
   proposal_expires_at?: string;
 }
 
+interface ApprovalEmailData {
+  homeowner_name: string;
+  project_title?: string;
+  job_address: string;
+  amount: number;
+  deposit_amount: number;
+  deposit_percentage: number;
+  portal_url: string;
+  estimated_start_date?: string;
+  project_length?: string;
+  signed_at: string;
+  signature_name: string;
+  items: { title: string; cost: number }[];
+}
+
 function formatMoney(n: number) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -201,6 +216,220 @@ export function buildReminderEmailHtml(data: ProposalEmailData & { days_remainin
     <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;line-height:1.6;">
       WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
     </p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── Approval Confirmation Email (to homeowner) ───
+
+export function buildApprovalConfirmationHtml(data: ApprovalEmailData): string {
+  const signedDate = new Date(data.signed_at).toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric"
+  });
+  const startDate = data.estimated_start_date
+    ? new Date(data.estimated_start_date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    : null;
+
+  const itemRows = data.items.map((item) => `
+          <tr>
+            <td style="padding:8px 0;font-size:13px;color:#1A1A1A;border-bottom:1px solid #F0EDE8;">${item.title}</td>
+            <td align="right" style="padding:8px 0;font-size:13px;font-weight:600;color:#1A1A1A;border-bottom:1px solid #F0EDE8;font-variant-numeric:tabular-nums;">$${formatMoney(item.cost)}</td>
+          </tr>`).join("");
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:28px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td>
+          <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">WDO Custom</span>
+          <br>
+          <span style="color:#9C9590;font-size:12px;font-weight:500;">General Contractor &middot; Omaha, NE</span>
+        </td>
+        <td align="right">
+          <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Contract Signed</span>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.homeowner_name},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 28px;">
+      Great news — your proposal has been officially approved and your contract is now active. We're excited to get started on your project. Here's a summary of everything you've signed off on:
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;overflow:hidden;">
+      <tr><td style="padding:24px 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 4px;">Contract Approved</p>
+              <p style="font-size:28px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$${formatMoney(data.amount)}</p>
+            </td>
+            <td align="right" valign="top">
+              <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Active</span>
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
+          ${data.project_title ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.project_title}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${data.job_address}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed:</strong> ${signedDate}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed by:</strong> ${data.signature_name}</td></tr>
+          ${startDate ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Est. Start:</strong> ${startDate}</td></tr>` : ""}
+          ${data.project_length ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Timeline:</strong> ${data.project_length}</td></tr>` : ""}
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;background-color:#ffffff;border:1px solid #E8E4DF;border-radius:12px;overflow:hidden;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 12px;">Approved Scope of Work</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${itemRows}
+          <tr>
+            <td style="padding:12px 0 4px;font-size:14px;font-weight:700;color:#1A1A1A;">Contract Total</td>
+            <td align="right" style="padding:12px 0 4px;font-size:14px;font-weight:700;color:#1A1A1A;font-variant-numeric:tabular-nums;">$${formatMoney(data.amount)}</td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:12px;font-weight:600;color:#8B6914;margin:0 0 6px;">Next Step: Construction Deposit</p>
+        <p style="font-size:13px;color:#6B6B6B;line-height:1.6;margin:0;">
+          Your construction deposit of <strong style="color:#1A1A1A;">$${formatMoney(data.deposit_amount)}</strong> (${data.deposit_percentage}%) is the next step to lock in your start date and begin material ordering. You can pay securely through your project portal.
+        </p>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+      <tr><td align="center">
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+          Go to Your Project Portal
+        </a>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;border-radius:12px;margin-bottom:24px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:12px;font-weight:600;color:#1A1A1A;margin:0 0 10px;">What happens next:</p>
+        <table cellpadding="0" cellspacing="0">
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;line-height:1.6;">
+            <span style="color:#4A7A4A;font-weight:700;margin-right:8px;">1.</span> Submit your construction deposit through the Payments tab
+          </td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;line-height:1.6;">
+            <span style="color:#4A7A4A;font-weight:700;margin-right:8px;">2.</span> We'll begin material ordering and scheduling subcontractors
+          </td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;line-height:1.6;">
+            <span style="color:#4A7A4A;font-weight:700;margin-right:8px;">3.</span> You'll receive progress updates, photos, and daily logs in your portal
+          </td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;line-height:1.6;">
+            <span style="color:#4A7A4A;font-weight:700;margin-right:8px;">4.</span> Message us anytime through the Messages tab — we're always available
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 6px;">
+      Thank you for choosing WDO Custom. We don't take this trust lightly — we're going to build something great together.
+    </p>
+
+    <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>
+    <p style="font-size:12px;color:#9C9590;margin:0;">WDO Custom &middot; 402-819-8558 &middot; skyler@wdocustom.com</p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;line-height:1.6;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── Contractor Notification Email (to Skyler) ───
+
+export function buildContractorApprovalNotificationHtml(data: ApprovalEmailData): string {
+  const signedDate = new Date(data.signed_at).toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+    hour: "numeric", minute: "2-digit"
+  });
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
+        <td align="right"><span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">New Approval</span></td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> just signed and approved their proposal. The contract is now active.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
+      <tr><td style="padding:24px 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 4px;">Contract Value</p>
+              <p style="font-size:28px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$${formatMoney(data.amount)}</p>
+            </td>
+            <td align="right" valign="top">
+              <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 4px;">Deposit Due</p>
+              <p style="font-size:20px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${formatMoney(data.deposit_amount)}</p>
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${data.homeowner_name}</td></tr>
+          ${data.project_title ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.project_title}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${data.job_address}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed:</strong> ${signedDate}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signature:</strong> ${data.signature_name}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Items:</strong> ${data.items.length} line items</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr><td align="center">
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
+          Open Project Workspace
+        </a>
+      </td></tr>
+    </table>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">WDO Custom &middot; Automated Notification</p>
   </td></tr>
 </table>
 
