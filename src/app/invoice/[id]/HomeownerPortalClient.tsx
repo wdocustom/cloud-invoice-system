@@ -45,6 +45,7 @@ export default function HomeownerPortalClient({
   const [activeTab, setActiveTab] = useState("proposal");
   const [now, setNow] = useState(Date.now());
   const [lastSeenMessages, setLastSeenMessages] = useState<string | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<{ category: string; value: string } | null>(null);
 
   // Load last-seen timestamp from localStorage on mount
   useEffect(() => {
@@ -202,10 +203,23 @@ export default function HomeownerPortalClient({
     }
   };
 
-  const handleSelectMaterialChoice = async (category: string, value: string) => {
-    if (!invoice) return;
+  const handleSelectMaterialChoice = (category: string, value: string) => {
+    const current = invoice?.homeowner_selections?.[category];
+    if (pendingSelection?.category === category && pendingSelection.value === value) {
+      setPendingSelection(null);
+      return;
+    }
+    if (current === value) {
+      setPendingSelection(null);
+      return;
+    }
+    setPendingSelection({ category, value });
+  };
+
+  const confirmSelection = async () => {
+    if (!invoice || !pendingSelection) return;
     const currentSelections = invoice.homeowner_selections || {};
-    const updatedSelections = { ...currentSelections, [category]: value };
+    const updatedSelections = { ...currentSelections, [pendingSelection.category]: pendingSelection.value };
 
     const { error } = await supabase
       .from("invoices")
@@ -213,6 +227,7 @@ export default function HomeownerPortalClient({
       .eq("id", id);
 
     if (!error) fetchInvoiceData();
+    setPendingSelection(null);
   };
 
   const executeOneClickCoApproval = async (coId: string) => {
@@ -1061,19 +1076,29 @@ export default function HomeownerPortalClient({
                 <div className="space-y-3 divide-y divide-slate-100">
                   {invoice.homeowner_options.map((group: any, gIdx: number) => {
                     const chosen = invoice.homeowner_selections?.[group.category];
+                    const isPendingCategory = pendingSelection?.category === group.category;
                     return (
                       <div key={gIdx} className="space-y-2 pt-3 first:pt-0">
                         <p className="text-[11px] font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-slate-900" /> Design Component: Specify {group.category}
+                          {chosen && !isPendingCategory && <span className="ml-auto text-[10px] font-medium text-emerald-600 normal-case tracking-normal">Selected: {chosen}</span>}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {group.choices.map((choice: string, cIdx: number) => {
-                            const isChosen = chosen === choice;
+                            const isChosen = chosen === choice && !isPendingCategory;
+                            const isPending = isPendingCategory && pendingSelection?.value === choice;
                             return (
-                              <button type="button" key={cIdx} onClick={() => handleSelectMaterialChoice(group.category, choice)} className={`px-4 py-2 rounded-xl text-xs font-bold border shadow-sm transition-all duration-150 ${isChosen ? 'bg-slate-900 border-transparent text-white font-black' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}>{choice} {isChosen && "✓"}</button>
+                              <button type="button" key={cIdx} onClick={() => handleSelectMaterialChoice(group.category, choice)} className={`px-4 py-2 rounded-xl text-xs font-bold border shadow-sm transition-all duration-150 ${isPending ? 'bg-amber-500 border-amber-600 text-white ring-2 ring-amber-300 font-black' : isChosen ? 'bg-slate-900 border-transparent text-white font-black' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}>{choice} {isChosen && "✓"} {isPending && "←"}</button>
                             );
                           })}
                         </div>
+                        {isPendingCategory && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <button type="button" onClick={confirmSelection} className="px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wide bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-sm">Confirm Selection</button>
+                            <button type="button" onClick={() => setPendingSelection(null)} className="px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors">Cancel</button>
+                            <span className="text-[10px] text-amber-600 font-medium">Tap confirm to lock in your choice</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
