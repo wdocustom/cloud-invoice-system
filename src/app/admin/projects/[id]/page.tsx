@@ -254,11 +254,13 @@ export default function ProjectWorkspaceControlHub() {
     saveTimerRef.current = setTimeout(() => saveGlobalScopeItemChanges(items), 600);
   }, [projectId]);
 
-  async function saveSelectionOptions(updatedOptions: any[]) {
-    setProject((prev: any) => ({ ...prev, homeowner_options: updatedOptions }));
+  async function saveSelectionOptions(updatedOptions: any[], updatedSelections?: Record<string, string>) {
+    const patch: any = { homeowner_options: updatedOptions };
+    if (updatedSelections !== undefined) patch.homeowner_selections = updatedSelections;
+    setProject((prev: any) => ({ ...prev, ...patch }));
     const { error } = await supabase
       .from("invoices")
-      .update({ homeowner_options: updatedOptions })
+      .update(patch)
       .eq("id", projectId);
     if (error) {
       toast("Failed to save selections: " + error.message, "error");
@@ -1223,10 +1225,9 @@ export default function ProjectWorkspaceControlHub() {
                               onClick={() => {
                                 if (!confirm(`Delete "${group.category}" and all its options?`)) return;
                                 const updated = project.homeowner_options.filter((_: any, i: number) => i !== gIdx);
-                                const updatedSelections = { ...(project.homeowner_selections || {}) };
-                                delete updatedSelections[group.category];
-                                setProject((prev: any) => ({ ...prev, homeowner_options: updated, homeowner_selections: updatedSelections }));
-                                supabase.from("invoices").update({ homeowner_options: updated, homeowner_selections: updatedSelections }).eq("id", projectId);
+                                const clearedSelections = { ...(project.homeowner_selections || {}) };
+                                delete clearedSelections[group.category];
+                                saveSelectionOptions(updated, clearedSelections);
                               }}
                               className="text-[9px] font-black text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition"
                             >
@@ -1262,12 +1263,12 @@ export default function ProjectWorkspaceControlHub() {
                                       choices: updated[gIdx].choices.filter((_: string, ci: number) => ci !== cIdx)
                                     };
                                     if (isChosen) {
-                                      const updatedSelections = { ...(project.homeowner_selections || {}) };
-                                      delete updatedSelections[group.category];
-                                      setProject((prev: any) => ({ ...prev, homeowner_selections: updatedSelections }));
-                                      supabase.from("invoices").update({ homeowner_selections: updatedSelections }).eq("id", projectId);
+                                      const clearedSelections = { ...(project.homeowner_selections || {}) };
+                                      delete clearedSelections[group.category];
+                                      saveSelectionOptions(updated, clearedSelections);
+                                    } else {
+                                      saveSelectionOptions(updated);
                                     }
-                                    saveSelectionOptions(updated);
                                   }}
                                   className={`ml-0.5 text-[10px] font-black transition opacity-0 group-hover/choice:opacity-100 ${
                                     isChosen ? 'text-white/50 hover:text-white' : 'text-slate-300 hover:text-red-500'
