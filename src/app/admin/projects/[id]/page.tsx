@@ -54,6 +54,13 @@ export default function ProjectWorkspaceControlHub() {
   // Payment Reminder States
   const [sendingReminderIdx, setSendingReminderIdx] = useState<number | null>(null);
 
+  // Selections Manager States
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [addingChoiceIdx, setAddingChoiceIdx] = useState<number | null>(null);
+  const [newChoiceText, setNewChoiceText] = useState("");
+  const [editingCategoryIdx, setEditingCategoryIdx] = useState<number | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState("");
+
   // Change Order States
   const [coDescription, setCoDescription] = useState("");
   const [coItems, setCoItems] = useState<any[]>([]);
@@ -246,6 +253,18 @@ export default function ProjectWorkspaceControlHub() {
     flushPendingDebounce();
     saveTimerRef.current = setTimeout(() => saveGlobalScopeItemChanges(items), 600);
   }, [projectId]);
+
+  async function saveSelectionOptions(updatedOptions: any[]) {
+    setProject((prev: any) => ({ ...prev, homeowner_options: updatedOptions }));
+    const { error } = await supabase
+      .from("invoices")
+      .update({ homeowner_options: updatedOptions })
+      .eq("id", projectId);
+    if (error) {
+      toast("Failed to save selections: " + error.message, "error");
+      fetchComprehensiveProjectData();
+    }
+  }
 
   const updateInlineItemField = (index: number, field: string, value: any) => {
     const currentItems = Array.isArray(project.items) ? [...project.items] : [];
@@ -1114,6 +1133,295 @@ export default function ProjectWorkspaceControlHub() {
 
         </div>
       </div>
+
+      {/* HOMEOWNER SELECTIONS MANAGER — post-approval */}
+      {project?.status === "approved" && (
+        <div className="max-w-7xl mx-auto px-4 pt-6">
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
+            <div className="border-b pb-3 border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                Homeowner Selections
+              </h3>
+              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Create selection categories for your client (tile, hardware, countertops, etc.). Each category can have multiple options for the homeowner to choose from in their Selections tab.</p>
+            </div>
+
+            {/* Existing Categories */}
+            {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
+              <div className="space-y-3">
+                {project.homeowner_options.map((group: any, gIdx: number) => {
+                  const chosen = project?.homeowner_selections?.[group.category];
+                  return (
+                    <div key={gIdx} className="border border-slate-200 rounded-2xl bg-slate-50/30 overflow-hidden">
+                      {/* Category Header */}
+                      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200/60">
+                        {editingCategoryIdx === gIdx ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <input
+                              type="text"
+                              value={editingCategoryName}
+                              onChange={(e) => setEditingCategoryName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && editingCategoryName.trim()) {
+                                  const updated = [...project.homeowner_options];
+                                  updated[gIdx] = { ...updated[gIdx], category: editingCategoryName.trim() };
+                                  saveSelectionOptions(updated);
+                                  setEditingCategoryIdx(null);
+                                }
+                              }}
+                              autoFocus
+                              className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!editingCategoryName.trim()) return;
+                                const updated = [...project.homeowner_options];
+                                updated[gIdx] = { ...updated[gIdx], category: editingCategoryName.trim() };
+                                saveSelectionOptions(updated);
+                                setEditingCategoryIdx(null);
+                              }}
+                              className="text-[9px] font-black text-emerald-600 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingCategoryIdx(null)}
+                              className="text-[9px] font-black text-slate-400 hover:text-slate-600 px-2 py-1.5 transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
+                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wide truncate">{group.category}</span>
+                            {chosen && (
+                              <span className="text-[8px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
+                                Selected: {chosen}
+                              </span>
+                            )}
+                            {!chosen && (
+                              <span className="text-[8px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
+                                Awaiting Selection
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {editingCategoryIdx !== gIdx && (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => { setEditingCategoryIdx(gIdx); setEditingCategoryName(group.category); }}
+                              className="text-[9px] font-black text-slate-400 hover:text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-100 transition"
+                            >
+                              Rename
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!confirm(`Delete "${group.category}" and all its options?`)) return;
+                                const updated = project.homeowner_options.filter((_: any, i: number) => i !== gIdx);
+                                const updatedSelections = { ...(project.homeowner_selections || {}) };
+                                delete updatedSelections[group.category];
+                                setProject((prev: any) => ({ ...prev, homeowner_options: updated, homeowner_selections: updatedSelections }));
+                                supabase.from("invoices").update({ homeowner_options: updated, homeowner_selections: updatedSelections }).eq("id", projectId);
+                              }}
+                              className="text-[9px] font-black text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Choices Grid */}
+                      <div className="px-4 py-3 space-y-2">
+                        <div className="flex flex-wrap gap-1.5">
+                          {group.choices.map((choice: string, cIdx: number) => {
+                            const isChosen = chosen === choice;
+                            return (
+                              <div
+                                key={cIdx}
+                                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all group/choice ${
+                                  isChosen
+                                    ? 'bg-slate-900 border-slate-900 text-white'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                                }`}
+                              >
+                                {isChosen && <span className="text-emerald-400 text-[10px]">✓</span>}
+                                <span>{choice}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!confirm(`Remove "${choice}" from ${group.category}?`)) return;
+                                    const updated = [...project.homeowner_options];
+                                    updated[gIdx] = {
+                                      ...updated[gIdx],
+                                      choices: updated[gIdx].choices.filter((_: string, ci: number) => ci !== cIdx)
+                                    };
+                                    if (isChosen) {
+                                      const updatedSelections = { ...(project.homeowner_selections || {}) };
+                                      delete updatedSelections[group.category];
+                                      setProject((prev: any) => ({ ...prev, homeowner_selections: updatedSelections }));
+                                      supabase.from("invoices").update({ homeowner_selections: updatedSelections }).eq("id", projectId);
+                                    }
+                                    saveSelectionOptions(updated);
+                                  }}
+                                  className={`ml-0.5 text-[10px] font-black transition opacity-0 group-hover/choice:opacity-100 ${
+                                    isChosen ? 'text-white/50 hover:text-white' : 'text-slate-300 hover:text-red-500'
+                                  }`}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Add Choice Input */}
+                        {addingChoiceIdx === gIdx ? (
+                          <div className="flex items-center gap-2 pt-1">
+                            <input
+                              type="text"
+                              value={newChoiceText}
+                              onChange={(e) => setNewChoiceText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && newChoiceText.trim()) {
+                                  const updated = [...project.homeowner_options];
+                                  updated[gIdx] = {
+                                    ...updated[gIdx],
+                                    choices: [...updated[gIdx].choices, newChoiceText.trim()]
+                                  };
+                                  saveSelectionOptions(updated);
+                                  setNewChoiceText("");
+                                }
+                                if (e.key === "Escape") {
+                                  setAddingChoiceIdx(null);
+                                  setNewChoiceText("");
+                                }
+                              }}
+                              autoFocus
+                              placeholder="Type option name and press Enter"
+                              className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!newChoiceText.trim()) return;
+                                const updated = [...project.homeowner_options];
+                                updated[gIdx] = {
+                                  ...updated[gIdx],
+                                  choices: [...updated[gIdx].choices, newChoiceText.trim()]
+                                };
+                                saveSelectionOptions(updated);
+                                setNewChoiceText("");
+                              }}
+                              className="bg-slate-900 text-white font-black text-[9px] px-3 py-2 rounded-lg uppercase tracking-wider transition hover:bg-slate-800 shrink-0"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setAddingChoiceIdx(null); setNewChoiceText(""); }}
+                              className="text-slate-400 hover:text-slate-600 font-black text-xs p-1 transition"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); }}
+                            className="text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition flex items-center gap-1 pt-1"
+                          >
+                            <span className="text-[11px]">+</span> Add Option
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {(!project?.homeowner_options || project.homeowner_options.length === 0) && (
+              <div className="text-center py-8 space-y-2">
+                <div className="w-12 h-12 rounded-full bg-slate-100 mx-auto flex items-center justify-center border border-slate-200">
+                  <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                </div>
+                <p className="text-xs font-bold text-slate-500">No selection categories yet</p>
+                <p className="text-[10px] text-slate-400">Add categories below for your client to choose finishes, materials, hardware, etc.</p>
+              </div>
+            )}
+
+            {/* Add New Category */}
+            <div className="border-t border-slate-100 pt-4">
+              <div className="flex items-end gap-3">
+                <div className="flex-1 space-y-1">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">New Selection Category</label>
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newCategoryName.trim()) {
+                        const current = Array.isArray(project?.homeowner_options) ? [...project.homeowner_options] : [];
+                        const duplicate = current.some((g: any) => g.category.toLowerCase() === newCategoryName.trim().toLowerCase());
+                        if (duplicate) return toast("Category already exists.", "info");
+                        const updated = [...current, { category: newCategoryName.trim(), choices: [] }];
+                        saveSelectionOptions(updated);
+                        setNewCategoryName("");
+                        toast(`"${newCategoryName.trim()}" added — now add options for the homeowner to choose from.`, "success");
+                      }
+                    }}
+                    placeholder="e.g. Backsplash Tile, Cabinet Hardware, Countertop Material, Paint Color"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  />
+                </div>
+                <button
+                  type="button"
+                  disabled={!newCategoryName.trim()}
+                  onClick={() => {
+                    if (!newCategoryName.trim()) return;
+                    const current = Array.isArray(project?.homeowner_options) ? [...project.homeowner_options] : [];
+                    const duplicate = current.some((g: any) => g.category.toLowerCase() === newCategoryName.trim().toLowerCase());
+                    if (duplicate) return toast("Category already exists.", "info");
+                    const updated = [...current, { category: newCategoryName.trim(), choices: [] }];
+                    saveSelectionOptions(updated);
+                    setNewCategoryName("");
+                    toast(`"${newCategoryName.trim()}" added — now add options for the homeowner to choose from.`, "success");
+                  }}
+                  className="bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
+                >
+                  + Add Category
+                </button>
+              </div>
+            </div>
+
+            {/* Summary row */}
+            {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
+              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex items-center justify-between">
+                <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
+                  <span>{project.homeowner_options.length} {project.homeowner_options.length === 1 ? 'category' : 'categories'}</span>
+                  <span className="text-slate-300">|</span>
+                  <span>{project.homeowner_options.reduce((s: number, g: any) => s + (g.choices?.length || 0), 0)} total options</span>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] font-bold">
+                  <span className="text-emerald-600">
+                    {Object.keys(project?.homeowner_selections || {}).length} selected
+                  </span>
+                  <span className="text-amber-600">
+                    {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length} pending
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* FIELD OPERATIONS DAILY LOG WORKBENCH WITH CAMERA ATTACHMENTS RESTORED */}
       <div className="max-w-7xl mx-auto px-4 pt-6">
