@@ -365,7 +365,7 @@ export default function LandingPage() {
           <div className="bg-white/5 border border-white/10 rounded-2xl p-8 sm:p-10 backdrop-blur-sm max-w-md mx-auto text-left space-y-6">
             <div className="space-y-1">
               <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Phone</p>
-              <a href="tel:+14028850401" className="text-lg font-black text-white hover:text-luxury-gold transition-colors">(402) 885-0401</a>
+              <a href="tel:+14028198558" className="text-lg font-black text-white hover:text-luxury-gold transition-colors">(402) 819-8558</a>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Email</p>
@@ -376,7 +376,7 @@ export default function LandingPage() {
               <p className="text-lg font-black text-white">Omaha, NE</p>
             </div>
             <div className="pt-2">
-              <a href="tel:+14028850401" className="block w-full text-center bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98]">
+              <a href="tel:+14028198558" className="block w-full text-center bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98]">
                 Call for a Free Estimate
               </a>
             </div>
