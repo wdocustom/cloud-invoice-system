@@ -3,11 +3,28 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FBFBFA;
+  --foreground: #1A1A1A;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+}
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer base {
+  ::selection {
+    background-color: rgba(196, 162, 101, 0.15);
+    color: #1A1A1A;
+  }
 }
