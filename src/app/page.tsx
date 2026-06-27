@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const SERVICES = [
   {
@@ -99,6 +100,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8">
             {[
               ["Services", "services"],
+              ["Work", "work"],
               ["Process", "process"],
               ["About", "about"],
               ["Areas", "areas"],
@@ -124,7 +126,7 @@ export default function LandingPage() {
 
         {menuOpen && (
           <div className="md:hidden border-t border-brand-stone/40 bg-white px-5 py-4 space-y-3 animate-fade-in">
-            {[["Services", "services"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) => (
+            {[["Services", "services"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) => (
               <button key={id} type="button" onClick={() => scrollTo(id)} className="block w-full text-left text-sm font-bold text-brand-charcoal py-1.5">
                 {label}
               </button>
@@ -139,8 +141,8 @@ export default function LandingPage() {
       {/* ─── HERO ─── */}
       <section id="hero" className="relative min-h-[80vh] md:min-h-[90vh] flex items-end md:items-center overflow-hidden pt-16">
         <div className="absolute inset-0 bg-brand-charcoal">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-charcoal via-brand-charcoal/95 to-brand-charcoal/80" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:3rem_3rem]" />
+          <Image src="/images/kitchen-2.jpg" alt="WDO Custom kitchen remodel" fill className="object-cover opacity-20" priority sizes="100vw" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-charcoal via-brand-charcoal/90 to-brand-charcoal/70" />
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto px-5 py-12 md:py-0 w-full">
@@ -237,6 +239,48 @@ export default function LandingPage() {
                 <p className="text-sm text-brand-muted leading-relaxed">{s.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── PORTFOLIO ─── */}
+      <section id="work" className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center max-w-xl mx-auto mb-14">
+            <p className="text-[11px] font-black text-luxury-gold uppercase tracking-[0.2em] mb-3">Our Work</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-brand-charcoal tracking-tight">Recent Projects</h2>
+            <p className="text-sm text-brand-muted font-medium mt-3 leading-relaxed">
+              Real results from real Omaha homes. Every project managed start-to-finish by WDO Custom.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {[
+              { src: "/images/kitchen-1.jpg", alt: "Modern kitchen with marble waterfall island and black matte appliances" },
+              { src: "/images/kitchen-2.jpg", alt: "Open concept kitchen remodel with island and living area" },
+              { src: "/images/kitchen-3.jpg", alt: "Contemporary kitchen with walnut cabinetry and pendant lighting" },
+              { src: "/images/kitchen-4.jpg", alt: "High-end kitchen with quartz countertops and custom cabinetry" },
+            ].map((photo, i) => (
+              <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer shadow-card hover:shadow-elevated transition-shadow duration-300">
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <p className="text-xs text-brand-muted">
+              More photos on{" "}
+              <a href="https://www.instagram.com/wdocustom" target="_blank" rel="noopener noreferrer" className="text-luxury-ochre font-bold hover:underline">
+                @wdocustom
+              </a>
+            </p>
           </div>
         </div>
       </section>
@@ -403,7 +447,7 @@ export default function LandingPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-              {[["Services", "services"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) => (
+              {[["Services", "services"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) => (
                 <button key={id} type="button" onClick={() => scrollTo(id)} className="text-[11px] font-bold text-white/30 hover:text-white/60 uppercase tracking-wider transition-colors">
                   {label}
                 </button>

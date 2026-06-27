@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const PROJECT_TYPES = [
   { label: "Kitchen Remodel", icon: "🍳" },
@@ -111,8 +112,8 @@ export default function InstantEstimatePage() {
 
       {/* ─── HERO ─── */}
       <section className="pt-16 bg-brand-charcoal relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:3rem_3rem]" />
-        <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[70%] bg-gradient-to-bl from-luxury-gold/5 to-transparent rounded-full blur-[80px]" />
+        <Image src="/images/kitchen-1.jpg" alt="WDO Custom kitchen" fill className="object-cover opacity-15" priority sizes="100vw" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-charcoal via-brand-charcoal/95 to-brand-charcoal/80" />
 
         <div className="relative z-10 max-w-4xl mx-auto px-5 py-14 md:py-20">
           <div className="grid md:grid-cols-2 gap-10 items-center">
