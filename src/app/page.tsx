@@ -88,9 +88,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-stone/40 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           <button type="button" onClick={() => scrollTo("hero")} className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-brand-charcoal flex items-center justify-center shadow-sm">
-              <span className="text-white font-editorial font-black text-sm tracking-tight">W</span>
-            </div>
+            <Image src="/images/logo.png" alt="WDO Custom" width={36} height={36} className="rounded-lg shadow-sm" />
             <div className="leading-none">
               <span className="text-sm font-black tracking-tight text-brand-charcoal">WDO</span>
               <span className="text-sm font-medium tracking-tight text-brand-muted ml-1">Custom</span>
@@ -336,9 +334,7 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-8 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-brand-warm border-2 border-brand-stone flex items-center justify-center">
-                  <span className="font-editorial font-black text-lg text-brand-charcoal">SC</span>
-                </div>
+                <Image src="/images/logo.png" alt="WDO Custom" width={56} height={56} className="rounded-full border-2 border-brand-stone" />
                 <div>
                   <p className="text-sm font-black text-brand-charcoal">Skyler Camacho</p>
                   <p className="text-xs text-brand-muted font-medium">Owner &amp; General Contractor</p>
@@ -440,9 +436,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 py-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center">
-                <span className="text-white font-editorial font-black text-xs">W</span>
-              </div>
+              <Image src="/images/logo.png" alt="WDO Custom" width={28} height={28} className="rounded-md" />
               <span className="text-xs font-bold text-white/40">WDO Custom</span>
             </div>
 

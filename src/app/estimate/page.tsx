@@ -91,9 +91,7 @@ export default function InstantEstimatePage() {
       <nav className="fixed top-0 inset-x-0 z-50 bg-white/80 backdrop-blur-xl border-b border-brand-stone/40 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-charcoal flex items-center justify-center shadow-sm">
-              <span className="text-white font-editorial font-black text-sm tracking-tight">W</span>
-            </div>
+            <Image src="/images/logo.png" alt="WDO Custom" width={36} height={36} className="rounded-lg shadow-sm" />
             <div className="leading-none">
               <span className="text-sm font-black tracking-tight text-brand-charcoal">WDO</span>
               <span className="text-sm font-medium tracking-tight text-brand-muted ml-1">Custom</span>
@@ -549,9 +547,7 @@ export default function InstantEstimatePage() {
         <div className="max-w-6xl mx-auto px-5 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center">
-                <span className="text-white font-editorial font-black text-xs">W</span>
-              </div>
+              <Image src="/images/logo.png" alt="WDO Custom" width={28} height={28} className="rounded-md" />
               <span className="text-xs font-bold text-white/40">WDO Custom</span>
             </Link>
             <div className="flex items-center gap-6">
