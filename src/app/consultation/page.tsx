@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -32,6 +32,14 @@ function formatDateFull(d: Date) {
 }
 
 export default function ConsultationPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConsultationForm />
+    </Suspense>
+  );
+}
+
+function ConsultationForm() {
   const params = useSearchParams();
   const prefillName = params.get("name") || "";
   const prefillEmail = params.get("email") || "";

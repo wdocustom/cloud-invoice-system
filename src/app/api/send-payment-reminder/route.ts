@@ -3,10 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { buildPaymentReminderHtml } from "@/lib/email-templates";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -18,6 +20,7 @@ function formatMoney(n: number) {
 
 export async function POST(request: Request) {
   try {
+    const supabase = getSupabase();
     const { invoice_id, phase_name, phase_amount, total_remaining, base_url } =
       await request.json();
 
