@@ -1,0 +1,24 @@
+{
+  "description": "Average hourly rates for trades, used to augment AI estimation.",
+  "rates_by_trade": {
+    "GC": 85,
+    "Plumber": 110,
+    "Electrician": 105,
+    "HVAC": 95,
+    "Carpenter": 75,
+    "Painter": 55,
+    "Tile_Setter": 70,
+    "Drywall": 60,
+    "Roofer": 80,
+    "Concrete": 75
+  },
+  "regional_multipliers": {
+    "681": 0.95,
+    "680": 0.95,
+    "682": 0.90,
+    "683": 0.88,
+    "684": 0.85,
+    "685": 0.85,
+    "other": 1.00
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "description": "Average permit costs and requirements for common residential remodeling projects in Omaha, NE.",
+  "projects": {
+    "kitchen_remodel": {
+      "permits_required": ["Building (Structural changes)", "Electrical", "Mechanical (HVAC)", "Plumbing"],
+      "average_fee_range": [500, 2500]
+    },
+    "bathroom_remodel": {
+      "permits_required": ["Building (Structural changes)", "Electrical", "Plumbing"],
+      "average_fee_range": [300, 1500]
+    },
+    "basement_finishing": {
+      "permits_required": ["Building", "Electrical", "Plumbing (if adding bath)", "Mechanical (HVAC)", "Egress window"],
+      "average_fee_range": [400, 2000]
+    },
+    "whole_home_renovation": {
+      "permits_required": ["Building", "Electrical", "Plumbing", "Mechanical (HVAC)", "Demolition (if applicable)"],
+      "average_fee_range": [1500, 5000]
+    },
+    "room_addition": {
+      "permits_required": ["Building", "Electrical", "Plumbing (if applicable)", "Mechanical (HVAC)", "Foundation/Structural"],
+      "average_fee_range": [1200, 4000]
+    },
+    "outdoor_living": {
+      "permits_required": ["Building (deck/structure)", "Electrical (if wired)", "Plumbing (outdoor kitchen)"],
+      "average_fee_range": [200, 1500]
+    },
+    "flooring": {
+      "permits_required": ["None required for cosmetic flooring replacement"],
+      "average_fee_range": [0, 0]
+    },
+    "interior_painting": {
+      "permits_required": ["None required for interior painting"],
+      "average_fee_range": [0, 0]
+    },
+    "general_repair": {
+      "permits_required": ["None required for non-structural/non-utility fixes"],
+      "average_fee_range": [0, 0]
+    }
+  }
+}
