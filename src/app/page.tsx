@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 const SERVICES = [
   {
@@ -106,9 +107,9 @@ export default function LandingPage() {
                 {label}
               </button>
             ))}
-            <button type="button" onClick={() => scrollTo("contact")} className="bg-brand-charcoal text-white text-xs font-black tracking-wide uppercase px-5 py-2.5 rounded-lg hover:bg-brand-charcoal/90 transition-all shadow-sm">
+            <Link href="/estimate" className="bg-brand-charcoal text-white text-xs font-black tracking-wide uppercase px-5 py-2.5 rounded-lg hover:bg-brand-charcoal/90 transition-all shadow-sm">
               Free Estimate
-            </button>
+            </Link>
           </div>
 
           <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 -mr-2 text-brand-charcoal">
@@ -128,6 +129,9 @@ export default function LandingPage() {
                 {label}
               </button>
             ))}
+            <Link href="/estimate" className="block w-full text-left text-sm font-black text-luxury-ochre py-1.5" onClick={() => setMenuOpen(false)}>
+              Free Instant Estimate
+            </Link>
           </div>
         )}
       </nav>
@@ -160,9 +164,9 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <button type="button" onClick={() => scrollTo("contact")} className="bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98]">
+              <Link href="/estimate" className="bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98] text-center">
                 Get a Free Estimate
-              </button>
+              </Link>
               <button type="button" onClick={() => scrollTo("services")} className="border border-white/15 hover:border-white/30 text-white/70 hover:text-white font-bold text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all">
                 View Services
               </button>
@@ -376,8 +380,11 @@ export default function LandingPage() {
               <p className="text-lg font-black text-white">Omaha, NE</p>
             </div>
             <div className="pt-2">
-              <a href="tel:+14028198558" className="block w-full text-center bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98]">
-                Call for a Free Estimate
+              <Link href="/estimate" className="block w-full text-center bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98]">
+                Get an Instant Estimate
+              </Link>
+              <a href="tel:+14028198558" className="block w-full text-center border border-white/15 hover:border-white/30 text-white/70 hover:text-white font-bold text-xs tracking-wide uppercase px-8 py-3 rounded-xl transition-all mt-2">
+                Or Call (402) 819-8558
               </a>
             </div>
           </div>
