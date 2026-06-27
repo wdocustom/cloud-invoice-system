@@ -19,12 +19,17 @@ export const metadata: Metadata = {
   title: "WDO Custom | Omaha's Premier Remodeling Contractor",
   description: "Licensed Nebraska general contractor specializing in kitchen, bathroom, basement, and whole-home remodeling across the Omaha metro. Free estimates, transparent pricing, and craftsmanship guaranteed.",
   keywords: ["Omaha remodeling", "kitchen remodel Omaha", "bathroom remodel Omaha", "basement finishing Omaha", "general contractor Omaha NE", "home renovation Omaha", "WDO Custom"],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
   openGraph: {
     title: "WDO Custom | Omaha's Premier Remodeling Contractor",
     description: "Licensed Nebraska general contractor. Kitchen, bathroom, basement, and whole-home remodeling with transparent pricing and craftsmanship guaranteed.",
     type: "website",
     locale: "en_US",
     siteName: "WDO Custom",
+    images: [{ url: "/images/og-image.png", width: 1024, height: 1024, alt: "WDO Custom Logo" }],
   },
 };
 
