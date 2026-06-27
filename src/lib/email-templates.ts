@@ -505,6 +505,90 @@ export function buildMessageNotificationHtml(data: ContractorMessageNotification
 </html>`;
 }
 
+// ─── Lead Notification (estimate page → Skyler) ───
+
+interface LeadNotificationData {
+  name: string;
+  phone: string;
+  projectType: string;
+  scopeLevel: string;
+  size: string;
+  zip: string;
+  description: string;
+  estimateLow: string;
+  estimateHigh: string;
+  timeline: string;
+}
+
+export function buildLeadNotificationHtml(data: LeadNotificationData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
+        <td align="right"><span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">New Lead</span></td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      Someone just used the instant estimate tool and wants you to follow up.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
+      <tr><td style="padding:24px 28px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 12px;">Contact Info</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Name:</strong> ${data.name || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Phone:</strong> ${data.phone || "Not provided"}</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#ffffff;border:1px solid #E8E4DF;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 12px;">Project Details</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Type:</strong> ${data.projectType}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Finish Level:</strong> ${data.scopeLevel}</td></tr>
+          ${data.size ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Size:</strong> ${data.size} sq ft</td></tr>` : ""}
+          ${data.zip ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">ZIP:</strong> ${data.zip}</td></tr>` : ""}
+          <tr><td style="padding:8px 0 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Description:</strong></td></tr>
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;font-style:italic;">"${data.description}"</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 8px;">AI Estimate Given</p>
+        <p style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${data.estimateLow} — $${data.estimateHigh}</p>
+        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Timeline: ${data.timeline}</p>` : ""}
+      </td></tr>
+    </table>
+
+    <p style="font-size:12px;color:#9C9590;margin:28px 0 0;">This lead came from wdocustom.com/estimate</p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">WDO Custom &middot; Automated Notification</p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
 // ─── Payment Reminder (manual, from contractor) ───
 
 export function buildPaymentReminderHtml(data: PaymentReminderData): string {

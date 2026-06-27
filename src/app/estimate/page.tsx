@@ -76,6 +76,26 @@ export default function InstantEstimatePage() {
 
       const data = await res.json();
       setResult(data);
+
+      if (name.trim() || phone.trim()) {
+        fetch("/api/send-lead-notification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name.trim(),
+            phone: phone.trim(),
+            projectType,
+            scopeLevel,
+            size,
+            zip,
+            description,
+            estimateLow: data.total_projected_low?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
+            estimateHigh: data.total_projected_high?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
+            timeline: data.timeline_weeks ? `${data.timeline_weeks} weeks` : "",
+          }),
+        }).catch(() => {});
+      }
+
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
