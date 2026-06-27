@@ -34,6 +34,7 @@ interface EstimateResult {
   total_projected_high: number;
   timeline_weeks: string;
   disclaimers: string[];
+  token?: string;
 }
 
 function fmt(n: number) {
@@ -67,7 +68,7 @@ export default function InstantEstimatePage() {
       const res = await fetch("/api/instant-estimate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectType, scopeLevel, size, zip, description }),
+        body: JSON.stringify({ projectType, scopeLevel, size, zip, description, name: name.trim(), email: email.trim(), phone: phone.trim() }),
       });
 
       if (!res.ok) {
@@ -94,6 +95,7 @@ export default function InstantEstimatePage() {
             estimateLow: data.total_projected_low?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
             estimateHigh: data.total_projected_high?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
             timeline: data.timeline_weeks ? `${data.timeline_weeks} weeks` : "",
+            token: data.token || "",
           }),
         }).catch(() => {});
       }
@@ -445,6 +447,21 @@ export default function InstantEstimatePage() {
                   ))}
                 </ul>
               </div>
+
+              {/* Bookmark Link */}
+              {result.token && (
+                <div className="px-6 py-3 bg-blue-50/60 border-t border-blue-100/60 flex items-center justify-center gap-2">
+                  <svg className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                  </svg>
+                  <p className="text-[11px] text-blue-700">
+                    <span className="font-medium">Bookmark your estimate:</span>{" "}
+                    <Link href={`/estimate/${result.token}`} className="font-bold underline underline-offset-2 hover:text-blue-900">
+                      wdocustom.com/estimate/{result.token}
+                    </Link>
+                  </p>
+                </div>
+              )}
 
               {/* Conversion CTA */}
               <div className="px-6 py-8 bg-white border-t border-brand-stone/15 text-center">

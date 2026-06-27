@@ -9,7 +9,7 @@ const resend = process.env.RESEND_API_KEY
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, projectType, scopeLevel, size, zip, description, estimateLow, estimateHigh, timeline } = body;
+    const { name, email, phone, projectType, scopeLevel, size, zip, description, estimateLow, estimateHigh, timeline, token } = body;
 
     if (!name && !phone && !email) {
       return NextResponse.json({ error: "No contact info provided" }, { status: 400 });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import laborRates from "@/lib/labor-rates.json";
 import permitFees from "@/lib/permit-fees.json";
 
@@ -8,6 +9,22 @@ function getRegionalMultiplier(zip: string): number {
   return (laborRates.regional_multipliers as Record<string, number>)[prefix] ?? laborRates.regional_multipliers.other;
 }
 
+function generateToken(): string {
+  const chars = "abcdefghjkmnpqrstuvwxyz23456789";
+  let token = "";
+  for (let i = 0; i < 12; i++) {
+    token += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return token;
+}
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -15,7 +32,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "AI service not configured." }, { status: 500 });
     }
 
-    const { projectType, scopeLevel, size, zip, description } = await request.json();
+    const { projectType, scopeLevel, size, zip, description, name, email, phone } = await request.json();
 
     if (!description || !projectType) {
       return NextResponse.json({ error: "Project type and description are required." }, { status: 400 });
@@ -118,7 +135,27 @@ Respond ONLY with raw JSON matching this exact schema:
     }
 
     const parsed = JSON.parse(rawText);
-    return NextResponse.json(parsed);
+
+    const token = generateToken();
+    try {
+      const supabase = getSupabase();
+      await supabase.from("estimates").insert({
+        token,
+        name: name || null,
+        email: email || null,
+        phone: phone || null,
+        project_type: projectType,
+        scope_level: scopeLevel || "mid",
+        size: size || null,
+        zip: zip || null,
+        description,
+        estimate_data: parsed,
+      });
+    } catch (dbErr) {
+      console.error("Failed to save estimate to DB (non-blocking):", dbErr);
+    }
+
+    return NextResponse.json({ ...parsed, token });
   } catch (error: any) {
     console.error("Instant estimate error:", error);
     return NextResponse.json({ error: "Estimate generation failed. Please try again." }, { status: 500 });
