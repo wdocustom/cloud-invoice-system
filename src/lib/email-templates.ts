@@ -924,6 +924,117 @@ export function buildEstimateConfirmationHtml(data: EstimateConfirmationData): s
 </html>`;
 }
 
+// ─── Estimate Follow-Up Reminder (to homeowner) ───
+
+interface EstimateReminderData {
+  name: string;
+  projectType: string;
+  estimateLow: string;
+  estimateHigh: string;
+  estimateUrl: string;
+  consultationUrl: string;
+}
+
+export function buildEstimateReminderHtml(data: EstimateReminderData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:28px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td>
+          <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">WDO Custom</span>
+          <br>
+          <span style="color:#9C9590;font-size:12px;font-weight:500;">General Contractor &middot; Omaha, NE</span>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.name.split(" ")[0]},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      Just checking in &mdash; you recently got a ballpark estimate for your <strong style="color:#1A1A1A;">${data.projectType.toLowerCase()}</strong> project, and we&rsquo;d love to help you take the next step.
+    </p>
+
+    <!-- Estimate Recap Card -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:16px;overflow:hidden;">
+      <tr><td style="padding:20px 24px;text-align:center;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#8B6914;margin:0 0 4px;">Your Estimate</p>
+        <p style="font-size:26px;font-weight:700;color:#1A1A1A;margin:0;">$${data.estimateLow} &mdash; $${data.estimateHigh}</p>
+        <p style="font-size:12px;color:#9C9590;margin:6px 0 0;">${data.projectType}</p>
+      </td></tr>
+    </table>
+
+    <!-- Urgency Note -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#FEF3C7;border:1px solid #FCD34D;border-radius:12px;">
+      <tr><td style="padding:16px 20px;">
+        <p style="font-size:12px;color:#92400E;margin:0;line-height:1.6;">
+          <strong>Our schedule fills up quickly</strong> &mdash; especially heading into the busy season. Locking in a consultation now ensures we can hold a spot for your project and protect today&rsquo;s pricing.
+        </p>
+      </td></tr>
+    </table>
+
+    <!-- Steps -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;background-color:#F5F3F0;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:12px;font-weight:600;color:#1A1A1A;margin:0 0 12px;">Here&rsquo;s how it works:</p>
+        <table cellpadding="0" cellspacing="0">
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;">
+            <span style="display:inline-block;width:20px;height:20px;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;text-align:center;line-height:20px;border-radius:50%;margin-right:10px;">1</span>
+            <strong style="color:#1A1A1A;">Pick a day &amp; time</strong> that works for you (takes 30 seconds)
+          </td></tr>
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;">
+            <span style="display:inline-block;width:20px;height:20px;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;text-align:center;line-height:20px;border-radius:50%;margin-right:10px;">2</span>
+            Skyler visits your home &mdash; <strong style="color:#1A1A1A;">free, no obligation</strong>
+          </td></tr>
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;">
+            <span style="display:inline-block;width:20px;height:20px;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;text-align:center;line-height:20px;border-radius:50%;margin-right:10px;">3</span>
+            Receive a <strong style="color:#1A1A1A;">detailed, line-itemized proposal</strong> within 48 hours
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <!-- CTA -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+      <tr><td align="center">
+        <a href="${data.consultationUrl}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
+          Schedule Free Consultation
+        </a>
+      </td></tr>
+      <tr><td align="center" style="padding-top:12px;">
+        <a href="${data.estimateUrl}" style="font-size:11px;color:#9C9590;text-decoration:underline;">View your full estimate</a>
+        <span style="font-size:11px;color:#C0BAB4;margin:0 6px;">&middot;</span>
+        <a href="tel:+14028198558" style="font-size:11px;color:#9C9590;text-decoration:underline;">Call (402) 819-8558</a>
+      </td></tr>
+    </table>
+
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 6px;">
+      We&rsquo;d love the opportunity to earn your trust. No pressure, no sales pitch &mdash; just honest advice from a licensed contractor.
+    </p>
+
+    <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>
+    <p style="font-size:12px;color:#9C9590;margin:0;">WDO Custom &middot; 402-819-8558 &middot; skyler@wdocustom.com</p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;line-height:1.6;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
 // ─── Payment Reminder (manual, from contractor) ───
 
 export function buildPaymentReminderHtml(data: PaymentReminderData): string {
