@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import laborRates from "@/lib/labor-rates.json";
+import permitFees from "@/lib/permit-fees.json";
 
 function getRegionalMultiplier(zip: string): number {
   if (!zip || zip.length < 3) return laborRates.regional_multipliers.other;
@@ -31,6 +32,12 @@ export async function POST(request: Request) {
       .map(([trade, rate]) => `${trade}: $${Math.round(rate * multiplier)}/hr`)
       .join(", ");
 
+    const permitKey = projectType.toLowerCase().replace(/[\s\/&]+/g, "_").replace(/remodel$/, "remodel").replace(/finishing$/, "finishing");
+    const permitMatch = (permitFees.projects as Record<string, any>)[permitKey] || null;
+    const permitContext = permitMatch
+      ? `Permits likely required: ${permitMatch.permits_required.join(", ")}. Typical permit fee range: $${permitMatch.average_fee_range[0]}-$${permitMatch.average_fee_range[1]}.`
+      : "Permit requirements vary — include a reasonable permit allowance based on project scope.";
+
     const prompt = `You are an elite residential remodeling cost estimator based in Omaha, NE with 20+ years of experience.
 
 A homeowner is requesting a rough ballpark estimate for their project.
@@ -44,6 +51,9 @@ PROJECT DETAILS:
 
 REFERENCE LABOR RATES (adjusted for region, multiplier ${multiplier}x):
 ${ratesContext}
+
+PERMIT REFERENCE:
+${permitContext}
 
 YOUR TASK:
 Generate a realistic rough estimate broken into line items. This is for initial budgeting only — not a binding quote.
