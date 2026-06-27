@@ -46,6 +46,7 @@ export default function InstantEstimatePage() {
   const [size, setSize] = useState("");
   const [zip, setZip] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,12 +78,13 @@ export default function InstantEstimatePage() {
       const data = await res.json();
       setResult(data);
 
-      if (name.trim() || phone.trim()) {
+      if (name.trim() || email.trim() || phone.trim()) {
         fetch("/api/send-lead-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: name.trim(),
+            email: email.trim(),
             phone: phone.trim(),
             projectType,
             scopeLevel,
@@ -307,13 +309,20 @@ export default function InstantEstimatePage() {
                 <span className="w-6 h-6 rounded-full bg-luxury-gold/20 text-luxury-ochre text-[10px] font-black flex items-center justify-center">✦</span>
                 <label className="text-xs font-black text-brand-charcoal uppercase tracking-widest">Want us to follow up? <span className="normal-case font-medium text-brand-muted">(Optional)</span></label>
               </div>
-              <p className="text-[11px] text-brand-muted mb-3 ml-8">Leave your info and Skyler will personally reach out to discuss your project.</p>
-              <div className="grid sm:grid-cols-2 gap-3 ml-8">
+              <p className="text-[11px] text-brand-muted mb-3 ml-8">Leave your info and we&apos;ll email your estimate summary with next steps to schedule a free consultation.</p>
+              <div className="grid sm:grid-cols-3 gap-3 ml-8">
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
+                  className="w-full px-4 py-2.5 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-charcoal/40 focus:ring-1 focus:ring-brand-charcoal/10 transition"
+                />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
                   className="w-full px-4 py-2.5 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-charcoal/40 focus:ring-1 focus:ring-brand-charcoal/10 transition"
                 />
                 <input
@@ -444,17 +453,17 @@ export default function InstantEstimatePage() {
                   This ballpark gets you started. A free on-site walkthrough with Skyler gets you an exact, line-itemized quote — typically within 48 hours.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <a
-                    href="tel:+14028198558"
+                  <Link
+                    href={`/consultation?${new URLSearchParams({ ...(name ? { name } : {}), ...(email ? { email } : {}), ...(phone ? { phone } : {}), ...(projectType ? { project: projectType } : {}) }).toString()}`}
                     className="w-full sm:w-auto bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-10 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98] text-center"
                   >
-                    Call Skyler — (402) 819-8558
-                  </a>
+                    Schedule Free Consultation
+                  </Link>
                   <a
-                    href="mailto:skyler@wdocustom.com"
+                    href="tel:+14028198558"
                     className="w-full sm:w-auto border border-brand-stone/50 hover:border-brand-charcoal/30 text-brand-charcoal font-bold text-sm tracking-wide uppercase px-10 py-4 rounded-xl transition-all text-center"
                   >
-                    Email Us
+                    Call Skyler — (402) 819-8558
                   </a>
                 </div>
               </div>
