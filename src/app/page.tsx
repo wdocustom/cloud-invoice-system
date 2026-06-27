@@ -423,6 +423,9 @@ export default function LandingPage() {
               <Link href="/estimate" className="block w-full text-center bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98]">
                 Get an Instant Estimate
               </Link>
+              <Link href="/consultation" className="block w-full text-center border border-luxury-gold/40 hover:border-luxury-gold/70 text-luxury-gold hover:text-luxury-champagne font-bold text-xs tracking-wide uppercase px-8 py-3 rounded-xl transition-all mt-2">
+                Schedule Free Consultation
+              </Link>
               <a href="tel:+14028198558" className="block w-full text-center border border-white/15 hover:border-white/30 text-white/70 hover:text-white font-bold text-xs tracking-wide uppercase px-8 py-3 rounded-xl transition-all mt-2">
                 Or Call (402) 819-8558
               </a>

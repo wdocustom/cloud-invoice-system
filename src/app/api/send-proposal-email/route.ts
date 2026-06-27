@@ -4,15 +4,20 @@ import { Resend } from "resend";
 import { generateProposalPdfBuffer } from "@/lib/generate-pdf";
 import { buildProposalEmailHtml } from "@/lib/email-templates";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 export async function POST(request: Request) {
   try {
+    const supabase = getSupabase();
     const { invoice_id, base_url } = await request.json();
 
     if (!invoice_id) {
@@ -63,6 +68,10 @@ export async function POST(request: Request) {
     });
 
     const projectLabel = invoice.project_title || invoice.job_address || "Your Project";
+
+    if (!resend) {
+      return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
+    }
 
     const { error: sendError } = await resend.emails.send({
       from: "WDO Custom <proposals@wdocustom.com>",
