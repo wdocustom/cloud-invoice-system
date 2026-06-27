@@ -137,14 +137,14 @@ export default function LandingPage() {
       </nav>
 
       {/* ─── HERO ─── */}
-      <section id="hero" className="relative min-h-[90vh] flex items-center overflow-hidden pt-16">
+      <section id="hero" className="relative min-h-[80vh] md:min-h-[90vh] flex items-end md:items-center overflow-hidden pt-16">
         <div className="absolute inset-0 bg-brand-charcoal">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-charcoal via-brand-charcoal/95 to-brand-charcoal/80" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:3rem_3rem]" />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-5 py-20 md:py-0 w-full">
-          <div className="max-w-2xl space-y-8">
+        <div className="relative z-10 max-w-6xl mx-auto px-5 py-12 md:py-0 w-full">
+          <div className="max-w-2xl space-y-6 md:space-y-8">
             <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-luxury-gold" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">Licensed Nebraska General Contractor</span>
