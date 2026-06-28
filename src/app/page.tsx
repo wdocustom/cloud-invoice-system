@@ -6,6 +6,7 @@ import Image from "next/image";
 const SERVICES = [
   {
     title: "Kitchen Remodeling",
+    href: "/kitchens",
     desc: "Complete kitchen transformations — custom cabinetry, countertops, backsplash, lighting, and layout redesign.",
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -98,15 +99,22 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8">
             {[
               ["Services", "services"],
+              ["Kitchens", "/kitchens"],
               ["Work", "work"],
               ["Process", "process"],
               ["About", "about"],
               ["Areas", "areas"],
-            ].map(([label, id]) => (
-              <button key={id} type="button" onClick={() => scrollTo(id)} className="text-xs font-bold text-brand-muted hover:text-brand-charcoal tracking-wide uppercase transition-colors">
-                {label}
-              </button>
-            ))}
+            ].map(([label, id]) =>
+              id.startsWith("/") ? (
+                <Link key={id} href={id} className="text-xs font-bold text-brand-muted hover:text-brand-charcoal tracking-wide uppercase transition-colors">
+                  {label}
+                </Link>
+              ) : (
+                <button key={id} type="button" onClick={() => scrollTo(id)} className="text-xs font-bold text-brand-muted hover:text-brand-charcoal tracking-wide uppercase transition-colors">
+                  {label}
+                </button>
+              )
+            )}
             <Link href="/estimate" className="bg-brand-charcoal text-white text-xs font-black tracking-wide uppercase px-5 py-2.5 rounded-lg hover:bg-brand-charcoal/90 transition-all shadow-sm">
               Free Estimate
             </Link>
@@ -124,11 +132,17 @@ export default function LandingPage() {
 
         {menuOpen && (
           <div className="md:hidden border-t border-brand-stone/40 bg-white px-5 py-4 space-y-3 animate-fade-in">
-            {[["Services", "services"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) => (
-              <button key={id} type="button" onClick={() => scrollTo(id)} className="block w-full text-left text-sm font-bold text-brand-charcoal py-1.5">
-                {label}
-              </button>
-            ))}
+            {[["Services", "services"], ["Kitchens", "/kitchens"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) =>
+              id.startsWith("/") ? (
+                <Link key={id} href={id} className="block w-full text-left text-sm font-bold text-brand-charcoal py-1.5" onClick={() => setMenuOpen(false)}>
+                  {label}
+                </Link>
+              ) : (
+                <button key={id} type="button" onClick={() => scrollTo(id)} className="block w-full text-left text-sm font-bold text-brand-charcoal py-1.5">
+                  {label}
+                </button>
+              )
+            )}
             <Link href="/estimate" className="block w-full text-left text-sm font-black text-luxury-ochre py-1.5" onClick={() => setMenuOpen(false)}>
               Free Instant Estimate
             </Link>
@@ -228,15 +242,19 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {SERVICES.map((s) => (
-              <div key={s.title} className="group bg-white border border-brand-stone/40 rounded-2xl p-7 hover:shadow-elevated hover:border-brand-stone/60 transition-all duration-300">
-                <div className="w-12 h-12 rounded-xl bg-brand-warm flex items-center justify-center text-brand-charcoal mb-5 group-hover:bg-luxury-soft group-hover:text-luxury-ochre transition-colors">
-                  {s.icon}
+            {SERVICES.map((s) => {
+              const card = (
+                <div className="group bg-white border border-brand-stone/40 rounded-2xl p-7 hover:shadow-elevated hover:border-brand-stone/60 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-brand-warm flex items-center justify-center text-brand-charcoal mb-5 group-hover:bg-luxury-soft group-hover:text-luxury-ochre transition-colors">
+                    {s.icon}
+                  </div>
+                  <h3 className="text-base font-black text-brand-charcoal mb-2 tracking-tight">{s.title}</h3>
+                  <p className="text-sm text-brand-muted leading-relaxed">{s.desc}</p>
+                  {"href" in s && <span className="inline-block mt-3 text-xs font-bold text-luxury-ochre uppercase tracking-wide">Learn More &rarr;</span>}
                 </div>
-                <h3 className="text-base font-black text-brand-charcoal mb-2 tracking-tight">{s.title}</h3>
-                <p className="text-sm text-brand-muted leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
+              );
+              return "href" in s ? <Link key={s.title} href={(s as any).href}>{card}</Link> : <div key={s.title}>{card}</div>;
+            })}
           </div>
         </div>
       </section>
@@ -444,11 +462,17 @@ export default function LandingPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-              {[["Services", "services"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) => (
-                <button key={id} type="button" onClick={() => scrollTo(id)} className="text-[11px] font-bold text-white/30 hover:text-white/60 uppercase tracking-wider transition-colors">
-                  {label}
-                </button>
-              ))}
+              {[["Services", "services"], ["Kitchens", "/kitchens"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) =>
+                id.startsWith("/") ? (
+                  <Link key={id} href={id} className="text-[11px] font-bold text-white/30 hover:text-white/60 uppercase tracking-wider transition-colors">
+                    {label}
+                  </Link>
+                ) : (
+                  <button key={id} type="button" onClick={() => scrollTo(id)} className="text-[11px] font-bold text-white/30 hover:text-white/60 uppercase tracking-wider transition-colors">
+                    {label}
+                  </button>
+                )
+              )}
             </div>
 
             <div className="flex items-center gap-4">
