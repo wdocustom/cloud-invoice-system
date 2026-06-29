@@ -100,6 +100,7 @@ export default function LandingPage() {
             {[
               ["Services", "services"],
               ["Kitchens", "/kitchens"],
+              ["Blog", "/blog"],
               ["Work", "work"],
               ["Process", "process"],
               ["About", "about"],
@@ -132,7 +133,7 @@ export default function LandingPage() {
 
         {menuOpen && (
           <div className="md:hidden border-t border-brand-stone/40 bg-white px-5 py-4 space-y-3 animate-fade-in">
-            {[["Services", "services"], ["Kitchens", "/kitchens"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) =>
+            {[["Services", "services"], ["Kitchens", "/kitchens"], ["Blog", "/blog"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) =>
               id.startsWith("/") ? (
                 <Link key={id} href={id} className="block w-full text-left text-sm font-bold text-brand-charcoal py-1.5" onClick={() => setMenuOpen(false)}>
                   {label}
@@ -462,7 +463,7 @@ export default function LandingPage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-              {[["Services", "services"], ["Kitchens", "/kitchens"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) =>
+              {[["Services", "services"], ["Kitchens", "/kitchens"], ["Blog", "/blog"], ["Work", "work"], ["Process", "process"], ["About", "about"], ["Areas", "areas"], ["Contact", "contact"]].map(([label, id]) =>
                 id.startsWith("/") ? (
                   <Link key={id} href={id} className="text-[11px] font-bold text-white/30 hover:text-white/60 uppercase tracking-wider transition-colors">
                     {label}
