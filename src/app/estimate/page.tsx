@@ -41,6 +41,59 @@ function fmt(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
 
+interface ROIData {
+  roiLow: number;
+  roiHigh: number;
+  source: string;
+  insight: string;
+}
+
+const ROI_DATA: Record<string, ROIData> = {
+  "Kitchen Remodel": {
+    roiLow: 71,
+    roiHigh: 81,
+    source: "2024 Remodeling Cost vs. Value Report — Midwest Region",
+    insight: "Kitchen remodels consistently rank as the #1 value-adding renovation in the Omaha metro. Minor kitchen remodels average 81% ROI; major remodels with custom cabinetry average 71-75%. Buyers in Elkhorn, West Omaha, and Papillion pay premiums for updated kitchens.",
+  },
+  "Bathroom Remodel": {
+    roiLow: 56,
+    roiHigh: 68,
+    source: "2024 Remodeling Cost vs. Value Report — Midwest Region",
+    insight: "Midrange bathroom remodels return 60-68% at resale in the Omaha market. Upscale remodels (walk-in showers, heated floors) average 56%. Even at the low end, a modern bathroom eliminates the #1 objection buyers have when touring older Omaha homes.",
+  },
+  "Basement Finishing": {
+    roiLow: 70,
+    roiHigh: 75,
+    source: "NAR 2024 Remodeling Impact Report — Midwest",
+    insight: "Finished basements return 70-75% in the Omaha metro — one of the highest ROIs for the cost. Nebraska homes have full basements that are essentially free square footage waiting to be unlocked. Finished below-grade space typically appraises at 50-60% of above-grade value but costs a fraction to build.",
+  },
+  "Room Addition": {
+    roiLow: 52,
+    roiHigh: 65,
+    source: "2024 Remodeling Cost vs. Value Report — Midwest Region",
+    insight: "Room additions return 52-65% depending on scope. Primary suite additions trend toward the higher end in Omaha's competitive West and Southwest submarkets. The value isn't just resale — it's avoiding the cost of moving to a larger home (agent fees, closing costs, moving expenses average $30K-$50K).",
+  },
+  "Outdoor Living / Deck": {
+    roiLow: 60,
+    roiHigh: 72,
+    source: "2024 Remodeling Cost vs. Value Report — Midwest Region",
+    insight: "Wood deck additions return about 65% and composite decks 60% at resale in the Midwest. In Omaha's market, outdoor living spaces are increasingly expected by buyers — especially in Elkhorn, Gretna, and Bennington where lot sizes support them. A well-built deck extends your usable living season by 4-5 months.",
+  },
+  "Flooring": {
+    roiLow: 70,
+    roiHigh: 80,
+    source: "NAR 2024 Remodeling Impact Report",
+    insight: "New flooring returns 70-80% at resale and is one of the highest-impact, lowest-disruption upgrades you can make. In the Omaha market, LVP and hardwood are the most sought-after by buyers. Replacing worn carpet or dated tile throughout a home can increase showing interest significantly.",
+  },
+  "Interior Painting": {
+    roiLow: 100,
+    roiHigh: 150,
+    source: "HomeAdvisor / NAR Staging & Renovation Impact Data",
+    insight: "Interior painting is the single highest-ROI home improvement — returning 100-150% of cost at resale. It's the lowest-cost, highest-impact upgrade for Omaha homeowners preparing to sell or simply refreshing a space. Neutral, modern tones consistently test best with Omaha-area buyers.",
+  },
+};
+
+
 export default function InstantEstimatePage() {
   const [projectType, setProjectType] = useState("");
   const [scopeLevel, setScopeLevel] = useState("mid");
@@ -435,6 +488,101 @@ export default function InstantEstimatePage() {
                   <span className="text-xl font-black text-brand-charcoal tabular-nums">${fmt(result.total_projected_low)} — ${fmt(result.total_projected_high)}</span>
                 </div>
               </div>
+
+              {/* ROI Section */}
+              {(() => {
+                const roi = ROI_DATA[projectType];
+                if (roi) {
+                  const low = result.total_projected_low;
+                  const high = result.total_projected_high;
+                  const valueAddedLow = Math.round(low * (roi.roiLow / 100));
+                  const valueAddedHigh = Math.round(high * (roi.roiHigh / 100));
+                  return (
+                    <div className="px-6 py-5 border-t border-brand-stone/15 bg-gradient-to-r from-sage-50/60 to-emerald-50/40">
+                      <div className="flex items-start gap-3 mb-4">
+                        <div className="w-9 h-9 rounded-xl bg-sage-100 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-sage-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.281m5.94 2.28l-2.28 5.941" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-sage-700 uppercase tracking-widest">Return on Investment</p>
+                          <p className="text-[10px] text-brand-muted mt-0.5">{roi.source}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                        <div className="bg-white rounded-xl border border-sage-200/60 p-4 text-center">
+                          <p className="text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">Expected ROI Range</p>
+                          <p className="text-2xl font-black text-sage-600">{roi.roiLow}% — {roi.roiHigh}%</p>
+                          <p className="text-[10px] text-brand-muted mt-1">of project cost recovered at resale</p>
+                        </div>
+                        <div className="bg-white rounded-xl border border-sage-200/60 p-4 text-center">
+                          <p className="text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-1">Est. Home Value Added</p>
+                          <p className="text-2xl font-black text-brand-charcoal">${fmt(valueAddedLow)} — ${fmt(valueAddedHigh)}</p>
+                          <p className="text-[10px] text-brand-muted mt-1">based on your estimate range</p>
+                        </div>
+                      </div>
+
+                      {/* ROI Visual Bar */}
+                      <div className="bg-white rounded-xl border border-sage-200/60 p-4 mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-bold text-brand-muted uppercase tracking-wider">Your Investment vs. Value Added</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-bold text-brand-charcoal">Project Cost</span>
+                              <span className="text-[10px] font-bold text-brand-muted tabular-nums">${fmt(low)} — ${fmt(high)}</span>
+                            </div>
+                            <div className="w-full bg-brand-warm rounded-full h-3">
+                              <div className="h-full bg-brand-charcoal rounded-full" style={{ width: "100%" }} />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-bold text-sage-600">Value Recovered at Resale</span>
+                              <span className="text-[10px] font-bold text-sage-600 tabular-nums">${fmt(valueAddedLow)} — ${fmt(valueAddedHigh)}</span>
+                            </div>
+                            <div className="w-full bg-brand-warm rounded-full h-3">
+                              <div className="h-full bg-sage-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min(((roi.roiLow + roi.roiHigh) / 2), 100)}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-brand-muted leading-relaxed">{roi.insight}</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="px-6 py-5 border-t border-brand-stone/15 bg-gradient-to-r from-luxury-soft/40 to-luxury-soft/20">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-luxury-soft flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-luxury-ochre" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-luxury-ochre uppercase tracking-widest mb-1">Maximize Your Investment</p>
+                        <p className="text-xs text-brand-muted leading-relaxed">
+                          Every remodeling project has different return potential based on scope, finish level, and your neighborhood&apos;s market. Schedule a free consultation with Skyler to discuss how to get the most value from your specific project — including which upgrades Omaha buyers pay premiums for.
+                        </p>
+                        <Link
+                          href={`/consultation?${new URLSearchParams({ ...(name ? { name } : {}), ...(email ? { email } : {}), ...(phone ? { phone } : {}), ...(projectType ? { project: projectType } : {}) }).toString()}`}
+                          className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-luxury-ochre hover:text-luxury-gold transition-colors"
+                        >
+                          Discuss ROI with Skyler
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                          </svg>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Disclaimers */}
               <div className="px-6 py-4 bg-brand-alabaster/60 border-t border-brand-stone/15">
