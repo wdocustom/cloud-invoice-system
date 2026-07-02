@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { buildContractorPaymentNotificationHtml } from "@/lib/email-templates";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -208,6 +209,25 @@ export async function POST(request: Request) {
           });
         } catch (emailErr) {
           console.error("Payment receipt email failed:", emailErr);
+        }
+
+        try {
+          await resend.emails.send({
+            from: "WDO Custom <payments@wdocustom.com>",
+            to: ["skyler@wdocustom.com"],
+            subject: `Payment received — $${formatMoney(amountPaid)} from ${invoice.homeowner_name || "Client"} for ${invoice.project_title || invoice.job_address || "a project"}`,
+            html: buildContractorPaymentNotificationHtml({
+              homeowner_name: invoice.homeowner_name || "Client",
+              amount: amountPaid,
+              payment_label: paymentLabel,
+              project_title: invoice.project_title,
+              job_address: invoice.job_address || "",
+              portal_url: `${baseUrl}/admin/projects/${invoiceId}`,
+              paid_at: paymentRecord.paid_at,
+            }),
+          });
+        } catch (emailErr) {
+          console.error("Contractor payment notification email failed:", emailErr);
         }
       }
 
