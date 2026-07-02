@@ -25,6 +25,20 @@ const POSTS = [
     tag: "Planning",
     readTime: "9 min read",
   },
+  {
+    slug: "luxury-bathroom-remodel-omaha",
+    title: "High-End Bathroom Remodel in Omaha: What $30K–$70K Actually Gets You",
+    excerpt: "Walk-in showers, heated tile floors, freestanding tubs, and frameless glass — what a luxury bathroom remodel actually costs in Elkhorn, West Omaha, and Papillion, and what separates a $30K job from a $70K one.",
+    tag: "Bathrooms",
+    readTime: "10 min read",
+  },
+  {
+    slug: "new-construction-basement-finishing-elkhorn",
+    title: "Finishing the Basement in Your New Build: A Guide for Elkhorn & Bennington Homeowners",
+    excerpt: "Just closed on a new construction home with an unfinished basement? Here's what it actually costs, why the builder's quote was inflated, and why waiting 12 months is a myth that's costing you money.",
+    tag: "Basements",
+    readTime: "9 min read",
+  },
 ];
 
 export default function BlogIndexPage() {

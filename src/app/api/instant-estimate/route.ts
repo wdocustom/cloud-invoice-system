@@ -121,8 +121,20 @@ Respond ONLY with raw JSON matching this exact schema:
       }
     );
 
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => "");
+      console.error(`Gemini API error ${response.status}:`, errBody);
+      return NextResponse.json({ error: `AI service error (${response.status}). Please try again.` }, { status: 502 });
+    }
+
     const data = await response.json();
-    let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    if (!data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error("Gemini returned no content:", JSON.stringify(data).slice(0, 500));
+      return NextResponse.json({ error: "AI returned an empty response. Please try again." }, { status: 502 });
+    }
+
+    let rawText = data.candidates[0].content.parts[0].text;
 
     if (rawText.includes("```")) {
       rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
