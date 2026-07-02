@@ -62,6 +62,21 @@ export default function HomeownerPortalClient({
     }
   }, [activeTab, id]);
 
+  useEffect(() => {
+    if (activeTab !== "messages" || !id) return;
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("questions")
+        .eq("id", id)
+        .single();
+      if (data?.questions) {
+        setInvoice((prev: any) => prev ? { ...prev, questions: data.questions } : prev);
+      }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [activeTab, id]);
+
   // Live countdown timer
   const expiresAt = (invoice as any)?.proposal_expires_at;
   const hasExpiration = invoice?.status !== "approved" && !!expiresAt;
@@ -994,6 +1009,17 @@ export default function HomeownerPortalClient({
                     const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", id);
                     if (error) throw error;
                     setInvoice((prev: any) => ({ ...prev, questions: updated }));
+                    fetch("/api/notify-contractor-message", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        homeowner_name: (invoice as any)?.homeowner_name,
+                        project_title: (invoice as any)?.project_title,
+                        job_address: (invoice as any)?.job_address,
+                        message_text: newMsg.text,
+                        portal_url: `${window.location.origin}/admin/projects/${id}`,
+                      }),
+                    }).catch(() => {});
                     setQaMessage("");
                   } catch {
                     toast("Failed to send message. Please try again.", "error");

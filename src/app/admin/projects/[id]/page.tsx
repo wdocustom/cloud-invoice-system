@@ -74,6 +74,21 @@ export default function ProjectWorkspaceControlHub() {
     }
   }, [projectId]);
 
+  useEffect(() => {
+    if (!projectId) return;
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("questions")
+        .eq("id", projectId)
+        .single();
+      if (data?.questions) {
+        setProject((prev: any) => prev ? { ...prev, questions: data.questions } : prev);
+      }
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [projectId]);
+
   async function fetchComprehensiveProjectData() {
     setLoading(true);
     try {

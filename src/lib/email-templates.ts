@@ -505,6 +505,142 @@ export function buildMessageNotificationHtml(data: ContractorMessageNotification
 </html>`;
 }
 
+// ─── New Message Notification (homeowner → Skyler) ───
+
+interface HomeownerMessageNotificationData {
+  homeowner_name: string;
+  project_title?: string;
+  job_address: string;
+  portal_url: string;
+  message_preview: string;
+}
+
+export function buildHomeownerMessageNotificationHtml(data: HomeownerMessageNotificationData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
+        <td align="right"><span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">New Message</span></td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> sent a message about their <strong style="color:#1A1A1A;">${data.project_title || data.job_address}</strong> project:
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;border-left:3px solid #C4A265;border-radius:0 12px 12px 0;">
+      <tr><td style="padding:16px 20px;">
+        <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin:0;font-style:italic;">"${data.message_preview}"</p>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+      <tr><td align="center">
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+          Open Project Workspace
+        </a>
+      </td></tr>
+    </table>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">WDO Custom &middot; Automated Notification</p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── Payment Received Notification (Stripe → Skyler) ───
+
+interface ContractorPaymentNotificationData {
+  homeowner_name: string;
+  amount: number;
+  payment_label: string;
+  project_title?: string;
+  job_address: string;
+  portal_url: string;
+  paid_at: string;
+}
+
+export function buildContractorPaymentNotificationHtml(data: ContractorPaymentNotificationData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
+        <td align="right"><span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Payment Received</span></td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> just submitted a payment. Here are the details:
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
+      <tr><td style="padding:24px 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 4px;">Amount Received</p>
+              <p style="font-size:28px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$${formatMoney(data.amount)}</p>
+            </td>
+            <td align="right" valign="top">
+              <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Paid</span>
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${data.homeowner_name}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">For:</strong> ${data.payment_label}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.project_title || data.job_address}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Date:</strong> ${new Date(data.paid_at).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+      <tr><td align="center">
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+          Open Project Workspace
+        </a>
+      </td></tr>
+    </table>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">WDO Custom &middot; Automated Notification</p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
 // ─── Lead Notification (estimate page → Skyler) ───
 
 interface LeadNotificationData {
