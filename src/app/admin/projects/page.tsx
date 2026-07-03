@@ -16,8 +16,13 @@ export default function ProjectsIndexLedger() {
     if (!confirm("Delete this lead permanently? This cannot be undone.")) return;
     setDeletingId(id);
     try {
-      const { error } = await supabase.from("estimates").delete().eq("id", id);
-      if (error) throw error;
+      const res = await fetch("/api/delete-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Delete failed");
       setEstimates((prev) => prev.filter((e) => e.id !== id));
     } catch {
       alert("Failed to delete lead. Please try again.");
