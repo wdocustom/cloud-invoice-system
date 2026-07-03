@@ -106,6 +106,10 @@ export default function InstantEstimatePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EstimateResult | null>(null);
   const [error, setError] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [unlockEmail, setUnlockEmail] = useState("");
+  const [unlockName, setUnlockName] = useState("");
+  const [unlockPhone, setUnlockPhone] = useState("");
   const resultRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -121,7 +125,7 @@ export default function InstantEstimatePage() {
       const res = await fetch("/api/instant-estimate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectType, scopeLevel, size, zip, description, name: name.trim(), email: email.trim(), phone: phone.trim() }),
+        body: JSON.stringify({ projectType, scopeLevel, size, zip, description, name: "", email: "", phone: "" }),
       });
 
       if (!res.ok) {
@@ -131,27 +135,7 @@ export default function InstantEstimatePage() {
 
       const data = await res.json();
       setResult(data);
-
-      if (name.trim() || email.trim() || phone.trim()) {
-        fetch("/api/send-lead-notification", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: name.trim(),
-            email: email.trim(),
-            phone: phone.trim(),
-            projectType,
-            scopeLevel,
-            size,
-            zip,
-            description,
-            estimateLow: data.total_projected_low?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
-            estimateHigh: data.total_projected_high?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
-            timeline: data.timeline_weeks ? `${data.timeline_weeks} weeks` : "",
-            token: data.token || "",
-          }),
-        }).catch(() => {});
-      }
+      setUnlocked(false);
 
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
     } catch (err: any) {
@@ -358,38 +342,6 @@ export default function InstantEstimatePage() {
               </div>
             </div>
 
-            {/* Step 4: Contact (Optional) */}
-            <div className="px-6 py-5 border-b border-brand-stone/20 bg-luxury-soft/30">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-6 h-6 rounded-full bg-luxury-gold/20 text-luxury-ochre text-[10px] font-black flex items-center justify-center">✦</span>
-                <label className="text-xs font-black text-brand-charcoal uppercase tracking-widest">Want us to follow up? <span className="normal-case font-medium text-brand-muted">(Optional)</span></label>
-              </div>
-              <p className="text-[11px] text-brand-muted mb-3 ml-8">Leave your info and we&apos;ll email your estimate summary with next steps to schedule a free consultation.</p>
-              <div className="grid sm:grid-cols-3 gap-3 ml-8">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full px-4 py-2.5 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-charcoal/40 focus:ring-1 focus:ring-brand-charcoal/10 transition"
-                />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email address"
-                  className="w-full px-4 py-2.5 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-charcoal/40 focus:ring-1 focus:ring-brand-charcoal/10 transition"
-                />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Phone number"
-                  className="w-full px-4 py-2.5 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-brand-charcoal/40 focus:ring-1 focus:ring-brand-charcoal/10 transition"
-                />
-              </div>
-            </div>
-
             {/* Submit */}
             <div className="px-6 py-5">
               {error && (
@@ -449,45 +401,176 @@ export default function InstantEstimatePage() {
                 </div>
               </div>
 
-              {/* Line Items */}
-              <div className="divide-y divide-brand-stone/15">
-                {result.line_items.map((item, i) => (
-                  <div key={i} className="px-6 py-4 flex items-start justify-between gap-4 hover:bg-brand-alabaster/50 transition-colors">
-                    <div className="flex-1 min-w-0 flex items-start gap-3">
-                      <span className="w-5 h-5 rounded-md bg-brand-warm flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[9px] font-black text-brand-muted">{i + 1}</span>
-                      </span>
-                      <div>
-                        <p className="text-sm font-bold text-brand-charcoal">{item.item}</p>
-                        {item.notes && <p className="text-[11px] text-brand-muted mt-0.5 leading-relaxed">{item.notes}</p>}
+              {/* Line Items — locked behind email capture */}
+              {unlocked ? (
+                <>
+                  <div className="divide-y divide-brand-stone/15">
+                    {result.line_items.map((item, i) => (
+                      <div key={i} className="px-6 py-4 flex items-start justify-between gap-4 hover:bg-brand-alabaster/50 transition-colors">
+                        <div className="flex-1 min-w-0 flex items-start gap-3">
+                          <span className="w-5 h-5 rounded-md bg-brand-warm flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-[9px] font-black text-brand-muted">{i + 1}</span>
+                          </span>
+                          <div>
+                            <p className="text-sm font-bold text-brand-charcoal">{item.item}</p>
+                            {item.notes && <p className="text-[11px] text-brand-muted mt-0.5 leading-relaxed">{item.notes}</p>}
+                          </div>
+                        </div>
+                        <p className="text-sm font-black text-brand-charcoal flex-shrink-0 tabular-nums whitespace-nowrap">
+                          ${fmt(item.low)} — ${fmt(item.high)}
+                        </p>
                       </div>
-                    </div>
-                    <p className="text-sm font-black text-brand-charcoal flex-shrink-0 tabular-nums whitespace-nowrap">
-                      ${fmt(item.low)} — ${fmt(item.high)}
-                    </p>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              {/* Totals */}
-              <div className="bg-brand-warm/40 border-t border-brand-stone/20 px-6 py-4 space-y-2">
-                <div className="flex justify-between text-xs text-brand-muted">
-                  <span>Subtotal (Labor &amp; Materials)</span>
-                  <span className="font-bold tabular-nums">${fmt(result.subtotal_low)} — ${fmt(result.subtotal_high)}</span>
-                </div>
-                <div className="flex justify-between text-xs text-brand-muted">
-                  <span>Overhead &amp; Profit ({result.overhead_profit_percent}%)</span>
-                  <span className="font-bold">Included</span>
-                </div>
-                <div className="flex justify-between text-xs text-brand-muted">
-                  <span>Contingency ({result.contingency_percent}%)</span>
-                  <span className="font-bold">Included</span>
-                </div>
-                <div className="flex justify-between items-center pt-3 border-t border-brand-stone/30">
-                  <span className="text-sm font-black text-brand-charcoal uppercase tracking-wide">Total Estimate</span>
-                  <span className="text-xl font-black text-brand-charcoal tabular-nums">${fmt(result.total_projected_low)} — ${fmt(result.total_projected_high)}</span>
-                </div>
-              </div>
+                  <div className="bg-brand-warm/40 border-t border-brand-stone/20 px-6 py-4 space-y-2">
+                    <div className="flex justify-between text-xs text-brand-muted">
+                      <span>Subtotal (Labor &amp; Materials)</span>
+                      <span className="font-bold tabular-nums">${fmt(result.subtotal_low)} — ${fmt(result.subtotal_high)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-brand-muted">
+                      <span>Overhead &amp; Profit ({result.overhead_profit_percent}%)</span>
+                      <span className="font-bold">Included</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-brand-muted">
+                      <span>Contingency ({result.contingency_percent}%)</span>
+                      <span className="font-bold">Included</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-3 border-t border-brand-stone/30">
+                      <span className="text-sm font-black text-brand-charcoal uppercase tracking-wide">Total Estimate</span>
+                      <span className="text-xl font-black text-brand-charcoal tabular-nums">${fmt(result.total_projected_low)} — ${fmt(result.total_projected_high)}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Blurred preview — first 2 items visible, rest blurred */}
+                  <div className="relative">
+                    <div className="divide-y divide-brand-stone/15">
+                      {result.line_items.slice(0, 2).map((item, i) => (
+                        <div key={i} className="px-6 py-4 flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0 flex items-start gap-3">
+                            <span className="w-5 h-5 rounded-md bg-brand-warm flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-[9px] font-black text-brand-muted">{i + 1}</span>
+                            </span>
+                            <div>
+                              <p className="text-sm font-bold text-brand-charcoal">{item.item}</p>
+                              {item.notes && <p className="text-[11px] text-brand-muted mt-0.5 leading-relaxed">{item.notes}</p>}
+                            </div>
+                          </div>
+                          <p className="text-sm font-black text-brand-charcoal flex-shrink-0 tabular-nums whitespace-nowrap">
+                            ${fmt(item.low)} — ${fmt(item.high)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    {result.line_items.length > 2 && (
+                      <div className="divide-y divide-brand-stone/15 blur-[6px] select-none pointer-events-none" aria-hidden="true">
+                        {result.line_items.slice(2, 5).map((item, i) => (
+                          <div key={i} className="px-6 py-4 flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0 flex items-start gap-3">
+                              <span className="w-5 h-5 rounded-md bg-brand-warm flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-[9px] font-black text-brand-muted">{i + 3}</span>
+                              </span>
+                              <div>
+                                <p className="text-sm font-bold text-brand-charcoal">{item.item}</p>
+                              </div>
+                            </div>
+                            <p className="text-sm font-black text-brand-charcoal flex-shrink-0 tabular-nums whitespace-nowrap">
+                              ${fmt(item.low)} — ${fmt(item.high)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Unlock gate */}
+                  <div className="px-6 py-8 bg-gradient-to-b from-brand-alabaster to-white border-t border-brand-stone/20">
+                    <div className="max-w-md mx-auto text-center">
+                      <div className="w-12 h-12 rounded-xl bg-luxury-soft mx-auto flex items-center justify-center mb-4">
+                        <svg className="w-6 h-6 text-luxury-ochre" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                      </div>
+                      <h4 className="text-base font-black text-brand-charcoal tracking-tight mb-1">
+                        Unlock Your Full {result.line_items.length}-Item Breakdown
+                      </h4>
+                      <p className="text-xs text-brand-muted leading-relaxed mb-5">
+                        Enter your email to see every line item, cost notes, and your complete estimate breakdown. We&apos;ll also send you a copy you can reference later.
+                      </p>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (!unlockEmail.trim()) return;
+                          setUnlocked(true);
+                          setName(unlockName.trim());
+                          setEmail(unlockEmail.trim());
+                          setPhone(unlockPhone.trim());
+                          fetch("/api/unlock-estimate", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ token: result.token, name: unlockName.trim(), email: unlockEmail.trim(), phone: unlockPhone.trim() }),
+                          }).catch(() => {});
+                          fetch("/api/send-lead-notification", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              name: unlockName.trim(),
+                              email: unlockEmail.trim(),
+                              phone: unlockPhone.trim(),
+                              projectType,
+                              scopeLevel,
+                              size,
+                              zip,
+                              description,
+                              estimateLow: result.total_projected_low?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
+                              estimateHigh: result.total_projected_high?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
+                              timeline: result.timeline_weeks ? `${result.timeline_weeks} weeks` : "",
+                              token: result.token || "",
+                            }),
+                          }).catch(() => {});
+                        }}
+                        className="space-y-3"
+                      >
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          <input
+                            type="text"
+                            value={unlockName}
+                            onChange={(e) => setUnlockName(e.target.value)}
+                            placeholder="Your name"
+                            className="w-full px-4 py-3 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-luxury-gold/60 focus:ring-2 focus:ring-luxury-gold/15 transition"
+                          />
+                          <input
+                            type="tel"
+                            value={unlockPhone}
+                            onChange={(e) => setUnlockPhone(e.target.value)}
+                            placeholder="Phone (optional)"
+                            className="w-full px-4 py-3 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-luxury-gold/60 focus:ring-2 focus:ring-luxury-gold/15 transition"
+                          />
+                        </div>
+                        <input
+                          type="email"
+                          required
+                          value={unlockEmail}
+                          onChange={(e) => setUnlockEmail(e.target.value)}
+                          placeholder="Email address *"
+                          className="w-full px-4 py-3 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-luxury-gold/60 focus:ring-2 focus:ring-luxury-gold/15 transition"
+                        />
+                        <button
+                          type="submit"
+                          className="w-full bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-8 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98]"
+                        >
+                          Unlock Full Breakdown
+                        </button>
+                        <p className="text-[10px] text-brand-muted">
+                          No spam. We&apos;ll email your estimate summary and that&apos;s it — unless you want to schedule a consultation.
+                        </p>
+                      </form>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* ROI Section */}
               {(() => {
