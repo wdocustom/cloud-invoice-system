@@ -1228,8 +1228,8 @@ export default function ProjectWorkspaceControlHub() {
         </div>
       </div>
 
-      {/* HOMEOWNER SELECTIONS MANAGER — post-approval */}
-      {project?.status === "approved" && (
+      {/* HOMEOWNER SELECTIONS MANAGER */}
+      {project && (
         <div className="max-w-7xl mx-auto px-4 pt-6">
           <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
             <div className="border-b pb-3 border-slate-100">
