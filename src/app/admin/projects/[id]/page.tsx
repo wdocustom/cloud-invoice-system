@@ -58,8 +58,11 @@ export default function ProjectWorkspaceControlHub() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [addingChoiceIdx, setAddingChoiceIdx] = useState<number | null>(null);
   const [newChoiceText, setNewChoiceText] = useState("");
+  const [newChoiceImageUrl, setNewChoiceImageUrl] = useState("");
+  const [newChoiceProductUrl, setNewChoiceProductUrl] = useState("");
   const [editingCategoryIdx, setEditingCategoryIdx] = useState<number | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
+  const [isSendingSelectionReminder, setIsSendingSelectionReminder] = useState(false);
 
   // Change Order States
   const [coDescription, setCoDescription] = useState("");
@@ -1254,43 +1257,58 @@ export default function ProjectWorkspaceControlHub() {
 
                       {/* Choices Grid */}
                       <div className="px-4 py-3 space-y-2">
-                        <div className="flex flex-wrap gap-1.5">
-                          {group.choices.map((choice: string, cIdx: number) => {
-                            const isChosen = chosen === choice;
+                        <div className="flex flex-wrap gap-2">
+                          {group.choices.map((choice: any, cIdx: number) => {
+                            const choiceLabel = typeof choice === "string" ? choice : choice.label;
+                            const imageUrl = typeof choice === "string" ? undefined : choice.image_url;
+                            const productUrl = typeof choice === "string" ? undefined : choice.product_url;
+                            const isChosen = chosen === choiceLabel;
                             return (
                               <div
                                 key={cIdx}
-                                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all group/choice ${
+                                className={`relative rounded-xl border transition-all group/choice overflow-hidden ${
                                   isChosen
                                     ? 'bg-slate-900 border-slate-900 text-white'
                                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                                }`}
+                                } ${imageUrl ? 'w-[140px]' : ''}`}
                               >
-                                {isChosen && <span className="text-emerald-400 text-[10px]">✓</span>}
-                                <span>{choice}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (!confirm(`Remove "${choice}" from ${group.category}?`)) return;
-                                    const updated = [...project.homeowner_options];
-                                    updated[gIdx] = {
-                                      ...updated[gIdx],
-                                      choices: updated[gIdx].choices.filter((_: string, ci: number) => ci !== cIdx)
-                                    };
-                                    if (isChosen) {
-                                      const clearedSelections = { ...(project.homeowner_selections || {}) };
-                                      delete clearedSelections[group.category];
-                                      saveSelectionOptions(updated, clearedSelections);
-                                    } else {
-                                      saveSelectionOptions(updated);
-                                    }
-                                  }}
-                                  className={`ml-0.5 text-[10px] font-black transition opacity-0 group-hover/choice:opacity-100 ${
-                                    isChosen ? 'text-white/50 hover:text-white' : 'text-slate-300 hover:text-red-500'
-                                  }`}
-                                >
-                                  ✕
-                                </button>
+                                {imageUrl && (
+                                  <a href={productUrl || imageUrl} target="_blank" rel="noopener noreferrer" className="block">
+                                    <img src={imageUrl} alt={choiceLabel} className="w-full h-[80px] object-cover" />
+                                  </a>
+                                )}
+                                <div className="flex items-center gap-1.5 px-3 py-2">
+                                  {isChosen && <span className="text-emerald-400 text-[10px]">✓</span>}
+                                  <span className="text-xs font-bold truncate">{choiceLabel}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (!confirm(`Remove "${choiceLabel}" from ${group.category}?`)) return;
+                                      const updated = [...project.homeowner_options];
+                                      updated[gIdx] = {
+                                        ...updated[gIdx],
+                                        choices: updated[gIdx].choices.filter((_: any, ci: number) => ci !== cIdx)
+                                      };
+                                      if (isChosen) {
+                                        const clearedSelections = { ...(project.homeowner_selections || {}) };
+                                        delete clearedSelections[group.category];
+                                        saveSelectionOptions(updated, clearedSelections);
+                                      } else {
+                                        saveSelectionOptions(updated);
+                                      }
+                                    }}
+                                    className={`ml-auto text-[10px] font-black transition opacity-0 group-hover/choice:opacity-100 shrink-0 ${
+                                      isChosen ? 'text-white/50 hover:text-white' : 'text-slate-300 hover:text-red-500'
+                                    }`}
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                                {productUrl && (
+                                  <a href={productUrl} target="_blank" rel="noopener noreferrer" className={`block px-3 pb-2 text-[9px] font-bold underline ${isChosen ? 'text-blue-300' : 'text-blue-500'}`}>
+                                    Product link ↗
+                                  </a>
+                                )}
                               </div>
                             );
                           })}
@@ -1298,58 +1316,65 @@ export default function ProjectWorkspaceControlHub() {
 
                         {/* Add Choice Input */}
                         {addingChoiceIdx === gIdx ? (
-                          <div className="flex items-center gap-2 pt-1">
+                          <div className="space-y-2 pt-1 border-t border-slate-100 mt-1">
                             <input
                               type="text"
                               value={newChoiceText}
                               onChange={(e) => setNewChoiceText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && newChoiceText.trim()) {
+                              autoFocus
+                              placeholder="Option name (required)"
+                              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                            />
+                            <input
+                              type="url"
+                              value={newChoiceImageUrl}
+                              onChange={(e) => setNewChoiceImageUrl(e.target.value)}
+                              placeholder="Image URL (optional — paste manufacturer image link)"
+                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[11px] text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                            />
+                            <input
+                              type="url"
+                              value={newChoiceProductUrl}
+                              onChange={(e) => setNewChoiceProductUrl(e.target.value)}
+                              placeholder="Product page URL (optional — link to manufacturer page)"
+                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[11px] text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                            />
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!newChoiceText.trim()) return;
                                   const updated = [...project.homeowner_options];
+                                  const newChoice = (newChoiceImageUrl.trim() || newChoiceProductUrl.trim())
+                                    ? { label: newChoiceText.trim(), ...(newChoiceImageUrl.trim() && { image_url: newChoiceImageUrl.trim() }), ...(newChoiceProductUrl.trim() && { product_url: newChoiceProductUrl.trim() }) }
+                                    : newChoiceText.trim();
                                   updated[gIdx] = {
                                     ...updated[gIdx],
-                                    choices: [...updated[gIdx].choices, newChoiceText.trim()]
+                                    choices: [...updated[gIdx].choices, newChoice]
                                   };
                                   saveSelectionOptions(updated);
                                   setNewChoiceText("");
-                                }
-                                if (e.key === "Escape") {
-                                  setAddingChoiceIdx(null);
-                                  setNewChoiceText("");
-                                }
-                              }}
-                              autoFocus
-                              placeholder="Type option name and press Enter"
-                              className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!newChoiceText.trim()) return;
-                                const updated = [...project.homeowner_options];
-                                updated[gIdx] = {
-                                  ...updated[gIdx],
-                                  choices: [...updated[gIdx].choices, newChoiceText.trim()]
-                                };
-                                saveSelectionOptions(updated);
-                                setNewChoiceText("");
-                              }}
-                              className="bg-slate-900 text-white font-black text-[9px] px-3 py-2 rounded-lg uppercase tracking-wider transition hover:bg-slate-800 shrink-0"
-                            >
-                              Add
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { setAddingChoiceIdx(null); setNewChoiceText(""); }}
-                              className="text-slate-400 hover:text-slate-600 font-black text-xs p-1 transition"
-                            >
-                              ✕
-                            </button>
+                                  setNewChoiceImageUrl("");
+                                  setNewChoiceProductUrl("");
+                                }}
+                                disabled={!newChoiceText.trim()}
+                                className="bg-slate-900 text-white font-black text-[9px] px-4 py-2 rounded-lg uppercase tracking-wider transition hover:bg-slate-800 disabled:opacity-30 shrink-0"
+                              >
+                                Add Option
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setAddingChoiceIdx(null); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
+                                className="text-slate-400 hover:text-slate-600 font-black text-[10px] px-2 py-2 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <button
                             type="button"
-                            onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); }}
+                            onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
                             className="text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition flex items-center gap-1 pt-1"
                           >
                             <span className="text-[11px]">+</span> Add Option
@@ -1417,22 +1442,55 @@ export default function ProjectWorkspaceControlHub() {
               </div>
             </div>
 
-            {/* Summary row */}
+            {/* Summary row + Send Reminder */}
             {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
-              <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
-                  <span>{project.homeowner_options.length} {project.homeowner_options.length === 1 ? 'category' : 'categories'}</span>
-                  <span className="text-slate-300">|</span>
-                  <span>{project.homeowner_options.reduce((s: number, g: any) => s + (g.choices?.length || 0), 0)} total options</span>
+              <div className="space-y-2">
+                <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
+                    <span>{project.homeowner_options.length} {project.homeowner_options.length === 1 ? 'category' : 'categories'}</span>
+                    <span className="text-slate-300">|</span>
+                    <span>{project.homeowner_options.reduce((s: number, g: any) => s + (g.choices?.length || 0), 0)} total options</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[10px] font-bold">
+                    <span className="text-emerald-600">
+                      {Object.keys(project?.homeowner_selections || {}).length} selected
+                    </span>
+                    <span className="text-amber-600">
+                      {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length} pending
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 text-[10px] font-bold">
-                  <span className="text-emerald-600">
-                    {Object.keys(project?.homeowner_selections || {}).length} selected
-                  </span>
-                  <span className="text-amber-600">
-                    {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length} pending
-                  </span>
-                </div>
+                {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length > 0 && (
+                  <button
+                    type="button"
+                    disabled={isSendingSelectionReminder}
+                    onClick={async () => {
+                      if (!project?.homeowner_email) return toast("No email on file for this client.", "error");
+                      setIsSendingSelectionReminder(true);
+                      try {
+                        const res = await fetch("/api/send-selection-reminder", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            invoice_id: projectId,
+                            base_url: window.location.origin,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || "Failed");
+                        toast(`Selection reminder sent to ${data.sent_to} — ${data.pending_count} pending ${data.pending_count === 1 ? 'category' : 'categories'}`, "success");
+                      } catch (err: any) {
+                        toast("Failed to send reminder: " + err.message, "error");
+                      } finally {
+                        setIsSendingSelectionReminder(false);
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-black text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 outline-none disabled:opacity-40"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    {isSendingSelectionReminder ? "Sending..." : "Send Selection Reminder Email"}
+                  </button>
+                )}
               </div>
             )}
           </div>
