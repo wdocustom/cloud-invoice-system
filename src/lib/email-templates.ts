@@ -42,6 +42,28 @@ interface PaymentReminderData {
   portal_url: string;
 }
 
+interface SelectionReminderData {
+  homeowner_name: string;
+  project_title?: string;
+  job_address: string;
+  portal_url: string;
+  pending_categories: {
+    category: string;
+    choices: { label: string; image_url?: string; product_url?: string; select_url: string }[];
+  }[];
+}
+
+interface SelectionMadeNotificationData {
+  homeowner_name: string;
+  project_title?: string;
+  job_address: string;
+  category: string;
+  selected_value: string;
+  total_selected: number;
+  total_categories: number;
+  portal_url: string;
+}
+
 function formatMoney(n: number) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -1158,6 +1180,165 @@ export function buildEstimateReminderHtml(data: EstimateReminderData): string {
 
     <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>
     <p style="font-size:12px;color:#9C9590;margin:0;">WDO Custom &middot; 402-819-8558 &middot; skyler@wdocustom.com</p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;line-height:1.6;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── Selection Reminder (manual, from contractor) ───
+
+export function buildSelectionReminderHtml(data: SelectionReminderData): string {
+  const projectLabel = data.project_title || data.job_address || "your project";
+  const firstName = data.homeowner_name?.split(" ")[0] || "there";
+
+  const categoriesHtml = data.pending_categories.map(cat => {
+    const choicesHtml = cat.choices.map(ch => {
+      const imageBlock = ch.image_url
+        ? `<a href="${ch.product_url || ch.select_url}" style="text-decoration:none;"><img src="${ch.image_url}" alt="${ch.label}" style="width:100%;max-width:220px;height:130px;object-fit:cover;border-radius:12px;border:1px solid #E8E4DF;display:block;margin-bottom:8px;" /></a>`
+        : '';
+      const productLink = ch.product_url
+        ? `<p style="margin:2px 0 0;"><a href="${ch.product_url}" style="font-size:11px;color:#C4A265;text-decoration:underline;font-weight:600;">View Product Details</a></p>`
+        : '';
+      return `
+      <table cellpadding="0" cellspacing="0" style="display:inline-table;vertical-align:top;width:220px;margin:0 12px 16px 0;">
+        <tr><td>
+          ${imageBlock}
+          <p style="font-size:13px;font-weight:700;color:#1A1A1A;margin:0 0 4px;">${ch.label}</p>
+          ${productLink}
+          <a href="${ch.select_url}" style="display:inline-block;margin-top:6px;background-color:#1A1A1A;color:#ffffff;font-size:11px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:10px;letter-spacing:0.3px;text-transform:uppercase;">
+            Select This
+          </a>
+        </td></tr>
+      </table>`;
+    }).join('');
+
+    return `
+    <tr><td style="padding:0 32px 28px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;border:1px solid #E8E4DF;border-radius:16px;overflow:hidden;">
+        <tr><td style="padding:16px 20px 8px;">
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#C4A265;margin:0 0 2px;">Awaiting Your Selection</p>
+          <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${cat.category}</p>
+        </td></tr>
+        <tr><td style="padding:12px 20px 20px;">
+          ${choicesHtml}
+        </td></tr>
+      </table>
+    </td></tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">WDO Custom</span>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${firstName},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 8px;">
+      We have material selections ready for your review on <strong style="color:#1A1A1A;">${projectLabel}</strong>. You can choose directly from this email — just tap <strong>"Select This"</strong> on the option you'd like.
+    </p>
+    <p style="font-size:13px;color:#9C9590;line-height:1.6;margin:0 0 28px;">
+      ${data.pending_categories.length} ${data.pending_categories.length === 1 ? 'category needs' : 'categories need'} your selection to keep the project moving forward.
+    </p>
+
+  </td></tr>
+
+  ${categoriesHtml}
+
+  <tr><td style="padding:8px 32px 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
+      <tr><td style="padding:16px 20px;text-align:center;">
+        <p style="font-size:12px;color:#8B6914;margin:0 0 8px;font-weight:600;">Or view all selections in one place:</p>
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:10px 28px;border-radius:10px;letter-spacing:0.3px;">
+          Open Project Portal
+        </a>
+      </td></tr>
+    </table>
+  </td></tr>
+
+  <tr><td style="padding:32px 32px 0;">
+    <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:0 0 4px;">Skyler Camacho</p>
+    <p style="font-size:12px;color:#9C9590;margin:0;">WDO Custom &middot; 402-819-8558 &middot; skyler@wdocustom.com</p>
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;line-height:1.6;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── Selection Made Notification (automatic, to contractor) ───
+
+export function buildSelectionMadeNotificationHtml(data: SelectionMadeNotificationData): string {
+  const projectLabel = data.project_title || data.job_address || "Project";
+  const progress = `${data.total_selected} of ${data.total_categories}`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">WDO Custom</span>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 12px;">New Selection Made</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> just made a material selection for <strong style="color:#1A1A1A;">${projectLabel}</strong>.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;overflow:hidden;">
+      <tr><td style="padding:20px 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 4px;">${data.category}</p>
+              <p style="font-size:20px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">${data.selected_value}</p>
+            </td>
+            <td align="right" valign="top">
+              <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Confirmed</span>
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;border-top:1px solid #C8D9C8;padding-top:10px;">
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${data.homeowner_name}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${projectLabel}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Selection Progress:</strong> ${progress} categories selected</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr><td align="center">
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+          View in Workspace
+        </a>
+      </td></tr>
+    </table>
 
   </td></tr>
   <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">

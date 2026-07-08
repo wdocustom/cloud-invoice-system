@@ -241,7 +241,22 @@ export default function HomeownerPortalClient({
       .update({ homeowner_selections: updatedSelections })
       .eq("id", id);
 
-    if (!error) fetchInvoiceData();
+    if (!error) {
+      fetchInvoiceData();
+      try {
+        fetch("/api/notify-selection-made", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            invoice_id: id,
+            category: pendingSelection.category,
+            selected_value: pendingSelection.value,
+            total_selected: Object.keys(updatedSelections).length,
+            total_categories: (invoice.homeowner_options || []).length,
+          }),
+        });
+      } catch {}
+    }
     setPendingSelection(null);
   };
 
@@ -1110,11 +1125,24 @@ export default function HomeownerPortalClient({
                           {chosen && !isPendingCategory && <span className="ml-auto text-[10px] font-medium text-emerald-600 normal-case tracking-normal">Selected: {chosen}</span>}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
-                          {group.choices.map((choice: string, cIdx: number) => {
-                            const isChosen = chosen === choice && !isPendingCategory;
-                            const isPending = isPendingCategory && pendingSelection?.value === choice;
+                          {group.choices.map((choice: any, cIdx: number) => {
+                            const choiceLabel = typeof choice === "string" ? choice : choice.label;
+                            const imageUrl = typeof choice === "string" ? undefined : choice.image_url;
+                            const productUrl = typeof choice === "string" ? undefined : choice.product_url;
+                            const isChosen = chosen === choiceLabel && !isPendingCategory;
+                            const isPending = isPendingCategory && pendingSelection?.value === choiceLabel;
                             return (
-                              <button type="button" key={cIdx} onClick={() => handleSelectMaterialChoice(group.category, choice)} className={`px-4 py-2 rounded-xl text-xs font-bold border shadow-sm transition-all duration-150 ${isPending ? 'bg-amber-500 border-amber-600 text-white ring-2 ring-amber-300 font-black' : isChosen ? 'bg-slate-900 border-transparent text-white font-black' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}>{choice} {isChosen && "✓"} {isPending && "←"}</button>
+                              <div key={cIdx} className="flex flex-col items-center">
+                                {imageUrl && (
+                                  <a href={productUrl || "#"} target={productUrl ? "_blank" : undefined} rel="noopener noreferrer" onClick={(e) => { if (!productUrl) e.preventDefault(); }} className="block mb-1.5">
+                                    <img src={imageUrl} alt={choiceLabel} className="w-28 h-20 object-cover rounded-lg border border-slate-200" />
+                                  </a>
+                                )}
+                                <button type="button" onClick={() => handleSelectMaterialChoice(group.category, choiceLabel)} className={`px-4 py-2 rounded-xl text-xs font-bold border shadow-sm transition-all duration-150 ${isPending ? 'bg-amber-500 border-amber-600 text-white ring-2 ring-amber-300 font-black' : isChosen ? 'bg-slate-900 border-transparent text-white font-black' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}>{choiceLabel} {isChosen && "✓"} {isPending && "←"}</button>
+                                {productUrl && !imageUrl && (
+                                  <a href={productUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-amber-600 hover:text-amber-800 mt-0.5 underline">View product</a>
+                                )}
+                              </div>
                             );
                           })}
                         </div>
