@@ -63,6 +63,8 @@ export default function ProjectWorkspaceControlHub() {
   const [editingCategoryIdx, setEditingCategoryIdx] = useState<number | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
   const [isSendingSelectionReminder, setIsSendingSelectionReminder] = useState(false);
+  const [scanningIdx, setScanningIdx] = useState<number | null>(null);
+  const scanInputRef = useRef<HTMLInputElement>(null);
 
   // Change Order States
   const [coDescription, setCoDescription] = useState("");
@@ -283,6 +285,37 @@ export default function ProjectWorkspaceControlHub() {
     if (error) {
       toast("Failed to save selections: " + error.message, "error");
       fetchComprehensiveProjectData();
+    }
+  }
+
+  async function handleScanSample(gIdx: number, file: File) {
+    setScanningIdx(gIdx);
+    try {
+      const category = project.homeowner_options[gIdx]?.category || "";
+      const formData = new FormData();
+      formData.append("photo", file);
+      formData.append("invoice_id", projectId);
+      formData.append("category", category);
+
+      const res = await fetch("/api/scan-sample", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Scan failed");
+
+      const label = data.product_name || file.name.replace(/\.[^.]+$/, "");
+      const newChoice: any = { label };
+      if (data.image_url) newChoice.image_url = data.image_url;
+      if (data.product_url) newChoice.product_url = data.product_url;
+
+      const updated = [...project.homeowner_options];
+      updated[gIdx] = { ...updated[gIdx], choices: [...updated[gIdx].choices, newChoice] };
+      saveSelectionOptions(updated);
+
+      const details = [data.manufacturer, data.material_type, data.color_description].filter(Boolean).join(" — ");
+      toast(`Added "${label}"${details ? ` (${details})` : ""}`, "success");
+    } catch (err: any) {
+      toast("Scan failed: " + (err.message || "Unknown error"), "error");
+    } finally {
+      setScanningIdx(null);
     }
   }
 
@@ -1356,6 +1389,7 @@ export default function ProjectWorkspaceControlHub() {
                                   setNewChoiceText("");
                                   setNewChoiceImageUrl("");
                                   setNewChoiceProductUrl("");
+                                  setAddingChoiceIdx(null);
                                 }}
                                 disabled={!newChoiceText.trim()}
                                 className="bg-slate-900 text-white font-black text-[9px] px-4 py-2 rounded-lg uppercase tracking-wider transition hover:bg-slate-800 disabled:opacity-30 shrink-0"
@@ -1372,13 +1406,35 @@ export default function ProjectWorkspaceControlHub() {
                             </div>
                           </div>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
-                            className="text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition flex items-center gap-1 pt-1"
-                          >
-                            <span className="text-[11px]">+</span> Add Option
-                          </button>
+                          <div className="flex items-center gap-3 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
+                              className="text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition flex items-center gap-1"
+                            >
+                              <span className="text-[11px]">+</span> Add Option
+                            </button>
+                            <span className="text-slate-200">|</span>
+                            <button
+                              type="button"
+                              disabled={scanningIdx === gIdx}
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept = "image/*";
+                                input.capture = "environment";
+                                input.onchange = (e) => {
+                                  const f = (e.target as HTMLInputElement).files?.[0];
+                                  if (f) handleScanSample(gIdx, f);
+                                };
+                                input.click();
+                              }}
+                              className="text-[9px] font-black text-amber-600 hover:text-amber-800 uppercase tracking-wider transition flex items-center gap-1 disabled:opacity-40"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                              {scanningIdx === gIdx ? "Scanning..." : "Scan Sample"}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>

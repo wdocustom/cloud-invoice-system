@@ -1,0 +1,114 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
+export async function POST(request: Request) {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "AI service not configured" }, { status: 500 });
+    }
+
+    const formData = await request.formData();
+    const file = formData.get("photo") as File | null;
+    const invoiceId = formData.get("invoice_id") as string;
+    const category = formData.get("category") as string;
+
+    if (!file || !invoiceId) {
+      return NextResponse.json({ error: "Missing photo or invoice_id" }, { status: 400 });
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
+    const mimeType = file.type || "image/jpeg";
+
+    const supabase = getSupabase();
+    const filePath = `selections/${invoiceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const { error: uploadError } = await supabase.storage
+      .from("project-photos")
+      .upload(filePath, Buffer.from(arrayBuffer), { contentType: mimeType });
+
+    let imageUrl = "";
+    if (!uploadError) {
+      const { data: urlData } = supabase.storage
+        .from("project-photos")
+        .getPublicUrl(filePath);
+      imageUrl = urlData.publicUrl;
+    }
+
+    const prompt = `You are analyzing a photo of a physical material/finish sample used in residential remodeling (cabinet door, tile, countertop, flooring, paint chip, hardware, etc.).
+
+Extract the following from the image. Read any labels, text, stickers, brand markings, or manufacturer info visible on the sample:
+
+1. **product_name**: The full product name including color/finish name (e.g. "NeoMatte Riverstone Grey", "Sherwin-Williams Repose Gray SW 7015", "MSI Calacatta Laza Quartz")
+2. **manufacturer**: The brand or manufacturer name (e.g. "Premiere Eurocase", "Sherwin-Williams", "MSI")
+3. **material_type**: What type of material this is (e.g. "Cabinet Door Finish", "Paint Color", "Quartz Countertop", "Porcelain Tile", "Luxury Vinyl Plank", "Cabinet Hardware")
+4. **color_description**: A brief description of the color/finish for the homeowner (e.g. "Warm light grey with matte finish", "Cool white with subtle veining")
+5. **product_url**: If you can identify the exact manufacturer website from text on the sample, provide it. Otherwise return empty string.
+
+${category ? `Context: This sample is for the "${category}" selection category.` : ""}
+
+Respond ONLY with valid JSON, no markdown:
+{"product_name":"...","manufacturer":"...","material_type":"...","color_description":"...","product_url":"..."}`;
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: mimeType, data: base64 } },
+            ],
+          }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 500 },
+        }),
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      console.error("Gemini error:", errText);
+      return NextResponse.json({
+        image_url: imageUrl,
+        product_name: "",
+        manufacturer: "",
+        material_type: "",
+        color_description: "",
+        product_url: "",
+        ai_error: "Could not analyze image",
+      });
+    }
+
+    const geminiData = await geminiRes.json();
+    const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const jsonMatch = rawText.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
+
+    let parsed = { product_name: "", manufacturer: "", material_type: "", color_description: "", product_url: "" };
+    try {
+      parsed = JSON.parse(jsonMatch);
+    } catch {
+      console.error("Failed to parse Gemini response:", rawText);
+    }
+
+    return NextResponse.json({
+      image_url: imageUrl,
+      product_name: parsed.product_name || "",
+      manufacturer: parsed.manufacturer || "",
+      material_type: parsed.material_type || "",
+      color_description: parsed.color_description || "",
+      product_url: parsed.product_url || "",
+    });
+  } catch (err: any) {
+    console.error("Scan sample error:", err);
+    return NextResponse.json({ error: err.message || "Internal error" }, { status: 500 });
+  }
+}
