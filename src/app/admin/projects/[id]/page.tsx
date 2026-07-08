@@ -1473,43 +1473,45 @@ export default function ProjectWorkspaceControlHub() {
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-3 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
-                              className="text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition flex items-center gap-1"
-                            >
-                              <span className="text-[11px]">+</span> Add Option
-                            </button>
-                            <span className="text-slate-200">|</span>
-                            <button
-                              type="button"
-                              disabled={scanningIdx === gIdx}
-                              onClick={() => {
-                                const input = document.createElement("input");
-                                input.type = "file";
-                                input.accept = "image/*";
-                                input.capture = "environment";
-                                input.onchange = (e) => {
-                                  const f = (e.target as HTMLInputElement).files?.[0];
-                                  if (f) handleScanSample(gIdx, f);
-                                };
-                                input.click();
-                              }}
-                              className="text-[9px] font-black text-amber-600 hover:text-amber-800 uppercase tracking-wider transition flex items-center gap-1 disabled:opacity-40"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                              {scanningIdx === gIdx ? "Scanning..." : "Scan Sample"}
-                            </button>
-                            <span className="text-slate-200">|</span>
-                            <button
-                              type="button"
-                              onClick={() => { setLibrarySearchIdx(librarySearchIdx === gIdx ? null : gIdx); setLibraryQuery(""); setLibraryResults([]); }}
-                              className={`text-[9px] font-black uppercase tracking-wider transition flex items-center gap-1 ${librarySearchIdx === gIdx ? 'text-emerald-700' : 'text-emerald-500 hover:text-emerald-700'}`}
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                              Reuse From Library
-                            </button>
+                          <div className="pt-1 space-y-1">
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
+                                className="text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition flex items-center gap-1"
+                              >
+                                <span className="text-[11px]">+</span> Add Option
+                              </button>
+                              <span className="text-slate-200">|</span>
+                              <button
+                                type="button"
+                                disabled={scanningIdx === gIdx}
+                                onClick={() => {
+                                  const input = document.createElement("input");
+                                  input.type = "file";
+                                  input.accept = "image/*";
+                                  input.onchange = (e) => {
+                                    const f = (e.target as HTMLInputElement).files?.[0];
+                                    if (f) handleScanSample(gIdx, f);
+                                  };
+                                  input.click();
+                                }}
+                                className="text-[9px] font-black text-amber-600 hover:text-amber-800 uppercase tracking-wider transition flex items-center gap-1 disabled:opacity-40"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                {scanningIdx === gIdx ? "Analyzing..." : "Upload / Scan"}
+                              </button>
+                              <span className="text-slate-200">|</span>
+                              <button
+                                type="button"
+                                onClick={() => { setLibrarySearchIdx(librarySearchIdx === gIdx ? null : gIdx); setLibraryQuery(""); setLibraryResults([]); }}
+                                className={`text-[9px] font-black uppercase tracking-wider transition flex items-center gap-1 ${librarySearchIdx === gIdx ? 'text-emerald-700' : 'text-emerald-500 hover:text-emerald-700'}`}
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                Reuse From Library
+                              </button>
+                            </div>
+                            <p className="text-[9px] text-slate-400 pl-0.5">Snap a photo or upload an image of a sample — AI reads the label and auto-fills the name and details.</p>
                           </div>
                         )}
 
