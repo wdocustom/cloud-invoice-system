@@ -1233,10 +1233,36 @@ export default function ProjectWorkspaceControlHub() {
         <div className="max-w-7xl mx-auto px-4 pt-6">
           <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
             <div className="border-b pb-3 border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
-                Homeowner Selections
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                  Homeowner Selections
+                </h3>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const newVal = !project.selections_visible;
+                    setProject((prev: any) => ({ ...prev, selections_visible: newVal }));
+                    const { error } = await supabase.from("invoices").update({ selections_visible: newVal }).eq("id", projectId);
+                    if (error) {
+                      toast("Failed to update visibility: " + error.message, "error");
+                      setProject((prev: any) => ({ ...prev, selections_visible: !newVal }));
+                    } else {
+                      toast(newVal ? "Selections tab is now visible to homeowner" : "Selections tab hidden from homeowner", "success");
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all duration-200 ${
+                    project.selections_visible
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                      : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                  }`}
+                >
+                  <div className={`relative w-7 h-4 rounded-full transition-colors duration-200 ${project.selections_visible ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform duration-200 ${project.selections_visible ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                  </div>
+                  {project.selections_visible ? 'Visible to Client' : 'Hidden from Client'}
+                </button>
+              </div>
               <p className="text-[11px] text-slate-400 font-medium mt-0.5">Create selection categories for your client (tile, hardware, countertops, etc.). Each category can have multiple options for the homeowner to choose from in their Selections tab.</p>
             </div>
 
