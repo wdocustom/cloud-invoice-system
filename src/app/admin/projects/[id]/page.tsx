@@ -65,6 +65,11 @@ export default function ProjectWorkspaceControlHub() {
   const [isSendingSelectionReminder, setIsSendingSelectionReminder] = useState(false);
   const [scanningIdx, setScanningIdx] = useState<number | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
+  const [librarySearchIdx, setLibrarySearchIdx] = useState<number | null>(null);
+  const [libraryQuery, setLibraryQuery] = useState("");
+  const [libraryResults, setLibraryResults] = useState<any[]>([]);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const libraryTimerRef = useRef<any>(null);
 
   // Change Order States
   const [coDescription, setCoDescription] = useState("");
@@ -286,6 +291,42 @@ export default function ProjectWorkspaceControlHub() {
       toast("Failed to save selections: " + error.message, "error");
       fetchComprehensiveProjectData();
     }
+  }
+
+  function searchLibrary(q: string) {
+    setLibraryQuery(q);
+    if (libraryTimerRef.current) clearTimeout(libraryTimerRef.current);
+    if (!q.trim()) { setLibraryResults([]); return; }
+    libraryTimerRef.current = setTimeout(async () => {
+      setLibraryLoading(true);
+      try {
+        const res = await fetch(`/api/search-selections?q=${encodeURIComponent(q.trim())}&exclude=${projectId}`);
+        const data = await res.json();
+        setLibraryResults(data.results || []);
+      } catch {
+        setLibraryResults([]);
+      } finally {
+        setLibraryLoading(false);
+      }
+    }, 300);
+  }
+
+  function addFromLibrary(gIdx: number, item: any) {
+    const choiceObj: any = { label: item.label };
+    if (item.image_url) choiceObj.image_url = item.image_url;
+    if (item.product_url) choiceObj.product_url = item.product_url;
+    const updated = [...project.homeowner_options];
+    const existing = updated[gIdx].choices.map((c: any) => typeof c === "string" ? c : c.label);
+    if (existing.includes(item.label)) {
+      toast(`"${item.label}" is already in this category.`, "info");
+      return;
+    }
+    updated[gIdx] = { ...updated[gIdx], choices: [...updated[gIdx].choices, choiceObj] };
+    saveSelectionOptions(updated);
+    toast(`Added "${item.label}" from ${item.source_project}`, "success");
+    setLibrarySearchIdx(null);
+    setLibraryQuery("");
+    setLibraryResults([]);
   }
 
   async function handleScanSample(gIdx: number, file: File) {
@@ -1434,6 +1475,67 @@ export default function ProjectWorkspaceControlHub() {
                               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                               {scanningIdx === gIdx ? "Scanning..." : "Scan Sample"}
                             </button>
+                            <span className="text-slate-200">|</span>
+                            <button
+                              type="button"
+                              onClick={() => { setLibrarySearchIdx(librarySearchIdx === gIdx ? null : gIdx); setLibraryQuery(""); setLibraryResults([]); }}
+                              className={`text-[9px] font-black uppercase tracking-wider transition flex items-center gap-1 ${librarySearchIdx === gIdx ? 'text-emerald-700' : 'text-emerald-500 hover:text-emerald-700'}`}
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                              Reuse From Library
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Library Search Panel */}
+                        {librarySearchIdx === gIdx && (
+                          <div className="mt-2 border border-emerald-200 rounded-xl bg-emerald-50/30 p-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={libraryQuery}
+                                onChange={(e) => searchLibrary(e.target.value)}
+                                autoFocus
+                                placeholder="Search past selections... (e.g. NeoMatte, quartz, grey)"
+                                className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => { setLibrarySearchIdx(null); setLibraryQuery(""); setLibraryResults([]); }}
+                                className="text-slate-400 hover:text-slate-600 font-black text-xs p-1 transition"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            {libraryLoading && <p className="text-[10px] text-slate-400 font-bold">Searching...</p>}
+                            {!libraryLoading && libraryQuery && libraryResults.length === 0 && (
+                              <p className="text-[10px] text-slate-400 font-bold">No matches found in past projects</p>
+                            )}
+                            {libraryResults.length > 0 && (
+                              <div className="max-h-48 overflow-y-auto space-y-1">
+                                {libraryResults.map((item: any, rIdx: number) => (
+                                  <button
+                                    key={rIdx}
+                                    type="button"
+                                    onClick={() => addFromLibrary(gIdx, item)}
+                                    className="w-full flex items-center gap-3 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg px-3 py-2 text-left transition-all"
+                                  >
+                                    {item.image_url && (
+                                      <img src={item.image_url} alt={item.label} className="w-10 h-10 rounded-md object-cover border border-slate-200 shrink-0" />
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-xs font-bold text-slate-900 truncate">{item.label}</p>
+                                      <p className="text-[9px] text-slate-400 truncate">
+                                        {item.source_category} &middot; {item.source_project}
+                                      </p>
+                                    </div>
+                                    <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md uppercase shrink-0">
+                                      + Add
+                                    </span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
