@@ -546,6 +546,7 @@ export default function HomeownerPortalClient({
             : [
                 { key: "proposal", label: "Proposal" },
                 { key: "messages", label: "Messages" },
+                ...(invoice?.selections_visible ? [{ key: "selections", label: "Selections" }] : []),
                 { key: "schedule", label: "Schedule" },
                 { key: "docs", label: "Docs" },
               ]
@@ -1105,7 +1106,7 @@ export default function HomeownerPortalClient({
         )}
 
         {/* ── POST-APPROVAL: SELECTIONS TAB ── */}
-        {isLocked && activeTab === "selections" && (
+        {(isLocked || invoice?.selections_visible) && activeTab === "selections" && (
           <div className="max-w-3xl mx-auto">
             {invoice.homeowner_options && invoice.homeowner_options.length > 0 ? (
               <div className="border border-slate-200/60 bg-white rounded-2xl p-6 text-left space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] relative overflow-hidden">
