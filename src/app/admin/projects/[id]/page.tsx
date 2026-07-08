@@ -342,17 +342,20 @@ export default function ProjectWorkspaceControlHub() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Scan failed");
 
-      const label = data.product_name || file.name.replace(/\.[^.]+$/, "");
-      const newChoice: any = { label };
-      if (data.image_url) newChoice.image_url = data.image_url;
-      if (data.product_url) newChoice.product_url = data.product_url;
+      const aiName = data.product_name || "";
+      const aiDesc = [data.manufacturer, data.material_type, data.color_description].filter(Boolean).join(" — ");
+      const label = aiName || (aiDesc ? aiDesc : "");
 
-      const updated = [...project.homeowner_options];
-      updated[gIdx] = { ...updated[gIdx], choices: [...updated[gIdx].choices, newChoice] };
-      saveSelectionOptions(updated);
+      setAddingChoiceIdx(gIdx);
+      setNewChoiceText(label);
+      setNewChoiceImageUrl(data.image_url || "");
+      setNewChoiceProductUrl(data.product_url || "");
 
-      const details = [data.manufacturer, data.material_type, data.color_description].filter(Boolean).join(" — ");
-      toast(`Added "${label}"${details ? ` (${details})` : ""}`, "success");
+      if (label) {
+        toast(`AI identified: "${label}"${aiDesc && aiName ? ` (${aiDesc})` : ""} — review and confirm below`, "success");
+      } else {
+        toast("Photo uploaded — enter the product name below", "info");
+      }
     } catch (err: any) {
       toast("Scan failed: " + (err.message || "Unknown error"), "error");
     } finally {
@@ -1417,6 +1420,15 @@ export default function ProjectWorkspaceControlHub() {
                         {/* Add Choice Input */}
                         {addingChoiceIdx === gIdx ? (
                           <div className="space-y-2 pt-1 border-t border-slate-100 mt-1">
+                            {newChoiceImageUrl && (
+                              <div className="flex items-start gap-3">
+                                <img src={newChoiceImageUrl} alt="Sample preview" className="w-20 h-20 rounded-lg object-cover border border-slate-200" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-wide">Photo attached</p>
+                                  <p className="text-[10px] text-slate-400 mt-0.5 truncate">{newChoiceImageUrl.split('/').pop()}</p>
+                                </div>
+                              </div>
+                            )}
                             <input
                               type="text"
                               value={newChoiceText}
