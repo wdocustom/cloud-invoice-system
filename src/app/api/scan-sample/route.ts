@@ -87,7 +87,7 @@ Respond ONLY with valid JSON, no markdown:
               ...geminiParts,
             ],
           }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 500 },
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1024 },
         }),
       }
     );
@@ -110,13 +110,18 @@ Respond ONLY with valid JSON, no markdown:
     const geminiData = await geminiRes.json();
     const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
     console.log(`[scan-sample] Gemini raw response:`, rawText);
-    const jsonMatch = rawText.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
 
     let parsed: any = { product_name: "", manufacturer: "", material_type: "", color_description: "", product_url: "" };
     try {
-      parsed = JSON.parse(jsonMatch);
+      const cleaned = rawText.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
+      parsed = JSON.parse(cleaned);
     } catch {
-      console.error("Failed to parse Gemini response:", rawText);
+      const braceMatch = rawText.match(/\{[\s\S]*\}/);
+      if (braceMatch) {
+        try { parsed = JSON.parse(braceMatch[0]); } catch { console.error("Failed to parse Gemini response:", rawText); }
+      } else {
+        console.error("No JSON found in Gemini response:", rawText);
+      }
     }
 
     const displayIdx = Math.max(0, (parseInt(parsed.display_image) || 1) - 1);
