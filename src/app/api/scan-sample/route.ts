@@ -51,7 +51,9 @@ export async function POST(request: Request) {
     const photoCount = photos.length;
     const prompt = `You are analyzing ${photoCount} photo${photoCount > 1 ? 's' : ''} of a physical material/finish sample used in residential remodeling (cabinet door, tile, countertop, flooring, paint chip, hardware, etc.).
 
-${photoCount > 1 ? 'Multiple photos are provided — typically the front shows the actual appearance/finish and the back has labels, text, and manufacturer info. Use ALL photos together to identify the product.' : 'Read any labels, text, stickers, brand markings, or manufacturer info visible on the sample.'}
+${photoCount > 1 ? `Multiple photos are provided (image 1, image 2, etc.). One typically shows the actual color/texture/appearance and another has labels, text, and manufacturer info on the back. Use ALL photos together to identify the product.
+
+IMPORTANT: Also identify which image (1-indexed) best shows the actual appearance/color/texture of the material — this will be used as the display thumbnail for the homeowner. The label/text side should NOT be the display image.` : 'Read any labels, text, stickers, brand markings, or manufacturer info visible on the sample.'}
 
 Extract the following:
 
@@ -60,11 +62,12 @@ Extract the following:
 3. **material_type**: What type of material this is (e.g. "Cabinet Door Finish", "Paint Color", "Quartz Countertop", "Porcelain Tile", "Luxury Vinyl Plank", "Cabinet Hardware")
 4. **color_description**: A brief description of the color/finish for the homeowner (e.g. "Warm light grey with matte finish", "Cool white with subtle veining")
 5. **product_url**: If you can identify the exact manufacturer website from text on the sample, provide it. Otherwise return empty string.
+${photoCount > 1 ? '6. **display_image**: The 1-indexed number of the photo that best shows the appearance/color (not the label side). e.g. 1 or 2' : ''}
 
 ${category ? `Context: This sample is for the "${category}" selection category.` : ""}
 
 Respond ONLY with valid JSON, no markdown:
-{"product_name":"...","manufacturer":"...","material_type":"...","color_description":"...","product_url":"..."}`;
+{"product_name":"...","manufacturer":"...","material_type":"...","color_description":"...","product_url":"..."${photoCount > 1 ? ',"display_image":1' : ''}}`;
 
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -102,15 +105,18 @@ Respond ONLY with valid JSON, no markdown:
     const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
     const jsonMatch = rawText.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
 
-    let parsed = { product_name: "", manufacturer: "", material_type: "", color_description: "", product_url: "" };
+    let parsed: any = { product_name: "", manufacturer: "", material_type: "", color_description: "", product_url: "" };
     try {
       parsed = JSON.parse(jsonMatch);
     } catch {
       console.error("Failed to parse Gemini response:", rawText);
     }
 
+    const displayIdx = Math.max(0, (parseInt(parsed.display_image) || 1) - 1);
+    const displayUrl = uploadedUrls[displayIdx] || uploadedUrls[0] || "";
+
     return NextResponse.json({
-      image_url: uploadedUrls[0] || "",
+      image_url: displayUrl,
       all_image_urls: uploadedUrls,
       product_name: parsed.product_name || "",
       manufacturer: parsed.manufacturer || "",
