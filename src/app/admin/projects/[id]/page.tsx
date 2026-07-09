@@ -374,18 +374,17 @@ export default function ProjectWorkspaceControlHub() {
 
       const aiName = data.product_name || "";
       const aiDesc = [data.manufacturer, data.material_type, data.color_description].filter(Boolean).join(" — ");
-      const label = aiName || (aiDesc ? aiDesc : "");
+      const label = aiName || aiDesc || `Sample ${Date.now().toString().slice(-4)}`;
 
-      setAddingChoiceIdx(gIdx);
-      setNewChoiceText(label);
-      setNewChoiceImageUrl(data.image_url || "");
-      setNewChoiceProductUrl(data.product_url || "");
+      const newChoice: any = { label };
+      if (data.image_url) newChoice.image_url = data.image_url;
+      if (data.product_url) newChoice.product_url = data.product_url;
 
-      if (label) {
-        toast(`AI identified: "${label}"${aiDesc && aiName ? ` (${aiDesc})` : ""} — review and confirm below`, "success");
-      } else {
-        toast(`${files.length} photo${files.length > 1 ? 's' : ''} uploaded — enter the product name below`, "info");
-      }
+      const updated = [...project.homeowner_options];
+      updated[gIdx] = { ...updated[gIdx], choices: [...updated[gIdx].choices, newChoice] };
+      saveSelectionOptions(updated);
+
+      toast(`Added "${label}"${aiDesc && aiName ? ` (${aiDesc})` : ""}`, "success");
     } catch (err: any) {
       toast("Scan failed: " + (err.message || "Unknown error"), "error");
     } finally {
