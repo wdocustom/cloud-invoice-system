@@ -185,10 +185,12 @@ export default function ProjectsIndexLedger() {
                             <span className={`inline-flex items-center gap-1 font-semibold text-[9px] px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0 ${
                               isApproved
                                 ? "bg-sage-50 text-sage-700 border border-sage-200"
+                                : proj.status === "declined"
+                                ? "bg-red-50 text-red-700 border border-red-200"
                                 : "bg-luxury-soft text-luxury-ochre border border-luxury-champagne"
                             }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${isApproved ? "bg-sage-500" : "bg-luxury-gold"}`} />
-                              {isApproved ? "Approved" : "Pending"}
+                              <span className={`w-1.5 h-1.5 rounded-full ${isApproved ? "bg-sage-500" : proj.status === "declined" ? "bg-red-500" : "bg-luxury-gold"}`} />
+                              {isApproved ? "Approved" : proj.status === "declined" ? "Declined" : "Pending"}
                             </span>
                           </div>
                           <p className="text-[12px] sm:text-[13px] text-brand-muted font-medium truncate mt-0.5">
