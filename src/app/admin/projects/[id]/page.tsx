@@ -163,6 +163,28 @@ export default function ProjectWorkspaceControlHub() {
     }
   }
 
+  async function markDeclined() {
+    if (!confirm("Mark this proposal as declined?")) return;
+    try {
+      await supabase.from("invoices").update({ status: "declined" }).eq("id", projectId);
+      setProject((prev: any) => prev ? { ...prev, status: "declined" } : prev);
+      toast("Proposal marked as declined", "success");
+    } catch (err: any) {
+      toast("Failed to update status: " + err.message, "error");
+    }
+  }
+
+  async function reopenProposal() {
+    if (!confirm("Reopen this proposal as pending?")) return;
+    try {
+      await supabase.from("invoices").update({ status: "sent" }).eq("id", projectId);
+      setProject((prev: any) => prev ? { ...prev, status: "sent" } : prev);
+      toast("Proposal reopened", "success");
+    } catch (err: any) {
+      toast("Failed to update status: " + err.message, "error");
+    }
+  }
+
   async function sendProposalEmail() {
     if (!project?.homeowner_email) return toast("No email on file — add one in the client profile.", "error");
     if (!confirm(`Send proposal to ${project.homeowner_email}?`)) return;
@@ -354,12 +376,14 @@ export default function ProjectWorkspaceControlHub() {
     input.click();
   }
 
-  async function resizeImage(file: File, maxDim = 1600, quality = 0.8): Promise<File> {
+  async function resizeImage(file: File, maxDim = 2400, quality = 0.85): Promise<File> {
     return new Promise((resolve) => {
       const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
       img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
         let { width, height } = img;
-        if (width <= maxDim && height <= maxDim && file.size < 800_000) {
+        if (width <= maxDim && height <= maxDim && file.size < 1_500_000) {
           resolve(file);
           return;
         }
@@ -373,8 +397,8 @@ export default function ProjectWorkspaceControlHub() {
           resolve(blob ? new File([blob], file.name, { type: "image/jpeg" }) : file);
         }, "image/jpeg", quality);
       };
-      img.onerror = () => resolve(file);
-      img.src = URL.createObjectURL(file);
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+      img.src = objectUrl;
     });
   }
 
@@ -526,7 +550,11 @@ export default function ProjectWorkspaceControlHub() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] rounded-full px-3 py-1 font-black uppercase tracking-wider">
+            <span className={`text-[9px] rounded-full px-3 py-1 font-black uppercase tracking-wider border ${
+              project?.status === "approved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+              project?.status === "declined" ? "bg-red-500/10 text-red-400 border-red-500/20" :
+              "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            }`}>
               PROPOSAL STATE: {project?.status || "PENDING"}
             </span>
             <button
@@ -546,6 +574,22 @@ export default function ProjectWorkspaceControlHub() {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               {isSendingEmail ? "Sending..." : "Send Proposal"}
             </button>
+            {project?.status !== "approved" && project?.status !== "declined" && (
+              <button
+                onClick={markDeclined}
+                className="bg-red-600 hover:bg-red-700 text-white font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
+              >
+                Declined
+              </button>
+            )}
+            {project?.status === "declined" && (
+              <button
+                onClick={reopenProposal}
+                className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
+              >
+                Reopen
+              </button>
+            )}
           </div>
         </div>
       </div>
