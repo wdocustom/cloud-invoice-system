@@ -375,6 +375,7 @@ export default function ProjectWorkspaceControlHub() {
       const aiName = data.product_name || "";
       const aiDesc = [data.manufacturer, data.material_type, data.color_description].filter(Boolean).join(" — ");
       const label = aiName || aiDesc || `Sample ${Date.now().toString().slice(-4)}`;
+      const hasImage = !!data.image_url;
 
       const newChoice: any = { label };
       if (data.image_url) newChoice.image_url = data.image_url;
@@ -384,7 +385,11 @@ export default function ProjectWorkspaceControlHub() {
       updated[gIdx] = { ...updated[gIdx], choices: [...updated[gIdx].choices, newChoice] };
       saveSelectionOptions(updated);
 
-      toast(`Added "${label}"${aiDesc && aiName ? ` (${aiDesc})` : ""}`, "success");
+      if (!hasImage) {
+        toast(`Added "${label}" (image failed: ${data.storage_error || "bucket may not exist"})`, "info");
+      } else {
+        toast(`Added "${label}"${aiDesc && aiName ? ` (${aiDesc})` : ""}`, "success");
+      }
     } catch (err: any) {
       toast("Scan failed: " + (err.message || "Unknown error"), "error");
     } finally {
