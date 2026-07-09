@@ -354,6 +354,30 @@ export default function ProjectWorkspaceControlHub() {
     input.click();
   }
 
+  async function resizeImage(file: File, maxDim = 1600, quality = 0.8): Promise<File> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width <= maxDim && height <= maxDim && file.size < 800_000) {
+          resolve(file);
+          return;
+        }
+        if (width > height) { if (width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; } }
+        else { if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; } }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          resolve(blob ? new File([blob], file.name, { type: "image/jpeg" }) : file);
+        }, "image/jpeg", quality);
+      };
+      img.onerror = () => resolve(file);
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
   async function submitScan() {
     if (!scanStep || !scanStep.files.length) return;
     const { gIdx, files } = scanStep;
@@ -363,13 +387,16 @@ export default function ProjectWorkspaceControlHub() {
       const category = project.homeowner_options[gIdx]?.category || "";
       const formData = new FormData();
       for (const f of files) {
-        formData.append("photos", f);
+        const resized = await resizeImage(f);
+        formData.append("photos", resized);
       }
       formData.append("invoice_id", projectId);
       formData.append("category", category);
 
       const res = await fetch("/api/scan-sample", { method: "POST", body: formData });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any;
+      try { data = JSON.parse(text); } catch { throw new Error(text.slice(0, 120)); }
       if (!res.ok) throw new Error(data.error || "Scan failed");
 
       const aiName = data.product_name || "";
