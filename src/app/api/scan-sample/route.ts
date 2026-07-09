@@ -16,35 +16,44 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData();
-    const file = formData.get("photo") as File | null;
+    const photos = formData.getAll("photos") as File[];
     const invoiceId = formData.get("invoice_id") as string;
     const category = formData.get("category") as string;
 
-    if (!file || !invoiceId) {
-      return NextResponse.json({ error: "Missing photo or invoice_id" }, { status: 400 });
+    if (!photos.length || !invoiceId) {
+      return NextResponse.json({ error: "Missing photos or invoice_id" }, { status: 400 });
     }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-    const mimeType = file.type || "image/jpeg";
 
     const supabase = getSupabase();
-    const filePath = `selections/${invoiceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-    const { error: uploadError } = await supabase.storage
-      .from("project-photos")
-      .upload(filePath, Buffer.from(arrayBuffer), { contentType: mimeType });
+    const uploadedUrls: string[] = [];
+    const geminiParts: any[] = [];
 
-    let imageUrl = "";
-    if (!uploadError) {
-      const { data: urlData } = supabase.storage
+    for (const file of photos) {
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString("base64");
+      const mimeType = file.type || "image/jpeg";
+
+      const filePath = `selections/${invoiceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: uploadError } = await supabase.storage
         .from("project-photos")
-        .getPublicUrl(filePath);
-      imageUrl = urlData.publicUrl;
+        .upload(filePath, Buffer.from(arrayBuffer), { contentType: mimeType });
+
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage
+          .from("project-photos")
+          .getPublicUrl(filePath);
+        uploadedUrls.push(urlData.publicUrl);
+      }
+
+      geminiParts.push({ inline_data: { mime_type: mimeType, data: base64 } });
     }
 
-    const prompt = `You are analyzing a photo of a physical material/finish sample used in residential remodeling (cabinet door, tile, countertop, flooring, paint chip, hardware, etc.).
+    const photoCount = photos.length;
+    const prompt = `You are analyzing ${photoCount} photo${photoCount > 1 ? 's' : ''} of a physical material/finish sample used in residential remodeling (cabinet door, tile, countertop, flooring, paint chip, hardware, etc.).
 
-Extract the following from the image. Read any labels, text, stickers, brand markings, or manufacturer info visible on the sample:
+${photoCount > 1 ? 'Multiple photos are provided — typically the front shows the actual appearance/finish and the back has labels, text, and manufacturer info. Use ALL photos together to identify the product.' : 'Read any labels, text, stickers, brand markings, or manufacturer info visible on the sample.'}
+
+Extract the following:
 
 1. **product_name**: The full product name including color/finish name (e.g. "NeoMatte Riverstone Grey", "Sherwin-Williams Repose Gray SW 7015", "MSI Calacatta Laza Quartz")
 2. **manufacturer**: The brand or manufacturer name (e.g. "Premiere Eurocase", "Sherwin-Williams", "MSI")
@@ -66,7 +75,7 @@ Respond ONLY with valid JSON, no markdown:
           contents: [{
             parts: [
               { text: prompt },
-              { inline_data: { mime_type: mimeType, data: base64 } },
+              ...geminiParts,
             ],
           }],
           generationConfig: { temperature: 0.1, maxOutputTokens: 500 },
@@ -78,7 +87,8 @@ Respond ONLY with valid JSON, no markdown:
       const errText = await geminiRes.text();
       console.error("Gemini error:", errText);
       return NextResponse.json({
-        image_url: imageUrl,
+        image_url: uploadedUrls[0] || "",
+        all_image_urls: uploadedUrls,
         product_name: "",
         manufacturer: "",
         material_type: "",
@@ -100,7 +110,8 @@ Respond ONLY with valid JSON, no markdown:
     }
 
     return NextResponse.json({
-      image_url: imageUrl,
+      image_url: uploadedUrls[0] || "",
+      all_image_urls: uploadedUrls,
       product_name: parsed.product_name || "",
       manufacturer: parsed.manufacturer || "",
       material_type: parsed.material_type || "",
