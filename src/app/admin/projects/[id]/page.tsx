@@ -64,6 +64,7 @@ export default function ProjectWorkspaceControlHub() {
   const [editingCategoryName, setEditingCategoryName] = useState("");
   const [isSendingSelectionReminder, setIsSendingSelectionReminder] = useState(false);
   const [scanningIdx, setScanningIdx] = useState<number | null>(null);
+  const [scanStep, setScanStep] = useState<{ gIdx: number; files: File[] } | null>(null);
   const scanInputRef = useRef<HTMLInputElement>(null);
   const [librarySearchIdx, setLibrarySearchIdx] = useState<number | null>(null);
   const [libraryQuery, setLibraryQuery] = useState("");
@@ -329,13 +330,40 @@ export default function ProjectWorkspaceControlHub() {
     setLibraryResults([]);
   }
 
-  async function handleScanSample(gIdx: number, files: FileList) {
+  function startScan(gIdx: number) {
+    setScanStep({ gIdx, files: [] });
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (f) setScanStep({ gIdx, files: [f] });
+    };
+    input.click();
+  }
+
+  function addSecondPhoto() {
+    if (!scanStep) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const f = (e.target as HTMLInputElement).files?.[0];
+      if (f) setScanStep(prev => prev ? { ...prev, files: [...prev.files, f] } : null);
+    };
+    input.click();
+  }
+
+  async function submitScan() {
+    if (!scanStep || !scanStep.files.length) return;
+    const { gIdx, files } = scanStep;
     setScanningIdx(gIdx);
+    setScanStep(null);
     try {
       const category = project.homeowner_options[gIdx]?.category || "";
       const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append("photos", files[i]);
+      for (const f of files) {
+        formData.append("photos", f);
       }
       formData.append("invoice_id", projectId);
       formData.append("category", category);
@@ -353,11 +381,10 @@ export default function ProjectWorkspaceControlHub() {
       setNewChoiceImageUrl(data.image_url || "");
       setNewChoiceProductUrl(data.product_url || "");
 
-      const photoCount = files.length;
       if (label) {
         toast(`AI identified: "${label}"${aiDesc && aiName ? ` (${aiDesc})` : ""} — review and confirm below`, "success");
       } else {
-        toast(`${photoCount} photo${photoCount > 1 ? 's' : ''} uploaded — enter the product name below`, "info");
+        toast(`${files.length} photo${files.length > 1 ? 's' : ''} uploaded — enter the product name below`, "info");
       }
     } catch (err: any) {
       toast("Scan failed: " + (err.message || "Unknown error"), "error");
@@ -1501,17 +1528,7 @@ export default function ProjectWorkspaceControlHub() {
                               <button
                                 type="button"
                                 disabled={scanningIdx === gIdx}
-                                onClick={() => {
-                                  const input = document.createElement("input");
-                                  input.type = "file";
-                                  input.accept = "image/*";
-                                  input.multiple = true;
-                                  input.onchange = (e) => {
-                                    const files = (e.target as HTMLInputElement).files;
-                                    if (files && files.length > 0) handleScanSample(gIdx, files);
-                                  };
-                                  input.click();
-                                }}
+                                onClick={() => startScan(gIdx)}
                                 className="text-[9px] font-black text-amber-600 hover:text-amber-800 uppercase tracking-wider transition flex items-center gap-1 disabled:opacity-40"
                               >
                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -1527,7 +1544,55 @@ export default function ProjectWorkspaceControlHub() {
                                 Reuse From Library
                               </button>
                             </div>
-                            <p className="text-[9px] text-slate-400 pl-0.5">Upload front + back photos of a sample — AI reads the label and auto-fills the name. Select multiple images at once.</p>
+                            <p className="text-[9px] text-slate-400 pl-0.5">Upload a photo of a sample — add the back/label photo too for AI to read the product name.</p>
+                          </div>
+                        )}
+
+                        {/* Scan step: staged photos before submitting to AI */}
+                        {scanStep?.gIdx === gIdx && scanStep.files.length > 0 && (
+                          <div className="mt-2 border border-amber-200 rounded-xl bg-amber-50/30 p-3 space-y-2">
+                            <p className="text-[9px] font-black text-amber-700 uppercase tracking-wider">Photos staged for AI scan</p>
+                            <div className="flex gap-2">
+                              {scanStep.files.map((f, fIdx) => (
+                                <div key={fIdx} className="relative">
+                                  <img
+                                    src={URL.createObjectURL(f)}
+                                    alt={`Photo ${fIdx + 1}`}
+                                    className="w-16 h-16 rounded-lg object-cover border border-amber-200"
+                                  />
+                                  <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                                    {fIdx + 1}
+                                  </span>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={addSecondPhoto}
+                                className="w-16 h-16 rounded-lg border-2 border-dashed border-amber-300 flex flex-col items-center justify-center text-amber-500 hover:text-amber-700 hover:border-amber-400 transition"
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                                <span className="text-[7px] font-black uppercase mt-0.5">Add</span>
+                              </button>
+                            </div>
+                            <p className="text-[9px] text-slate-400">
+                              {scanStep.files.length === 1 ? "Have a back/label photo? Tap + to add it so AI can read the product name." : `${scanStep.files.length} photos ready — AI will read labels from all of them.`}
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={submitScan}
+                                className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[9px] px-4 py-2 rounded-lg uppercase tracking-wider transition"
+                              >
+                                Scan with AI
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setScanStep(null)}
+                                className="text-slate-400 hover:text-slate-600 font-black text-[10px] px-2 py-2 transition"
+                              >
+                                Cancel
+                              </button>
+                            </div>
                           </div>
                         )}
 
