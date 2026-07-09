@@ -108,8 +108,11 @@ Respond ONLY with valid JSON, no markdown:
     }
 
     const geminiData = await geminiRes.json();
-    const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    console.log(`[scan-sample] Gemini raw response:`, rawText);
+    const parts = geminiData?.candidates?.[0]?.content?.parts || [];
+    const outputPart = parts.find((p: any) => !p.thought) || parts[parts.length - 1];
+    const rawText = outputPart?.text || "";
+    console.log(`[scan-sample] Gemini parts: ${parts.length}, thought parts: ${parts.filter((p: any) => p.thought).length}`);
+    console.log(`[scan-sample] Output text:`, rawText.slice(0, 300));
 
     let parsed: any = { product_name: "", manufacturer: "", material_type: "", color_description: "", product_url: "" };
     try {
@@ -118,9 +121,14 @@ Respond ONLY with valid JSON, no markdown:
     } catch {
       const braceMatch = rawText.match(/\{[\s\S]*\}/);
       if (braceMatch) {
-        try { parsed = JSON.parse(braceMatch[0]); } catch { console.error("Failed to parse Gemini response:", rawText); }
+        try { parsed = JSON.parse(braceMatch[0]); } catch { console.error("Failed to parse Gemini JSON:", braceMatch[0].slice(0, 200)); }
       } else {
-        console.error("No JSON found in Gemini response:", rawText);
+        console.error("No JSON in Gemini output:", rawText.slice(0, 200));
+        for (const p of parts) {
+          const txt = (p.text || "").trim();
+          const m = txt.match(/\{[\s\S]*\}/);
+          if (m) { try { parsed = JSON.parse(m[0]); break; } catch {} }
+        }
       }
     }
 
