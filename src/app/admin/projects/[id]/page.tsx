@@ -376,17 +376,15 @@ export default function ProjectWorkspaceControlHub() {
     input.click();
   }
 
-  async function resizeImage(file: File, maxDim = 2400, quality = 0.85): Promise<File> {
+  async function resizeImage(file: File): Promise<File> {
+    if (file.size < 3_000_000) return file;
     return new Promise((resolve) => {
       const img = new Image();
       const objectUrl = URL.createObjectURL(file);
       img.onload = () => {
         URL.revokeObjectURL(objectUrl);
         let { width, height } = img;
-        if (width <= maxDim && height <= maxDim && file.size < 1_500_000) {
-          resolve(file);
-          return;
-        }
+        const maxDim = 2048;
         if (width > height) { if (width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; } }
         else { if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; } }
         const canvas = document.createElement("canvas");
@@ -394,8 +392,8 @@ export default function ProjectWorkspaceControlHub() {
         canvas.height = height;
         canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
         canvas.toBlob((blob) => {
-          resolve(blob ? new File([blob], file.name, { type: "image/jpeg" }) : file);
-        }, "image/jpeg", quality);
+          resolve(blob && blob.size < file.size ? new File([blob], file.name, { type: "image/jpeg" }) : file);
+        }, "image/jpeg", 0.92);
       };
       img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
       img.src = objectUrl;
@@ -417,6 +415,7 @@ export default function ProjectWorkspaceControlHub() {
       formData.append("invoice_id", projectId);
       formData.append("category", category);
 
+      console.log(`[scan] Sending ${files.length} photo(s), sizes: ${files.map(f => `${(f.size/1024).toFixed(0)}KB`).join(", ")}`);
       const res = await fetch("/api/scan-sample", { method: "POST", body: formData });
       const text = await res.text();
       let data: any;

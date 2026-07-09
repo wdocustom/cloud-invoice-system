@@ -20,6 +20,8 @@ export async function POST(request: Request) {
     const invoiceId = formData.get("invoice_id") as string;
     const category = formData.get("category") as string;
 
+    console.log(`[scan-sample] Received ${photos.length} photo(s), sizes: ${photos.map(p => `${p.name}=${(p.size/1024).toFixed(0)}KB`).join(", ")}`);
+
     if (!photos.length || !invoiceId) {
       return NextResponse.json({ error: "Missing photos or invoice_id" }, { status: 400 });
     }
@@ -107,6 +109,7 @@ Respond ONLY with valid JSON, no markdown:
 
     const geminiData = await geminiRes.json();
     const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    console.log(`[scan-sample] Gemini raw response:`, rawText);
     const jsonMatch = rawText.replace(/```json?\s*/g, "").replace(/```/g, "").trim();
 
     let parsed: any = { product_name: "", manufacturer: "", material_type: "", color_description: "", product_url: "" };
