@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     const supabase = getSupabase();
     const uploadedUrls: string[] = [];
     const geminiParts: any[] = [];
+    let storageError = "";
 
     for (const file of photos) {
       const arrayBuffer = await file.arrayBuffer();
@@ -38,7 +39,10 @@ export async function POST(request: Request) {
         .from("project-photos")
         .upload(filePath, Buffer.from(arrayBuffer), { contentType: mimeType });
 
-      if (!uploadError) {
+      if (uploadError) {
+        console.error("Supabase storage upload error:", uploadError.message);
+        storageError = uploadError.message;
+      } else {
         const { data: urlData } = supabase.storage
           .from("project-photos")
           .getPublicUrl(filePath);
@@ -123,6 +127,7 @@ Respond ONLY with valid JSON, no markdown:
       material_type: parsed.material_type || "",
       color_description: parsed.color_description || "",
       product_url: parsed.product_url || "",
+      ...(storageError && { storage_error: storageError }),
     });
   } catch (err: any) {
     console.error("Scan sample error:", err);
