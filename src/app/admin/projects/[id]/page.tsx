@@ -53,6 +53,8 @@ export default function ProjectWorkspaceControlHub() {
 
   // Payment Reminder States
   const [sendingReminderIdx, setSendingReminderIdx] = useState<number | null>(null);
+  const [depositPreviewHtml, setDepositPreviewHtml] = useState<string | null>(null);
+  const [isSendingDeposit, setIsSendingDeposit] = useState(false);
 
   // Selections Manager States
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -1055,7 +1057,35 @@ export default function ProjectWorkspaceControlHub() {
                       ✕
                     </button>
                   </div>
-                  {canRemind && (
+                  {canRemind && idx === 0 && !project?.deposit_cleared && (
+                    <button
+                      type="button"
+                      disabled={sendingReminderIdx === 0}
+                      onClick={async () => {
+                        if (!project?.homeowner_email) return toast("No email on file.", "error");
+                        setSendingReminderIdx(0);
+                        try {
+                          const res = await fetch("/api/send-deposit-email", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ invoice_id: projectId, base_url: window.location.origin, preview_only: true }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || "Failed");
+                          setDepositPreviewHtml(data.html);
+                        } catch (err: any) {
+                          toast("Preview failed: " + err.message, "error");
+                        } finally {
+                          setSendingReminderIdx(null);
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 bg-sage-50 hover:bg-sage-100 border border-sage-200 text-sage-700 font-black text-[9px] py-1.5 rounded-lg uppercase tracking-wider transition-all duration-200 outline-none"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                      {sendingReminderIdx === 0 ? "Loading..." : "Send Deposit Email"}
+                    </button>
+                  )}
+                  {canRemind && (idx > 0 || project?.deposit_cleared) && (
                     <button
                       type="button"
                       disabled={sendingReminderIdx === idx}
@@ -2400,6 +2430,62 @@ export default function ProjectWorkspaceControlHub() {
                 className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-md"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deposit Email Preview Modal */}
+      {depositPreviewHtml && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDepositPreviewHtml(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+              <div>
+                <h3 className="font-black text-sm text-slate-900 uppercase tracking-wide">Deposit Email Preview</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">Review before sending to <strong>{project?.homeowner_email}</strong></p>
+              </div>
+              <button onClick={() => setDepositPreviewHtml(null)} className="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-1 bg-slate-50">
+              <iframe
+                srcDoc={depositPreviewHtml}
+                className="w-full border-0 rounded-lg"
+                style={{ minHeight: "600px" }}
+                title="Deposit email preview"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200">
+              <button
+                onClick={() => setDepositPreviewHtml(null)}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={isSendingDeposit}
+                onClick={async () => {
+                  setIsSendingDeposit(true);
+                  try {
+                    const res = await fetch("/api/send-deposit-email", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ invoice_id: projectId, base_url: window.location.origin }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || "Failed");
+                    toast(`Deposit email sent to ${data.sent_to}`, "success");
+                    setDepositPreviewHtml(null);
+                  } catch (err: any) {
+                    toast("Send failed: " + err.message, "error");
+                  } finally {
+                    setIsSendingDeposit(false);
+                  }
+                }}
+                className="bg-sage-600 hover:bg-sage-700 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-md flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                {isSendingDeposit ? "Sending..." : "Send to Client"}
               </button>
             </div>
           </div>
