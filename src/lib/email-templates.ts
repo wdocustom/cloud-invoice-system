@@ -42,6 +42,16 @@ interface PaymentReminderData {
   portal_url: string;
 }
 
+interface DepositEmailData {
+  homeowner_name: string;
+  project_title?: string;
+  job_address: string;
+  deposit_amount: number;
+  total_amount: number;
+  portal_url: string;
+  pending_selections?: string[];
+}
+
 interface SelectionReminderData {
   homeowner_name: string;
   project_title?: string;
@@ -1405,6 +1415,103 @@ export function buildPaymentReminderHtml(data: PaymentReminderData): string {
 
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 6px;">
       You can pay securely online through your project portal — card and ACH bank transfer are both accepted. If you have any questions, don't hesitate to reach out.
+    </p>
+
+    <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>
+    <p style="font-size:12px;color:#9C9590;margin:0;">WDO Custom &middot; 402-819-8558 &middot; skyler@wdocustom.com</p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;line-height:1.6;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── Deposit Email (first payment, material procurement focus) ───
+
+export function buildDepositEmailHtml(data: DepositEmailData): string {
+  const firstName = data.homeowner_name.split(" ")[0];
+  const projectLabel = data.project_title || data.job_address;
+  const hasSelections = data.pending_selections && data.pending_selections.length > 0;
+
+  const selectionsBlock = hasSelections ? `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;background-color:#F9F7F4;border:1px solid #E8E4DF;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#9C9590;margin:0 0 12px;">Selections to Finalize</p>
+        ${data.pending_selections!.map(s => `<p style="font-size:13px;color:#1A1A1A;margin:0 0 6px;padding-left:12px;border-left:3px solid #C4A265;">
+          ${s}</p>`).join("")}
+        <p style="font-size:12px;color:#9C9590;line-height:1.6;margin:12px 0 0;">
+          Locking in your selections early helps us avoid delays. You can make your choices directly from your project portal.
+        </p>
+      </td></tr>
+    </table>` : "";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">WDO Custom</span>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${firstName},</p>
+
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 20px;">
+      We're excited to get started on <strong style="color:#1A1A1A;">${projectLabel}</strong> and we look forward to bringing your vision to life. Before we can begin, we need to secure your construction deposit so we can begin the procurement process on your behalf.
+    </p>
+
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 20px;">
+      Most major materials — cabinetry, countertops, specialty tile, and custom-order items — carry a <strong style="color:#1A1A1A;">6 to 8 week lead time</strong> from the date of order. Your deposit allows us to lock in pricing, reserve production slots, and begin coordinating the materials and trades needed for phase one of your project. The sooner we get rolling, the sooner we can start capturing that unused value in your home.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;overflow:hidden;">
+      <tr><td style="padding:28px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td>
+              <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#4A7A4A;margin:0 0 6px;">Construction Deposit</p>
+              <p style="font-size:32px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$` + formatMoney(data.deposit_amount) + `</p>
+            </td>
+            <td align="right" valign="top">
+              <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Phase 1</span>
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${projectLabel}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Total Contract:</strong> $` + formatMoney(data.total_amount) + `</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Deposit covers:</strong> Material procurement, scheduling, &amp; project coordination</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    ${selectionsBlock}
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+      <tr><td align="center">
+        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
+          View Project &amp; Submit Deposit
+        </a>
+      </td></tr>
+    </table>
+
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 8px;">
+      If you have any outstanding selections — flooring, tile, hardware, or other finishes — now is the perfect time to finalize those choices so we can include them in our initial material order and keep your timeline on track.
+    </p>
+
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 20px;">
+      Payment can be made securely online through your project portal. We accept card and ACH bank transfer. If you have any questions about the process or your project timeline, don't hesitate to reach out — we're here to help.
     </p>
 
     <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>
