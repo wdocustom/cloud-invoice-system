@@ -2100,7 +2100,6 @@ export default function ProjectWorkspaceControlHub() {
                 const input = document.createElement("input");
                 input.type = "file";
                 input.accept = "image/*";
-                input.capture = "environment";
                 input.onchange = (ev) => {
                   const f = (ev.target as HTMLInputElement).files?.[0];
                   if (f) {
