@@ -44,6 +44,7 @@ export default function ProjectWorkspaceControlHub() {
   const [isSendingQa, setIsSendingQa] = useState(false);
   const [editingQaIndex, setEditingQaIndex] = useState<number | null>(null);
   const [editingQaText, setEditingQaText] = useState("");
+  const [qaAttachment, setQaAttachment] = useState<{ file: File; preview: string } | null>(null);
 
   // Document Upload States
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
@@ -1983,7 +1984,12 @@ export default function ProjectWorkspaceControlHub() {
                       </div>
                     ) : (
                       <div className="px-4 py-2.5">
-                        <p>{msg.text}{msg.edited && <span className="text-[8px] ml-1 opacity-50">(edited)</span>}</p>
+                        {msg.image_url && (
+                          <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="block mb-2">
+                            <img src={msg.image_url} alt="Attachment" className="max-w-full max-h-48 rounded-lg border border-white/10" />
+                          </a>
+                        )}
+                        {msg.text && <p>{msg.text}{msg.edited && <span className="text-[8px] ml-1 opacity-50">(edited)</span>}</p>}
                         <div className="flex items-center justify-between mt-1.5">
                           <p className={`text-[9px] font-bold ${msg.author === "contractor" ? "text-slate-400" : "text-slate-400"}`}>
                             {msg.author === "contractor" ? "You" : project?.homeowner_name || "Homeowner"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
@@ -2028,19 +2034,43 @@ export default function ProjectWorkspaceControlHub() {
             )}
           </div>
 
+          {qaAttachment && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+              <img src={qaAttachment.preview} alt="Attached" className="w-12 h-12 object-cover rounded-lg border border-slate-200" />
+              <span className="text-[10px] font-bold text-slate-600 truncate flex-1">{qaAttachment.file.name}</span>
+              <button type="button" onClick={() => { URL.revokeObjectURL(qaAttachment.preview); setQaAttachment(null); }} className="text-red-400 hover:text-red-600 text-xs font-black">✕</button>
+            </div>
+          )}
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              if (!qaMessage.trim()) return;
+              if (!qaMessage.trim() && !qaAttachment) return;
               setIsSendingQa(true);
-              const newMsg = { text: qaMessage.trim(), author: "contractor", timestamp: new Date().toISOString() };
-              const currentMessages = Array.isArray(project?.questions) ? [...project.questions] : [];
-              const updated = [...currentMessages, newMsg];
               try {
+                let imageUrl = "";
+                if (qaAttachment) {
+                  const file = qaAttachment.file;
+                  const arrayBuffer = await file.arrayBuffer();
+                  const filePath = `messages/${projectId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                  const { error: uploadErr } = await supabase.storage
+                    .from("project-photos")
+                    .upload(filePath, new Uint8Array(arrayBuffer), { contentType: file.type || "image/jpeg" });
+                  if (!uploadErr) {
+                    const { data: urlData } = supabase.storage.from("project-photos").getPublicUrl(filePath);
+                    imageUrl = urlData.publicUrl;
+                  } else {
+                    console.error("Message photo upload failed:", uploadErr.message);
+                  }
+                  URL.revokeObjectURL(qaAttachment.preview);
+                  setQaAttachment(null);
+                }
+                const newMsg: any = { text: qaMessage.trim(), author: "contractor", timestamp: new Date().toISOString() };
+                if (imageUrl) newMsg.image_url = imageUrl;
+                const currentMessages = Array.isArray(project?.questions) ? [...project.questions] : [];
+                const updated = [...currentMessages, newMsg];
                 const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", projectId);
                 if (error) throw error;
                 setProject((prev: any) => ({ ...prev, questions: updated }));
-                // Notify homeowner via email (fire-and-forget)
                 if (project?.homeowner_email) {
                   fetch("/api/send-message-notification", {
                     method: "POST",
@@ -2050,7 +2080,7 @@ export default function ProjectWorkspaceControlHub() {
                       homeowner_email: project.homeowner_email,
                       project_title: project.project_title,
                       job_address: project.job_address,
-                      message_text: newMsg.text,
+                      message_text: newMsg.text || "Sent a photo",
                       portal_url: `${window.location.origin}/invoice/${projectId}`,
                     }),
                   }).catch(() => {});
@@ -2062,8 +2092,29 @@ export default function ProjectWorkspaceControlHub() {
                 setIsSendingQa(false);
               }
             }}
-            className="flex gap-2"
+            className="flex gap-2 items-end"
           >
+            <button
+              type="button"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
+                input.capture = "environment";
+                input.onchange = (ev) => {
+                  const f = (ev.target as HTMLInputElement).files?.[0];
+                  if (f) {
+                    if (qaAttachment) URL.revokeObjectURL(qaAttachment.preview);
+                    setQaAttachment({ file: f, preview: URL.createObjectURL(f) });
+                  }
+                };
+                input.click();
+              }}
+              className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-500 hover:text-slate-700 p-3 rounded-xl transition-all shrink-0"
+              title="Attach photo"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </button>
             <input
               type="text"
               value={qaMessage}
@@ -2073,7 +2124,7 @@ export default function ProjectWorkspaceControlHub() {
             />
             <button
               type="submit"
-              disabled={isSendingQa || !qaMessage.trim()}
+              disabled={isSendingQa || (!qaMessage.trim() && !qaAttachment)}
               className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
             >
               {isSendingQa ? "Sending..." : "Send"}

@@ -995,7 +995,12 @@ export default function HomeownerPortalClient({
                           ? "bg-brand-charcoal text-white rounded-br-md shadow-soft"
                           : "bg-white border border-brand-stone/40 text-brand-charcoal rounded-bl-md shadow-soft"
                       }`}>
-                        <p>{msg.text}</p>
+                        {msg.image_url && (
+                          <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="block mb-2">
+                            <img src={msg.image_url} alt="Attachment" className="max-w-full max-h-52 rounded-lg border border-brand-stone/20" />
+                          </a>
+                        )}
+                        {msg.text && <p>{msg.text}</p>}
                         <p className={`text-[10px] mt-2 font-medium ${msg.author === "homeowner" ? "text-white/50" : "text-brand-muted"}`}>
                           {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </p>
