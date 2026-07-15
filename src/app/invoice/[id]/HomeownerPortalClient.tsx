@@ -541,12 +541,14 @@ export default function HomeownerPortalClient({
                 { key: "messages", label: "Messages" },
                 { key: "selections", label: "Selections" },
                 { key: "payments", label: "Payments" },
+                ...((invoice as any)?.contractor_notes?.some((n: any) => n.visible) ? [{ key: "notes", label: "Notes" }] : []),
                 { key: "docs", label: "Docs" },
               ]
             : [
                 { key: "proposal", label: "Proposal" },
                 { key: "messages", label: "Messages" },
                 ...(invoice?.selections_visible ? [{ key: "selections", label: "Selections" }] : []),
+                ...((invoice as any)?.contractor_notes?.some((n: any) => n.visible) ? [{ key: "notes", label: "Notes" }] : []),
                 { key: "schedule", label: "Schedule" },
                 { key: "docs", label: "Docs" },
               ]
@@ -1358,6 +1360,28 @@ export default function HomeownerPortalClient({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ── NOTES TAB ── */}
+        {activeTab === "notes" && (
+          <div className="max-w-3xl mx-auto animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-6 space-y-4">
+              <div className="border-b border-brand-stone/30 pb-3">
+                <h3 className="text-[15px] font-semibold text-brand-charcoal">Project Notes</h3>
+                <p className="text-[12px] text-brand-muted mt-0.5">Notes and updates from your contractor about this project.</p>
+              </div>
+              <div className="space-y-3">
+                {((invoice as any)?.contractor_notes || []).filter((n: any) => n.visible).map((note: any, i: number) => (
+                  <div key={i} className="bg-brand-warm/40 border border-brand-stone/30 rounded-xl p-4">
+                    <p className="text-[13px] font-medium text-brand-charcoal leading-relaxed whitespace-pre-wrap">{note.text}</p>
+                    <p className="text-[10px] font-medium text-brand-muted mt-2">
+                      Skyler · WDO Custom · {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
