@@ -75,6 +75,10 @@ export default function ProjectWorkspaceControlHub() {
   const [libraryLoading, setLibraryLoading] = useState(false);
   const libraryTimerRef = useRef<any>(null);
 
+  // Contractor Notes States
+  const [newNote, setNewNote] = useState("");
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
   // Change Order States
   const [coDescription, setCoDescription] = useState("");
   const [coItems, setCoItems] = useState<any[]>([]);
@@ -1925,6 +1929,107 @@ export default function ProjectWorkspaceControlHub() {
               )}
             </div>
           </form>
+        </div>
+      </div>
+
+      {/* CONTRACTOR NOTES */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
+          <div className="border-b pb-3 border-slate-100">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Contractor Notes</h3>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Private notes for your reference. Toggle visibility per note to share with the homeowner.</p>
+          </div>
+
+          <div className="flex gap-2">
+            <textarea
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              placeholder="Add a note..."
+              rows={2}
+              className="flex-1 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm resize-none"
+            />
+            <button
+              type="button"
+              disabled={isSavingNote || !newNote.trim()}
+              onClick={async () => {
+                if (!newNote.trim()) return;
+                setIsSavingNote(true);
+                try {
+                  const note = { text: newNote.trim(), timestamp: new Date().toISOString(), visible: false };
+                  const current = Array.isArray(project?.contractor_notes) ? [...project.contractor_notes] : [];
+                  const updated = [note, ...current];
+                  const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
+                  if (error) throw error;
+                  setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
+                  setNewNote("");
+                  toast("Note saved", "success");
+                } catch (err: any) {
+                  toast("Failed to save note: " + err.message, "error");
+                } finally {
+                  setIsSavingNote(false);
+                }
+              }}
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0 self-end"
+            >
+              {isSavingNote ? "Saving..." : "Save"}
+            </button>
+          </div>
+
+          <div className="space-y-2 max-h-[320px] overflow-y-auto">
+            {Array.isArray(project?.contractor_notes) && project.contractor_notes.map((note: any, i: number) => (
+              <div key={i} className="bg-slate-50/50 border border-slate-100 rounded-xl p-3 group">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">{note.text}</p>
+                    <p className="text-[9px] font-bold text-slate-400 mt-1.5">
+                      {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const updated = [...project.contractor_notes];
+                        updated[i] = { ...updated[i], visible: !updated[i].visible };
+                        const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
+                        if (error) { toast("Failed to update visibility", "error"); return; }
+                        setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
+                      }}
+                      className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-lg border transition-all ${
+                        note.visible
+                          ? "bg-sage-50 text-sage-700 border-sage-200 hover:bg-sage-100"
+                          : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
+                      }`}
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        {note.visible
+                          ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          : <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        }
+                      </svg>
+                      {note.visible ? "Visible" : "Hidden"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!confirm("Delete this note?")) return;
+                        const updated = project.contractor_notes.filter((_: any, idx: number) => idx !== i);
+                        const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
+                        if (error) { toast("Failed to delete note", "error"); return; }
+                        setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-[9px] font-black px-1.5 py-1 transition-all"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {(!project?.contractor_notes || project.contractor_notes.length === 0) && (
+              <p className="text-center italic text-slate-400 text-xs py-8">No notes yet. Add internal notes about this project.</p>
+            )}
+          </div>
         </div>
       </div>
 
