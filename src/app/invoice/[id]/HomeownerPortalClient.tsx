@@ -198,7 +198,7 @@ export default function HomeownerPortalClient({
     .reduce((sum: number, co: any) => sum + toNum(co.amount), 0);
 
   const combinedProjectTotal = baseTotal + approvedCoTotal;
-  const depositAmount = baseTotal * ((invoice?.deposit_percentage || 20) / 100);
+  const depositAmount = invoice?.deposit_amount ?? (baseTotal * ((invoice?.deposit_percentage || 20) / 100));
 
   const handleRemoveIndex = (idx: number) => {
     if (isLocked) return;
@@ -1078,13 +1078,14 @@ export default function HomeownerPortalClient({
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
-                  const phaseVal = baseTotal * (phase.percentage / 100);
+                  const phaseVal = phase.amount ?? (baseTotal * ((phase.percentage ?? 0) / 100));
+                  const phasePercent = phase.percentage ?? (baseTotal > 0 ? (toNum(phase.amount) / baseTotal) * 100 : 0);
                   return (
                     <div key={idx} className="bg-slate-50/50 border border-slate-200/60 p-3 rounded-xl text-xs">
                       <div className="flex justify-between items-center">
                         <div className="space-y-0.5">
                           <p className="font-extrabold text-slate-800 tracking-tight">{phase.name}</p>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {phase.percentage}%</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {Math.round(phasePercent * 10) / 10}%</p>
                         </div>
                         <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
@@ -1215,7 +1216,8 @@ export default function HomeownerPortalClient({
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
-                  const phaseVal = baseTotal * (phase.percentage / 100);
+                  const phaseVal = phase.amount ?? (baseTotal * ((phase.percentage ?? 0) / 100));
+                  const phasePercent = phase.percentage ?? (baseTotal > 0 ? (toNum(phase.amount) / baseTotal) * 100 : 0);
                   const activePhaseIdx = invoice.current_phase_index || 0;
                   const isPaid = invoice.deposit_cleared && idx < activePhaseIdx;
                   const isFirstPhaseDepositPaid = invoice.deposit_cleared && idx === 0;
@@ -1236,7 +1238,7 @@ export default function HomeownerPortalClient({
                               <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-slate-200 text-slate-400">PEND</span>
                             )}
                           </div>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {phase.percentage}%</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {Math.round(phasePercent * 10) / 10}%</p>
                         </div>
                         <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
