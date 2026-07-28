@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const portalUrl = `${base_url}/invoice/${invoice_id}`;
     const workspaceUrl = `${base_url}/admin/projects/${invoice_id}`;
     const depositPct = invoice.deposit_percentage ?? 20;
-    const depositAmount = (invoice.amount || 0) * (depositPct / 100);
+    const depositAmount = invoice.deposit_amount ?? ((invoice.amount || 0) * (depositPct / 100));
     const projectLabel =
       invoice.project_title || invoice.job_address || "Your Project";
 

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     const { data: invoice, error: fetchErr } = await supabase
       .from("invoices")
-      .select("homeowner_name, homeowner_email, project_title, job_address, amount, deposit_percentage, homeowner_options, homeowner_selections")
+      .select("homeowner_name, homeowner_email, project_title, job_address, amount, deposit_percentage, deposit_amount, homeowner_options, homeowner_selections")
       .eq("id", invoice_id)
       .single();
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    const depositAmount = (invoice.amount || 0) * ((invoice.deposit_percentage || 20) / 100);
+    const depositAmount = invoice.deposit_amount ?? ((invoice.amount || 0) * ((invoice.deposit_percentage || 20) / 100));
     const portalUrl = `${base_url}/invoice/${invoice_id}`;
 
     const options = invoice.homeowner_options || [];

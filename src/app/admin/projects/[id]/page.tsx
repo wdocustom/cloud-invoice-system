@@ -952,32 +952,72 @@ export default function ProjectWorkspaceControlHub() {
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Configure deposit percentage and payment draw phases. Changes sync instantly to the homeowner portal.</p>
           </div>
 
-          {/* Deposit Percentage */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit %</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={project?.deposit_percentage ?? 20}
-                onChange={(e) => {
-                  const val = Math.min(100, Math.max(0, toNum(e.target.value)));
-                  setProject((prev: any) => ({ ...prev, deposit_percentage: val }));
-                }}
-                onBlur={async () => {
-                  const { error } = await supabase
-                    .from("invoices")
-                    .update({ deposit_percentage: project?.deposit_percentage ?? 20 })
-                    .eq("id", projectId);
-                  if (error) toast("Failed to save deposit %: " + error.message, "error");
-                }}
-                className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-              />
+          {/* Deposit Amount & Percentage */}
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit $</label>
+                <span className="text-[10px] font-bold text-slate-400">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={project?.deposit_amount ?? (toNum(project?.amount) * (toNum(project?.deposit_percentage ?? 20) / 100))}
+                  onChange={(e) => {
+                    const depositAmt = toNum(e.target.value);
+                    const newPercent = toNum(project?.amount) > 0 ? (depositAmt / toNum(project?.amount)) * 100 : 0;
+                    setProject((prev: any) => ({
+                      ...prev,
+                      deposit_amount: depositAmt,
+                      deposit_percentage: Math.min(100, Math.max(0, newPercent))
+                    }));
+                  }}
+                  onBlur={async () => {
+                    const { error } = await supabase
+                      .from("invoices")
+                      .update({
+                        deposit_amount: project?.deposit_amount,
+                        deposit_percentage: project?.deposit_percentage
+                      })
+                      .eq("id", projectId);
+                    if (error) toast("Failed to save deposit: " + error.message, "error");
+                  }}
+                  className="w-32 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                />
+              </div>
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit %</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={project?.deposit_percentage ?? 20}
+                  onChange={(e) => {
+                    const percent = Math.min(100, Math.max(0, toNum(e.target.value)));
+                    const depositAmt = toNum(project?.amount) * (percent / 100);
+                    setProject((prev: any) => ({
+                      ...prev,
+                      deposit_percentage: percent,
+                      deposit_amount: depositAmt
+                    }));
+                  }}
+                  onBlur={async () => {
+                    const { error } = await supabase
+                      .from("invoices")
+                      .update({
+                        deposit_percentage: project?.deposit_percentage,
+                        deposit_amount: project?.deposit_amount
+                      })
+                      .eq("id", projectId);
+                    if (error) toast("Failed to save deposit: " + error.message, "error");
+                  }}
+                  className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                />
+                <span className="text-[10px] font-bold text-slate-400">%</span>
+              </div>
             </div>
-            <div className="text-xs text-slate-500 font-medium" style={{fontVariantNumeric:'tabular-nums'}}>
-              <span className="font-black text-slate-800">${(toNum(project?.amount) * (toNum(project?.deposit_percentage ?? 20) / 100)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> of ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
-            </div>
+            <p className="text-[11px] text-slate-500 font-medium px-2">
+              Edit either amount or percentage — the other updates automatically.
+            </p>
           </div>
 
           {/* Phase Rows */}
@@ -995,12 +1035,25 @@ export default function ProjectWorkspaceControlHub() {
             </div>
 
             {Array.isArray(project?.payment_phases) && project.payment_phases.map((phase: any, idx: number) => {
-              const phaseAmount = toNum(project?.amount) * (toNum(phase.percentage) / 100);
+              const phaseAmount = phase.amount ?? (toNum(project?.amount) * (toNum(phase.percentage ?? 0) / 100));
+              const phasePercent = phase.percentage ?? (toNum(project?.amount) > 0 ? (toNum(phase.amount) / toNum(project?.amount)) * 100 : 0);
               const isApprovedProject = project?.status === "approved";
               const activePhaseIdx = project?.current_phase_index || 0;
               const isPhasePaid = isApprovedProject && project?.deposit_cleared && (idx === 0 || idx < activePhaseIdx);
               const isPhaseActive = isApprovedProject && (idx === activePhaseIdx || (idx === 0 && !project?.deposit_cleared));
               const canRemind = isApprovedProject && isPhaseActive && !isPhasePaid;
+
+              const updatePhase = (updates: any) => {
+                const updated = [...project.payment_phases];
+                updated[idx] = { ...updated[idx], ...updates };
+                setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+              };
+
+              const savePhase = async () => {
+                const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
+                if (error) toast("Failed to save phase: " + error.message, "error");
+              };
+
               return (
                 <div key={idx} className="bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group space-y-2">
                   <div className="flex items-center gap-2">
@@ -1008,39 +1061,47 @@ export default function ProjectWorkspaceControlHub() {
                     <input
                       type="text"
                       value={phase.name}
-                      onChange={(e) => {
-                        const updated = [...project.payment_phases];
-                        updated[idx] = { ...updated[idx], name: e.target.value };
-                        setProject((prev: any) => ({ ...prev, payment_phases: updated }));
-                      }}
-                      onBlur={async () => {
-                        const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
-                        if (error) toast("Failed to save phase name: " + error.message, "error");
-                      }}
+                      onChange={(e) => updatePhase({ name: e.target.value })}
+                      onBlur={savePhase}
                       className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                     />
+
+                    {/* Amount Input */}
                     <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
+                      <span className="text-[10px] font-bold text-slate-400">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={phaseAmount}
+                        onChange={(e) => {
+                          const amt = toNum(e.target.value);
+                          const newPercent = toNum(project?.amount) > 0 ? (amt / toNum(project?.amount)) * 100 : 0;
+                          updatePhase({ amount: amt, percentage: newPercent });
+                        }}
+                        onBlur={savePhase}
+                        className="w-24 py-1.5 text-xs font-black text-slate-900 text-right outline-none bg-transparent"
+                        style={{fontVariantNumeric:'tabular-nums'}}
+                      />
+                    </div>
+
+                    {/* Percentage Display */}
+                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
                       <input
                         type="number"
                         min="0"
                         max="100"
-                        value={phase.percentage}
+                        value={Math.round(phasePercent * 10) / 10}
                         onChange={(e) => {
-                          const updated = [...project.payment_phases];
-                          updated[idx] = { ...updated[idx], percentage: toNum(e.target.value) };
-                          setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+                          const percent = Math.min(100, Math.max(0, toNum(e.target.value)));
+                          const amt = toNum(project?.amount) * (percent / 100);
+                          updatePhase({ percentage: percent, amount: amt });
                         }}
-                        onBlur={async () => {
-                          const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
-                          if (error) toast("Failed to save phase %: " + error.message, "error");
-                        }}
+                        onBlur={savePhase}
                         className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
                       />
                       <span className="text-[10px] font-bold text-slate-400">%</span>
                     </div>
-                    <span className="text-[10px] font-mono font-bold text-slate-500 shrink-0 w-20 text-right" style={{fontVariantNumeric:'tabular-nums'}}>
-                      ${phaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
+
                     {isApprovedProject && isPhasePaid && (
                       <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">Paid</span>
                     )}
@@ -1135,9 +1196,14 @@ export default function ProjectWorkspaceControlHub() {
               type="button"
               onClick={async () => {
                 const currentPhases = Array.isArray(project?.payment_phases) ? [...project.payment_phases] : [];
-                const usedPercent = currentPhases.reduce((s: number, p: any) => s + toNum(p.percentage), 0);
+                const usedPercent = currentPhases.reduce((s: number, p: any) => {
+                  if (p.percentage) return s + toNum(p.percentage);
+                  if (p.amount) return s + (toNum(p.amount) / toNum(project?.amount)) * 100;
+                  return s;
+                }, 0);
                 const remaining = Math.max(0, 100 - usedPercent);
-                const updated = [...currentPhases, { name: "New Phase", percentage: remaining }];
+                const remainingAmount = toNum(project?.amount) * (remaining / 100);
+                const updated = [...currentPhases, { name: "New Phase", percentage: remaining, amount: remainingAmount }];
                 setProject((prev: any) => ({ ...prev, payment_phases: updated }));
                 const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
                 if (error) toast("Failed to add phase: " + error.message, "error");

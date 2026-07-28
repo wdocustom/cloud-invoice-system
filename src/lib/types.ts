@@ -9,7 +9,8 @@ export interface MultiTierItem {
 
 export interface PaymentPhase {
   name: string;
-  percentage: number;
+  percentage?: number;
+  amount?: number;
 }
 
 export interface Invoice {
@@ -20,6 +21,7 @@ export interface Invoice {
   amount: number;
   items: MultiTierItem[];
   deposit_percentage: number;
+  deposit_amount?: number;
   payment_phases: PaymentPhase[];
   estimated_start_date?: string;
   project_length?: string;
