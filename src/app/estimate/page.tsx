@@ -502,11 +502,24 @@ export default function InstantEstimatePage() {
                       <form
                         onSubmit={(e) => {
                           e.preventDefault();
-                          if (!unlockEmail.trim()) return;
+                          const trimName = unlockName.trim();
+                          const trimEmail = unlockEmail.trim();
+                          const trimPhone = unlockPhone.trim();
+
+                          if (!trimEmail && !trimPhone) {
+                            setError("Please provide at least an email or phone number.");
+                            return;
+                          }
+                          if (!trimName && !trimEmail && !trimPhone) {
+                            setError("Please provide at least a name or email.");
+                            return;
+                          }
+
+                          setError("");
                           setUnlocked(true);
-                          setName(unlockName.trim());
-                          setEmail(unlockEmail.trim());
-                          setPhone(unlockPhone.trim());
+                          setName(trimName);
+                          setEmail(trimEmail);
+                          setPhone(trimPhone);
                           fetch("/api/unlock-estimate", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -545,16 +558,15 @@ export default function InstantEstimatePage() {
                             type="tel"
                             value={unlockPhone}
                             onChange={(e) => setUnlockPhone(e.target.value)}
-                            placeholder="Phone (optional)"
+                            placeholder="Phone number (or email below) *"
                             className="w-full px-4 py-3 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-luxury-gold/60 focus:ring-2 focus:ring-luxury-gold/15 transition"
                           />
                         </div>
                         <input
                           type="email"
-                          required
                           value={unlockEmail}
                           onChange={(e) => setUnlockEmail(e.target.value)}
-                          placeholder="Email address *"
+                          placeholder="Email address (or phone above) *"
                           className="w-full px-4 py-3 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-luxury-gold/60 focus:ring-2 focus:ring-luxury-gold/15 transition"
                         />
                         <button
