@@ -16,10 +16,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 });
     }
 
+    const trimName = (name || "").trim();
+    const trimEmail = (email || "").trim();
+    const trimPhone = (phone || "").trim();
+
+    if (!trimEmail && !trimPhone) {
+      return NextResponse.json(
+        { error: "Email or phone number is required to proceed." },
+        { status: 400 }
+      );
+    }
+
     const supabase = getSupabase();
     await supabase
       .from("estimates")
-      .update({ name: name || null, email: email || null, phone: phone || null })
+      .update({
+        name: trimName || null,
+        email: trimEmail || null,
+        phone: trimPhone || null,
+      })
       .eq("token", token);
 
     return NextResponse.json({ success: true });

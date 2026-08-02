@@ -11,8 +11,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, phone, projectType, scopeLevel, size, zip, description, estimateLow, estimateHigh, timeline, token } = body;
 
-    if (!name && !phone && !email) {
-      return NextResponse.json({ error: "No contact info provided" }, { status: 400 });
+    const trimName = (name || "").trim();
+    const trimEmail = (email || "").trim();
+    const trimPhone = (phone || "").trim();
+
+    if (!trimEmail && !trimPhone) {
+      return NextResponse.json(
+        { error: "Email or phone number is required to process this lead." },
+        { status: 400 }
+      );
     }
 
     if (!resend) {
@@ -26,11 +33,11 @@ export async function POST(request: Request) {
       resend.emails.send({
         from: "WDO Custom <messages@wdocustom.com>",
         to: ["skyler@wdocustom.com"],
-        subject: `New Estimate Lead: ${name || "Unknown"} — ${projectType}`,
+        subject: `New Estimate Lead: ${trimName || trimEmail || trimPhone || "Unknown"} — ${projectType}`,
         html: buildLeadNotificationHtml({
-          name: name || "",
-          email: email || "",
-          phone: phone || "",
+          name: trimName || "",
+          email: trimEmail || "",
+          phone: trimPhone || "",
           projectType: projectType || "Not specified",
           scopeLevel: scopeLevel || "mid",
           size: size || "",
@@ -43,21 +50,21 @@ export async function POST(request: Request) {
       })
     );
 
-    if (email) {
+    if (trimEmail) {
       const consultationParams = new URLSearchParams();
-      if (name) consultationParams.set("name", name);
-      if (email) consultationParams.set("email", email);
-      if (phone) consultationParams.set("phone", phone);
+      if (trimName) consultationParams.set("name", trimName);
+      if (trimEmail) consultationParams.set("email", trimEmail);
+      if (trimPhone) consultationParams.set("phone", trimPhone);
       if (projectType) consultationParams.set("project", projectType);
       const consultationUrl = `https://www.wdocustom.com/consultation?${consultationParams.toString()}`;
 
       emails.push(
         resend.emails.send({
           from: "WDO Custom <messages@wdocustom.com>",
-          to: [email],
+          to: [trimEmail],
           subject: `Your ${projectType || "Remodeling"} Estimate — $${estimateLow} to $${estimateHigh}`,
           html: buildEstimateConfirmationHtml({
-            name: name || "there",
+            name: trimName || "there",
             projectType: projectType || "Remodeling Project",
             estimateLow: estimateLow || "—",
             estimateHigh: estimateHigh || "—",
