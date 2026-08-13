@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
@@ -7,6 +7,21 @@ import { toast } from "@/lib/toast";
 function fmt(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 }
+
+const EMPTY_FORM = {
+  name: "",
+  email: "",
+  phone: "",
+  address: "",
+  city: "",
+  state: "",
+  zip: "",
+  project_type: "",
+  size: "",
+  notes: "",
+};
+
+type LeadForm = typeof EMPTY_FORM;
 
 export default function EstimateDetailPage() {
   const router = useRouter();
@@ -17,6 +32,9 @@ export default function EstimateDetailPage() {
   const [loading, setLoading] = useState(true);
   const [converting, setConverting] = useState(false);
   const [sendingReminder, setSendingReminder] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [savingLead, setSavingLead] = useState(false);
+  const [form, setForm] = useState<LeadForm>(EMPTY_FORM);
 
   useEffect(() => {
     if (estimateId) fetchEstimate();
@@ -38,6 +56,43 @@ export default function EstimateDetailPage() {
     setLoading(false);
   }
 
+  function openEditor() {
+    const next = { ...EMPTY_FORM };
+    (Object.keys(EMPTY_FORM) as (keyof LeadForm)[]).forEach((key) => {
+      next[key] = estimate?.[key] || "";
+    });
+    setForm(next);
+    setIsEditOpen(true);
+  }
+
+  async function saveLead() {
+    setSavingLead(true);
+    try {
+      const res = await fetch("/api/update-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: estimateId, ...form }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Save failed");
+
+      setEstimate((prev: any) => ({ ...prev, ...(data.lead || form) }));
+      setIsEditOpen(false);
+      toast("Customer details updated", "success");
+
+      if (Array.isArray(data.dropped_columns) && data.dropped_columns.length > 0) {
+        toast(
+          `Couldn't save ${data.dropped_columns.join(", ")} — run the latest migration in Supabase.`,
+          "error"
+        );
+      }
+    } catch (err: any) {
+      toast(err.message || "Save failed", "error");
+    } finally {
+      setSavingLead(false);
+    }
+  }
+
   async function handleConvert() {
     if (!confirm("Convert this estimate to a proposal? This will create a new project in your portfolio.")) return;
     setConverting(true);
@@ -49,7 +104,7 @@ export default function EstimateDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Conversion failed");
-      toast("Converted to proposal!", "success");
+      toast(data.warning || "Converted to proposal!", data.warning ? "error" : "success");
       router.push(`/admin/projects/${data.invoice_id}`);
     } catch (err: any) {
       toast(err.message || "Conversion failed", "error");
@@ -103,6 +158,14 @@ export default function EstimateDetailPage() {
   const ed = estimate.estimate_data || {};
   const isConverted = !!estimate.converted_to_invoice_id;
   const reminderCount = Array.isArray(estimate.reminder_emails) ? estimate.reminder_emails.length : 0;
+  const fullAddress = [
+    estimate.address,
+    estimate.city,
+    [estimate.state, estimate.zip].filter(Boolean).join(" "),
+  ]
+    .map((part: string) => (part || "").trim())
+    .filter(Boolean)
+    .join(", ");
   const createdDate = new Date(estimate.created_at).toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric", year: "numeric",
     hour: "numeric", minute: "2-digit",
@@ -216,7 +279,16 @@ export default function EstimateDetailPage() {
 
         {/* Contact Info Card */}
         <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
-          <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-4">Contact Information</p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest">Contact Information</p>
+            <button
+              type="button"
+              onClick={openEditor}
+              className="bg-brand-warm hover:bg-brand-stone/40 text-brand-charcoal font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+            >
+              Edit Customer
+            </button>
+          </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Name</p>
@@ -242,7 +314,22 @@ export default function EstimateDetailPage() {
               <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Submitted</p>
               <p className="text-sm font-bold text-brand-charcoal mt-0.5">{createdDate}</p>
             </div>
+            <div className="sm:col-span-2">
+              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Project Address</p>
+              <p className={`text-sm font-bold mt-0.5 ${fullAddress ? "text-brand-charcoal" : "text-brand-muted"}`}>
+                {fullAddress || "Not provided"}
+              </p>
+            </div>
           </div>
+
+          {estimate.notes && (
+            <div className="mt-4 pt-4 border-t border-brand-stone/20">
+              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide mb-1">
+                Internal Notes <span className="normal-case font-medium">(never shown to the customer)</span>
+              </p>
+              <p className="text-sm text-brand-charcoal leading-relaxed whitespace-pre-wrap">{estimate.notes}</p>
+            </div>
+          )}
         </div>
 
         {/* Project Details */}
@@ -364,6 +451,158 @@ export default function EstimateDetailPage() {
           </button>
         </div>
       </div>
+
+      {/* Edit Customer Modal */}
+      {isEditOpen && (
+        <div className="fixed inset-0 bg-brand-charcoal/40 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-brand-stone/40 rounded-2xl w-full max-w-lg my-8 shadow-elevated">
+            <div className="px-5 pt-5 pb-3 border-b border-brand-stone/20">
+              <h3 className="font-editorial text-base font-bold text-brand-charcoal">Edit Customer</h3>
+              <p className="text-[11px] text-brand-muted font-medium mt-0.5">
+                These details travel with the lead onto the proposal when you convert it.
+              </p>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <Field label="Name">
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Email">
+                  <input
+                    type="email"
+                    inputMode="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="name@example.com"
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Phone">
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Street Address">
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  placeholder="1234 Oak Street"
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="col-span-2">
+                  <Field label="City">
+                    <input
+                      type="text"
+                      value={form.city}
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      placeholder="Omaha"
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+                <Field label="State">
+                  <input
+                    type="text"
+                    value={form.state}
+                    onChange={(e) => setForm({ ...form, state: e.target.value })}
+                    placeholder="NE"
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="ZIP">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={form.zip}
+                    onChange={(e) => setForm({ ...form, zip: e.target.value })}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Project Type">
+                  <input
+                    type="text"
+                    value={form.project_type}
+                    onChange={(e) => setForm({ ...form, project_type: e.target.value })}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Size / Scope">
+                  <input
+                    type="text"
+                    value={form.size}
+                    onChange={(e) => setForm({ ...form, size: e.target.value })}
+                    placeholder="e.g. 400 sq ft"
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Internal Notes">
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  rows={3}
+                  placeholder="Gate code, best time to call, site conditions…"
+                  className={`${inputClass} resize-y`}
+                />
+                <p className="text-[10px] text-brand-muted mt-1">
+                  Carried onto the proposal as a private contractor note — hidden from the homeowner.
+                </p>
+              </Field>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 px-5 pb-5">
+              <button
+                type="button"
+                onClick={() => setIsEditOpen(false)}
+                className="bg-brand-warm hover:bg-brand-stone/40 text-brand-muted font-bold text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveLead}
+                disabled={savingLead}
+                className="bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-50 text-white font-bold text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm"
+              >
+                {savingLead ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full py-2.5 px-3.5 bg-brand-alabaster border border-brand-stone/40 rounded-xl text-sm font-semibold text-brand-charcoal outline-none focus:bg-white focus:border-brand-charcoal/30 transition-all";
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <label className="text-[10px] font-bold text-brand-muted uppercase tracking-wide block mb-1">{label}</label>
+      {children}
     </div>
   );
 }

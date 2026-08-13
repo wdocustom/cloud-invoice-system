@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { updateTolerant } from "@/lib/db";
 
 export default function ProjectWorkspaceControlHub() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function ProjectWorkspaceControlHub() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [editProjectTitle, setEditProjectTitle] = useState("");
 
@@ -121,6 +123,7 @@ export default function ProjectWorkspaceControlHub() {
         setProject(data);
         setEditName(data.homeowner_name || "");
         setEditEmail(data.homeowner_email || "");
+        setEditPhone(data.homeowner_phone || "");
         setEditAddress(data.job_address || "");
         setEditProjectTitle(data.project_title || "");
       }
@@ -141,26 +144,29 @@ export default function ProjectWorkspaceControlHub() {
   async function saveClientProfileModifications() {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from("invoices")
-        .update({
-          homeowner_name: editName.trim(),
-          homeowner_email: editEmail.trim(),
-          job_address: editAddress.trim(),
-          project_title: editProjectTitle.trim()
-        })
-        .eq("id", projectId);
-
-      if (error) throw error;
-
-      setProject((prev: any) => ({
-        ...prev,
+      const updates = {
         homeowner_name: editName.trim(),
         homeowner_email: editEmail.trim(),
+        homeowner_phone: editPhone.trim(),
         job_address: editAddress.trim(),
         project_title: editProjectTitle.trim()
-      }));
-      
+      };
+
+      const { error, dropped } = await updateTolerant(
+        supabase,
+        "invoices",
+        updates,
+        (q) => q.eq("id", projectId),
+        "id"
+      );
+
+      if (error) throw error;
+      if (dropped.length > 0) {
+        toast(`Couldn't save ${dropped.join(", ")} — run the latest migration in Supabase.`, "error");
+      }
+
+      setProject((prev: any) => ({ ...prev, ...updates }));
+
       setIsEditModalOpen(false);
       toast("Client profile updated successfully", "success");
     } catch (err: any) {
@@ -626,6 +632,11 @@ export default function ProjectWorkspaceControlHub() {
               <p className="font-bold text-xs text-slate-800">{project?.homeowner_name || "N/A"}</p>
             </div>
             <p className="font-mono font-bold text-[11px] text-slate-500 truncate">{project?.homeowner_email || "N/A"}</p>
+            {project?.homeowner_phone && (
+              <a href={`tel:${project.homeowner_phone}`} className="font-mono font-bold text-[11px] text-slate-500 truncate block hover:text-slate-800 transition-colors">
+                {project.homeowner_phone}
+              </a>
+            )}
           </div>
         </div>
 
@@ -2612,6 +2623,16 @@ export default function ProjectWorkspaceControlHub() {
                   type="email"
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
+                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
                   className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
