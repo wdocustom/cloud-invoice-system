@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { describeDbError, insertTolerant, updateTolerant } from "@/lib/db";
+import { toNum } from "@/lib/utils";
 
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+}
+
+/** "1234 Oak St, Omaha, NE 68022" from whatever pieces the lead actually has. */
+function composeJobAddress(estimate: Record<string, any>): string {
+  const street = (estimate.address || "").trim();
+  const city = (estimate.city || "").trim();
+  const state = (estimate.state || "").trim();
+  const zip = (estimate.zip || "").trim();
+  const region = [state, zip].filter(Boolean).join(" ");
+  return [street, city, region].filter(Boolean).join(", ");
 }
 
 export async function POST(request: Request) {
@@ -32,24 +44,50 @@ export async function POST(request: Request) {
     }
 
     const ed = estimate.estimate_data;
+    if (!ed || typeof ed !== "object") {
+      return NextResponse.json(
+        { error: "This lead has no saved estimate data, so there are no line items to convert." },
+        { status: 422 }
+      );
+    }
 
-    const items = (ed.line_items || []).map((li: any) => ({
-      title: li.item,
-      mid_description: li.notes || "",
-      mid_cost: Math.round((li.low + li.high) / 2),
-      high_title: li.item,
-      high_description: li.notes || "",
-      high_cost: li.high,
-    }));
+    // The AI estimate is free-form JSON — a missing or non-numeric low/high used
+    // to produce NaN here, which serialises to null and gets rejected by the
+    // not-null constraint on invoices.amount. toNum keeps every figure finite.
+    const rawItems = Array.isArray(ed.line_items) ? ed.line_items : [];
+    const items = rawItems.map((li: any) => {
+      const low = toNum(li?.low);
+      const high = toNum(li?.high);
+      const mid = Math.round((low + high) / 2);
+      const title = (li?.item || "").trim() || "Project line item";
+      return {
+        title,
+        mid_description: li?.notes || "",
+        mid_cost: mid,
+        high_title: title,
+        high_description: li?.notes || "",
+        high_cost: high || mid,
+      };
+    });
 
-    const midTotal = items.reduce((s: number, i: any) => s + i.mid_cost, 0);
+    const midTotal = items.reduce((s: number, i: any) => s + toNum(i.mid_cost), 0);
+    const jobAddress = composeJobAddress(estimate);
 
-    const { data: invoice, error: insertErr } = await supabase
-      .from("invoices")
-      .insert({
+    // Internal lead notes stay internal: they land in contractor_notes hidden
+    // from the homeowner portal, not in the customer-facing description.
+    const leadNotes = (estimate.notes || "").trim();
+    const contractorNotes = leadNotes
+      ? [{ text: leadNotes, timestamp: new Date().toISOString(), visible: false }]
+      : [];
+
+    const { data: invoice, error: insertErr, dropped } = await insertTolerant<{ id: string }>(
+      supabase,
+      "invoices",
+      {
         homeowner_name: estimate.name || "",
         homeowner_email: estimate.email || "",
-        job_address: "",
+        homeowner_phone: estimate.phone || "",
+        job_address: jobAddress,
         project_title: ed.project_title || estimate.project_type,
         description: estimate.description,
         amount: midTotal,
@@ -71,24 +109,37 @@ export async function POST(request: Request) {
         questions: [],
         documents: [],
         payment_history: [],
-      })
-      .select("id")
-      .single();
+        contractor_notes: contractorNotes,
+      },
+      "id"
+    );
 
     if (insertErr || !invoice) {
-      console.error("Invoice creation error:", insertErr);
-      return NextResponse.json({ error: "Failed to create proposal" }, { status: 500 });
+      console.error("Invoice creation error:", insertErr, { estimate_id, item_count: items.length, amount: midTotal });
+      return NextResponse.json(
+        { error: `Failed to create proposal: ${describeDbError(insertErr)}` },
+        { status: 500 }
+      );
     }
 
-    await supabase
-      .from("estimates")
-      .update({
-        status: "converted",
-        converted_to_invoice_id: invoice.id,
-      })
-      .eq("id", estimate_id);
+    const { error: linkErr } = await updateTolerant(
+      supabase,
+      "estimates",
+      { status: "converted", converted_to_invoice_id: invoice.id },
+      (q) => q.eq("id", estimate_id),
+      "id"
+    );
 
-    return NextResponse.json({ success: true, invoice_id: invoice.id });
+    if (linkErr) {
+      console.error("Failed to link estimate to invoice:", linkErr);
+    }
+
+    return NextResponse.json({
+      success: true,
+      invoice_id: invoice.id,
+      ...(dropped.length ? { dropped_columns: dropped } : {}),
+      ...(linkErr ? { warning: `Proposal created, but the lead could not be marked converted: ${describeDbError(linkErr)}` } : {}),
+    });
   } catch (err: any) {
     console.error("Convert estimate error:", err);
     return NextResponse.json({ error: err.message || "Internal error" }, { status: 500 });
