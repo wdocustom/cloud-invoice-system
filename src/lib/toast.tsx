@@ -13,7 +13,9 @@ export function toast(message: string, type: ToastType = "info") {
   const id = nextId++;
   toasts = [...toasts, { id, message, type }];
   listener(toasts);
-  setTimeout(() => removeToast(id), 3000);
+  // Errors now carry the real database message, which takes longer to read —
+  // especially on a phone.
+  setTimeout(() => removeToast(id), type === "error" ? 9000 : 3000);
 }
 
 function removeToast(id: number) {
@@ -43,20 +45,20 @@ export function ToastContainer() {
   return (
     <>
       <style>{slideIn}</style>
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+      <div className="fixed top-4 left-4 right-4 sm:left-auto z-50 flex flex-col gap-2 sm:max-w-sm">
         {items.map((t) => (
           <div
             key={t.id}
             style={{ animation: "slideIn .25s ease-out" }}
-            className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 shadow-lg shadow-black/5 text-xs font-bold ${styles[t.type]}`}
+            className={`flex items-start gap-2 rounded-2xl px-4 py-2.5 shadow-lg shadow-black/5 text-xs font-bold ${styles[t.type]}`}
           >
             {t.type === "success" && (
-              <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-px" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             )}
-            <span>{t.message}</span>
-            <button onClick={() => removeToast(t.id)} className="ml-1 opacity-40 hover:opacity-100 text-[10px] leading-none">✕</button>
+            <span className="flex-1 min-w-0 break-words">{t.message}</span>
+            <button onClick={() => removeToast(t.id)} className="ml-1 shrink-0 opacity-40 hover:opacity-100 text-[10px] leading-none">✕</button>
           </div>
         ))}
       </div>
