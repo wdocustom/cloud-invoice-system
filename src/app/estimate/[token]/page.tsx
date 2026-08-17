@@ -37,6 +37,7 @@ interface Estimate {
   estimate_data: EstimateData;
   status: string;
   converted_to_invoice_id: string | null;
+  estimate_number: string | null;
   created_at: string;
 }
 
@@ -201,7 +202,12 @@ export default function PublicEstimatePage() {
               <div className="relative z-10">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
-                    <p className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest mb-1">Your Estimate</p>
+                    <p className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest mb-1">
+                      Your Estimate
+                      {estimate.estimate_number && (
+                        <span className="font-mono text-white/40 tracking-wider ml-2">{estimate.estimate_number}</span>
+                      )}
+                    </p>
                     <h1 className="text-xl font-black text-white tracking-tight">{result.project_title}</h1>
                     <p className="text-[11px] text-white/30 mt-1">Created {createdDate}</p>
                   </div>

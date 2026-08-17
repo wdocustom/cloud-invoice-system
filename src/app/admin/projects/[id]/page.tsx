@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { updateTolerant } from "@/lib/db";
+import { formatChangeOrderNumber } from "@/lib/document-numbers";
 
 export default function ProjectWorkspaceControlHub() {
   const router = useRouter();
@@ -560,6 +561,16 @@ export default function ProjectWorkspaceControlHub() {
             <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100">
               {project?.homeowner_name || "CLIENT"} WORKSPACE
             </h1>
+            {project?.proposal_number && (
+              <p className="font-mono text-[11px] font-bold text-amber-400/90 tracking-widest">
+                {project.proposal_number}
+                {project.estimate_number && (
+                  <span className="text-slate-500 font-medium normal-case tracking-normal ml-2">
+                    from {project.estimate_number}
+                  </span>
+                )}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <span className={`text-[9px] rounded-full px-3 py-1 font-black uppercase tracking-wider border ${
@@ -2428,6 +2439,9 @@ export default function ProjectWorkspaceControlHub() {
                 {changeOrders.map((co: any) => (
                   <div key={co.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-200/60 rounded-xl p-3 text-xs">
                     <div className="space-y-0.5 min-w-0">
+                      {co.proposal_number && (
+                        <p className="font-mono text-[9px] font-black text-slate-400 tracking-widest">{co.proposal_number}</p>
+                      )}
                       <p className="font-bold text-slate-800 truncate">{co.description || co.project_title || "Change Order"}</p>
                       <div className="flex gap-1.5">
                         <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md border ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
@@ -2562,8 +2576,21 @@ export default function ProjectWorkspaceControlHub() {
                             cost: toNum(item.mid_cost),
                           }));
                           const totalAmount = finalItems.reduce((s, i) => s + i.cost, 0);
+                          // A change order hangs off the proposal's number
+                          // instead of taking one of its own: PRO-2026-0007-CO1.
+                          const coNumber = project?.proposal_number
+                            ? formatChangeOrderNumber(project.proposal_number, changeOrders.length + 1)
+                            : null;
                           const { error } = await supabase.from("invoices").insert({
                             parent_id: projectId,
+                            ...(coNumber
+                              ? {
+                                  proposal_number: coNumber,
+                                  sequence_year: project?.sequence_year ?? null,
+                                  sequence_no: project?.sequence_no ?? null,
+                                  estimate_number: project?.estimate_number ?? null,
+                                }
+                              : {}),
                             homeowner_name: project?.homeowner_name,
                             homeowner_email: project?.homeowner_email,
                             job_address: project?.job_address,

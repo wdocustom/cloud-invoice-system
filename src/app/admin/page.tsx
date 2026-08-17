@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { allocateDocumentNumber, proposalNumberFields } from "@/lib/document-numbers";
 
 export default function MultiTierEstimatorCreator() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function MultiTierEstimatorCreator() {
   const [isDeploying, setIsDeploying] = useState(false);
   const [generatedItems, setGeneratedItems] = useState<any[]>([]);
   const [proposalLink, setProposalLink] = useState("");
+  const [proposalNumber, setProposalNumber] = useState("");
   const [generatingPhase, setGeneratingPhase] = useState("");
 
   const handleClientSideFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,11 +111,16 @@ export default function MultiTierEstimatorCreator() {
 
     const primaryDatabaseSummaryText = goalsPrompt.trim() || `Residential renovation project scope manifest for ${clientName}.`;
 
+    // No lead behind this one, so it draws its own number off the shared
+    // counter — same sequence the estimate links pull from.
+    const numberFields = proposalNumberFields(await allocateDocumentNumber(supabase));
+
     try {
       const { data, error } = await supabase
         .from("invoices")
         .insert([
           {
+            ...numberFields,
             homeowner_name: clientName.trim(),
             homeowner_email: clientEmail.trim() || null,
             job_address: `${streetAddress.trim()}, Omaha, NE ${zipCode.trim()}`,
@@ -142,7 +149,11 @@ export default function MultiTierEstimatorCreator() {
       if (error) throw error;
       if (data) {
         setProposalLink(`${window.location.origin}/invoice/${data.id}`);
-        toast("Proposal deployed successfully", "success");
+        setProposalNumber(data.proposal_number || "");
+        toast(
+          data.proposal_number ? `Proposal ${data.proposal_number} deployed` : "Proposal deployed successfully",
+          "success"
+        );
       }
     } catch (err: any) {
       toast("Database dispatch pipeline error: " + err.message, "error");
@@ -285,6 +296,9 @@ export default function MultiTierEstimatorCreator() {
                 <span className="w-2 h-2 rounded-full bg-sage-500" />
                 <p className="text-sage-700 font-semibold text-sm">Proposal Live</p>
               </div>
+              {proposalNumber && (
+                <p className="font-mono text-[11px] font-bold text-sage-700 tracking-wider mb-2">{proposalNumber}</p>
+              )}
               <input
                 type="text"
                 readOnly

@@ -29,6 +29,7 @@ export default function EstimateDetailPage() {
   const estimateId = params?.id as string;
 
   const [estimate, setEstimate] = useState<any>(null);
+  const [proposalNumber, setProposalNumber] = useState("");
   const [loading, setLoading] = useState(true);
   const [converting, setConverting] = useState(false);
   const [sendingReminder, setSendingReminder] = useState(false);
@@ -53,6 +54,16 @@ export default function EstimateDetailPage() {
       return;
     }
     setEstimate(data);
+
+    if (data.converted_to_invoice_id) {
+      const { data: proposal } = await supabase
+        .from("invoices")
+        .select("proposal_number")
+        .eq("id", data.converted_to_invoice_id)
+        .single();
+      setProposalNumber(proposal?.proposal_number || "");
+    }
+
     setLoading(false);
   }
 
@@ -104,7 +115,8 @@ export default function EstimateDetailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Conversion failed");
-      toast(data.warning || "Converted to proposal!", data.warning ? "error" : "success");
+      const converted = data.proposal_number ? `Converted to proposal ${data.proposal_number}` : "Converted to proposal!";
+      toast(data.warning || converted, data.warning ? "error" : "success");
       router.push(`/admin/projects/${data.invoice_id}`);
     } catch (err: any) {
       toast(err.message || "Conversion failed", "error");
@@ -197,6 +209,9 @@ export default function EstimateDetailPage() {
               </svg>
             </button>
             <div className="min-w-0">
+              {estimate.estimate_number && (
+                <p className="font-mono text-[10px] font-bold text-brand-muted tracking-widest">{estimate.estimate_number}</p>
+              )}
               <h1 className="font-editorial text-lg sm:text-xl font-bold tracking-tight text-brand-charcoal truncate">
                 {estimate.name || "Anonymous Lead"}
               </h1>
@@ -253,6 +268,28 @@ export default function EstimateDetailPage() {
             View Public Link
           </a>
         </div>
+
+        {/* Document Numbering — issued here at the lead, inherited by the proposal */}
+        {estimate.estimate_number && (
+          <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
+            <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-3">Document Number</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="font-mono text-sm font-bold text-brand-charcoal bg-brand-warm border border-brand-stone/40 rounded-lg px-3 py-1.5 tracking-wider">
+                {estimate.estimate_number}
+              </span>
+              <span className="text-brand-muted text-sm">→</span>
+              {proposalNumber ? (
+                <span className="font-mono text-sm font-bold text-sage-700 bg-sage-50 border border-sage-200 rounded-lg px-3 py-1.5 tracking-wider">
+                  {proposalNumber}
+                </span>
+              ) : (
+                <span className="text-[11px] font-medium text-brand-muted">
+                  becomes {estimate.estimate_number.replace(/^EST-/, "PRO-")} when you convert this lead
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Status Changer */}
         {!isConverted && (

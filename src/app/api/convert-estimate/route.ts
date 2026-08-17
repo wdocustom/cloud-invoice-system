@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { describeDbError, insertTolerant, updateTolerant } from "@/lib/db";
 import { toNum } from "@/lib/utils";
+import {
+  allocateDocumentNumber,
+  documentNumberOf,
+  estimateNumberFields,
+  formatEstimateNumber,
+  proposalNumberFields,
+} from "@/lib/document-numbers";
 
 function getSupabase() {
   return createClient(
@@ -80,10 +87,24 @@ export async function POST(request: Request) {
       ? [{ text: leadNotes, timestamp: new Date().toISOString(), visible: false }]
       : [];
 
+    // The proposal keeps the lead's number: EST-2026-0007 becomes PRO-2026-0007
+    // so the estimate the homeowner saw and the proposal they sign are visibly
+    // the same job. Leads from before numbering existed have nothing to inherit,
+    // so they draw a fresh number here and get it written back to the lead too.
+    const inheritedNumber = documentNumberOf(estimate);
+    const documentNumber = inheritedNumber ?? (await allocateDocumentNumber(supabase));
+    const estimateNumber =
+      estimate.estimate_number || (documentNumber ? formatEstimateNumber(documentNumber) : null);
+    // Only stamp a number back onto a lead that has none. A lead already showing
+    // EST-2026-0004 to a customer keeps it, even if its sequence columns are
+    // missing — the label a customer was given must never be rewritten.
+    const backfillLead = !inheritedNumber && !estimate.estimate_number;
+
     const { data: invoice, error: insertErr, dropped } = await insertTolerant<{ id: string }>(
       supabase,
       "invoices",
       {
+        ...proposalNumberFields(documentNumber, estimateNumber),
         homeowner_name: estimate.name || "",
         homeowner_email: estimate.email || "",
         homeowner_phone: estimate.phone || "",
@@ -125,7 +146,12 @@ export async function POST(request: Request) {
     const { error: linkErr } = await updateTolerant(
       supabase,
       "estimates",
-      { status: "converted", converted_to_invoice_id: invoice.id },
+      {
+        status: "converted",
+        converted_to_invoice_id: invoice.id,
+        // Backfills the number on a lead that predates numbering.
+        ...(backfillLead ? estimateNumberFields(documentNumber) : {}),
+      },
       (q) => q.eq("id", estimate_id),
       "id"
     );
@@ -137,6 +163,9 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       invoice_id: invoice.id,
+      proposal_number: dropped.includes("proposal_number")
+        ? null
+        : proposalNumberFields(documentNumber).proposal_number ?? null,
       ...(dropped.length ? { dropped_columns: dropped } : {}),
       ...(linkErr ? { warning: `Proposal created, but the lead could not be marked converted: ${describeDbError(linkErr)}` } : {}),
     });

@@ -41,6 +41,8 @@ export async function POST(request: Request) {
     const portalUrl = `${base_url}/invoice/${invoice_id}`;
 
     const { buffer, filename } = generateProposalPdfBuffer({
+      proposal_number: invoice.proposal_number,
+      estimate_number: invoice.estimate_number,
       homeowner_name: invoice.homeowner_name || "Client",
       homeowner_email: invoice.homeowner_email,
       job_address: invoice.job_address || "",
@@ -57,6 +59,7 @@ export async function POST(request: Request) {
     });
 
     const html = buildProposalEmailHtml({
+      proposal_number: invoice.proposal_number,
       homeowner_name: invoice.homeowner_name || "Client",
       project_title: invoice.project_title,
       job_address: invoice.job_address || "",
@@ -68,6 +71,9 @@ export async function POST(request: Request) {
     });
 
     const projectLabel = invoice.project_title || invoice.job_address || "Your Project";
+    const subject = invoice.proposal_number
+      ? `Your Proposal from WDO Custom — ${projectLabel} (${invoice.proposal_number})`
+      : `Your Proposal from WDO Custom — ${projectLabel}`;
 
     if (!resend) {
       return NextResponse.json({ error: "Email service not configured" }, { status: 500 });
@@ -76,7 +82,7 @@ export async function POST(request: Request) {
     const { error: sendError } = await resend.emails.send({
       from: "WDO Custom <proposals@wdocustom.com>",
       to: [invoice.homeowner_email],
-      subject: `Your Proposal from WDO Custom — ${projectLabel}`,
+      subject,
       html,
       attachments: [
         {

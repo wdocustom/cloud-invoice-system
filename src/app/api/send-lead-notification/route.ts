@@ -9,7 +9,7 @@ const resend = process.env.RESEND_API_KEY
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, projectType, scopeLevel, size, zip, description, estimateLow, estimateHigh, timeline, token } = body;
+    const { name, email, phone, projectType, scopeLevel, size, zip, description, estimateLow, estimateHigh, timeline, token, estimateNumber } = body;
 
     const trimName = (name || "").trim();
     const trimEmail = (email || "").trim();
@@ -33,8 +33,9 @@ export async function POST(request: Request) {
       resend.emails.send({
         from: "WDO Custom <messages@wdocustom.com>",
         to: ["skyler@wdocustom.com"],
-        subject: `New Estimate Lead: ${trimName || trimEmail || trimPhone || "Unknown"} — ${projectType}`,
+        subject: `New Estimate Lead${estimateNumber ? ` ${estimateNumber}` : ""}: ${trimName || trimEmail || trimPhone || "Unknown"} — ${projectType}`,
         html: buildLeadNotificationHtml({
+          estimateNumber: estimateNumber || "",
           name: trimName || "",
           email: trimEmail || "",
           phone: trimPhone || "",
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
           to: [trimEmail],
           subject: `Your ${projectType || "Remodeling"} Estimate — $${estimateLow} to $${estimateHigh}`,
           html: buildEstimateConfirmationHtml({
+            estimateNumber: estimateNumber || "",
             name: trimName || "there",
             projectType: projectType || "Remodeling Project",
             estimateLow: estimateLow || "—",

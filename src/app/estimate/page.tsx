@@ -541,6 +541,7 @@ export default function InstantEstimatePage() {
                               estimateHigh: result.total_projected_high?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
                               timeline: result.timeline_weeks ? `${result.timeline_weeks} weeks` : "",
                               token: result.token || "",
+                              estimateNumber: (result as any).estimate_number || "",
                             }),
                           }).catch(() => {});
                         }}
