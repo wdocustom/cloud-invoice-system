@@ -505,7 +505,14 @@ export default function HomeownerPortalClient({
             </div>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-soft border border-brand-stone/30 space-y-2.5">
-            <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Project</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Project</p>
+              {(invoice as any).proposal_number && (
+                <p className="font-mono text-[10px] font-bold text-brand-muted tracking-wider">
+                  {(invoice as any).proposal_number}
+                </p>
+              )}
+            </div>
             <div className="space-y-1">
               <p className="font-semibold text-brand-charcoal text-[15px] tracking-tight">{invoice.homeowner_name || "Client"}</p>
               <p className="text-[13px] text-brand-muted font-medium">{invoice.job_address || "Address Pending"}</p>
@@ -1276,6 +1283,9 @@ export default function HomeownerPortalClient({
                       <div key={co.id} className="border border-slate-200 rounded-lg bg-white overflow-hidden shadow-sm text-xs">
                         <div onClick={() => setExpandedCoId(isExpanded ? null : co.id)} className="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors">
                           <div className="text-left space-y-0.5">
+                            {co.proposal_number && (
+                              <p className="font-mono text-[8px] font-black text-slate-400 tracking-widest">{co.proposal_number}</p>
+                            )}
                             <p className="font-bold text-slate-900 tracking-tight truncate w-36 sm:w-44">{co.description}</p>
                             <div className="flex gap-1">
                               <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoApproved ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{isCoApproved ? "APP" : "PEND"}</span>

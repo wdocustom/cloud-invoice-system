@@ -178,6 +178,9 @@ export default function ProjectsIndexLedger() {
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
+                          {proj.proposal_number && (
+                            <p className="font-mono text-[10px] font-bold text-brand-muted tracking-widest">{proj.proposal_number}</p>
+                          )}
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-brand-charcoal text-[14px] sm:text-[15px] tracking-tight truncate">
                               {proj.homeowner_name || "Unassigned Client"}
@@ -304,6 +307,9 @@ export default function ProjectsIndexLedger() {
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
+                          {est.estimate_number && (
+                            <p className="font-mono text-[10px] font-bold text-brand-muted tracking-widest">{est.estimate_number}</p>
+                          )}
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-brand-charcoal text-[14px] sm:text-[15px] tracking-tight truncate">
                               {est.name || "Anonymous"}

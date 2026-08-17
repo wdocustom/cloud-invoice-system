@@ -2,6 +2,8 @@ import { jsPDF } from "jspdf";
 import { toNum } from "./utils";
 
 interface PdfInvoiceData {
+  proposal_number?: string;
+  estimate_number?: string;
   homeowner_name: string;
   homeowner_email?: string;
   job_address: string;
@@ -65,12 +67,17 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(180, 180, 180);
-  doc.text(
-    `Generated ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`,
-    PAGE_W - MARGIN,
-    29,
-    { align: "right" }
-  );
+  const generated = `Generated ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
+  // The document number sits above the date so it's the first thing a client
+  // quotes back on the phone.
+  if (invoice.proposal_number) {
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(220, 220, 220);
+    doc.text(`No. ${invoice.proposal_number}`, PAGE_W - MARGIN, 24, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(180, 180, 180);
+  }
+  doc.text(generated, PAGE_W - MARGIN, 29, { align: "right" });
 
   y = 46;
 
@@ -356,20 +363,24 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   return doc;
 }
 
-export function generateProposalPdf(invoice: PdfInvoiceData) {
-  const doc = generatePdfDoc(invoice);
+/** WDO_Custom_Proposal_PRO-2026-0007_Jane_Doe.pdf */
+function pdfFilename(invoice: PdfInvoiceData): string {
   const safeName = (invoice.homeowner_name || "client").replace(/[^a-zA-Z0-9]/g, "_");
   const docType = invoice.status === "approved" ? "Contract" : "Proposal";
-  doc.save(`WDO_Custom_${docType}_${safeName}.pdf`);
+  const number = invoice.proposal_number ? `${invoice.proposal_number}_` : "";
+  return `WDO_Custom_${docType}_${number}${safeName}.pdf`;
+}
+
+export function generateProposalPdf(invoice: PdfInvoiceData) {
+  const doc = generatePdfDoc(invoice);
+  doc.save(pdfFilename(invoice));
 }
 
 export function generateProposalPdfBuffer(invoice: PdfInvoiceData): { buffer: Buffer; filename: string } {
   const doc = generatePdfDoc(invoice);
-  const safeName = (invoice.homeowner_name || "client").replace(/[^a-zA-Z0-9]/g, "_");
-  const docType = invoice.status === "approved" ? "Contract" : "Proposal";
   const arrayBuffer = doc.output("arraybuffer");
   return {
     buffer: Buffer.from(arrayBuffer),
-    filename: `WDO_Custom_${docType}_${safeName}.pdf`
+    filename: pdfFilename(invoice),
   };
 }

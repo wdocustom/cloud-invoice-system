@@ -1,4 +1,5 @@
 interface ProposalEmailData {
+  proposal_number?: string;
   homeowner_name: string;
   project_title?: string;
   job_address: string;
@@ -104,6 +105,7 @@ export function buildProposalEmailHtml(data: ProposalEmailData): string {
         </td>
         <td align="right">
           <span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Proposal</span>
+          ${data.proposal_number ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.proposal_number}</span>` : ""}
         </td>
       </tr>
     </table>
@@ -676,6 +678,7 @@ export function buildContractorPaymentNotificationHtml(data: ContractorPaymentNo
 // ─── Lead Notification (estimate page → Skyler) ───
 
 interface LeadNotificationData {
+  estimateNumber?: string;
   name: string;
   email: string;
   phone: string;
@@ -700,7 +703,10 @@ export function buildLeadNotificationHtml(data: LeadNotificationData): string {
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
         <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
-        <td align="right"><span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">New Lead</span></td>
+        <td align="right">
+          <span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">New Lead</span>
+          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
+        </td>
       </tr>
     </table>
   </td></tr>
@@ -964,6 +970,7 @@ export function buildConsultationNotificationHtml(data: ConsultationNotification
 // ─── Estimate Confirmation Email (to homeowner) ───
 
 interface EstimateConfirmationData {
+  estimateNumber?: string;
   name: string;
   projectType: string;
   estimateLow: string;
@@ -989,6 +996,7 @@ export function buildEstimateConfirmationHtml(data: EstimateConfirmationData): s
         </td>
         <td align="right">
           <span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Your Estimate</span>
+          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
         </td>
       </tr>
     </table>

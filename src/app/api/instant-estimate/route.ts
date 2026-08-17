@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import laborRates from "@/lib/labor-rates.json";
 import permitFees from "@/lib/permit-fees.json";
+import { insertTolerant } from "@/lib/db";
+import { allocateDocumentNumber, estimateNumberFields } from "@/lib/document-numbers";
 
 function getRegionalMultiplier(zip: string): number {
   if (!zip || zip.length < 3) return laborRates.regional_multipliers.other;
@@ -149,25 +151,44 @@ Respond ONLY with raw JSON matching this exact schema:
     const parsed = JSON.parse(rawText);
 
     const token = generateToken();
+
+    // The lead is where numbering starts: the estimate link the homeowner is
+    // about to receive is a numbered document, and the proposal it later turns
+    // into inherits this same root.
+    let estimateNumber: string | null = null;
     try {
       const supabase = getSupabase();
-      await supabase.from("estimates").insert({
-        token,
-        name: name || null,
-        email: email || null,
-        phone: phone || null,
-        project_type: projectType,
-        scope_level: scopeLevel || "mid",
-        size: size || null,
-        zip: zip || null,
-        description,
-        estimate_data: parsed,
-      });
+      const numberFields = estimateNumberFields(await allocateDocumentNumber(supabase));
+
+      const { error: insertErr, dropped } = await insertTolerant(
+        supabase,
+        "estimates",
+        {
+          token,
+          name: name || null,
+          email: email || null,
+          phone: phone || null,
+          project_type: projectType,
+          scope_level: scopeLevel || "mid",
+          size: size || null,
+          zip: zip || null,
+          description,
+          estimate_data: parsed,
+          ...numberFields,
+        },
+        "id"
+      );
+
+      if (insertErr) {
+        console.error("Failed to save estimate to DB (non-blocking):", insertErr);
+      } else if (!dropped.includes("estimate_number")) {
+        estimateNumber = numberFields.estimate_number ?? null;
+      }
     } catch (dbErr) {
       console.error("Failed to save estimate to DB (non-blocking):", dbErr);
     }
 
-    return NextResponse.json({ ...parsed, token });
+    return NextResponse.json({ ...parsed, token, estimate_number: estimateNumber });
   } catch (error: any) {
     console.error("Instant estimate error:", error);
     return NextResponse.json({ error: "Estimate generation failed. Please try again." }, { status: 500 });

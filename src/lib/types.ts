@@ -15,6 +15,12 @@ export interface PaymentPhase {
 
 export interface Invoice {
   id: string;
+  /** PRO-2026-0007, or PRO-2026-0007-CO1 on a change order. */
+  proposal_number?: string;
+  /** The lead this proposal came from, when there was one. */
+  estimate_number?: string;
+  sequence_year?: number;
+  sequence_no?: number;
   homeowner_name: string;
   homeowner_email: string;
   job_address: string;
