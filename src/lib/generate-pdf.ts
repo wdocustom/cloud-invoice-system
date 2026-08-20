@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { toNum } from "./utils";
+import { categoryOf } from "./scope-amendment";
 
 interface PdfInvoiceData {
   proposal_number?: string;
@@ -188,7 +189,24 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
 
   const hasAnyActuals = isApproved && invoice.items.some((item: any) => item.actual_cost != null);
 
+  // Items are stored grouped by category, so a band whenever the category
+  // changes turns the table into sections without reordering anything here.
+  let lastCategory: string | null = null;
+
   invoice.items.forEach((item: any, idx: number) => {
+    const category = categoryOf(item);
+    if (category !== lastCategory) {
+      y = checkPageBreak(doc, y, 10);
+      doc.setFillColor(244, 243, 241);
+      doc.rect(MARGIN, y - 1, CONTENT_W, 6, "F");
+      doc.setTextColor(120, 115, 110);
+      doc.setFontSize(6.5);
+      doc.setFont("helvetica", "bold");
+      doc.text(category.toUpperCase(), MARGIN + 4, y + 3);
+      y += 7;
+      lastCategory = category;
+    }
+
     const title = item.title || item.high_title || "Untitled";
     const bidCost = toNum(item.cost || item.mid_cost);
     const actualCost = item.actual_cost != null ? toNum(item.actual_cost) : null;
