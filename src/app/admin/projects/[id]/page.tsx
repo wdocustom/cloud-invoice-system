@@ -4,7 +4,20 @@ import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
-import { updateTolerant } from "@/lib/db";
+import { describeDbError, updateTolerant } from "@/lib/db";
+import {
+  depositAmountOf,
+  depositFieldsFor,
+  depositPercentOf,
+  phaseAmountOf,
+  phasePercentOf,
+  roundCents,
+  syncPhaseAmounts,
+  totalScheduledAmount,
+  totalScheduledPercent,
+  amountToPercent,
+  displayPercent,
+} from "@/lib/payment-schedule";
 import { formatChangeOrderNumber } from "@/lib/document-numbers";
 import {
   applyScopeAmendment,
@@ -249,41 +262,124 @@ export default function ProjectWorkspaceControlHub() {
 
   async function saveGlobalScopeItemChanges(updatedItems: any[]) {
     const isApproved = project?.status === "approved";
-    const calculatedNewTotal = isApproved
-      ? updatedItems.reduce((sum, item) => sum + toNum(item.actual_cost ?? item.cost ?? item.mid_cost), 0)
-      : updatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0);
+    const calculatedNewTotal = roundCents(
+      isApproved
+        ? updatedItems.reduce((sum, item) => sum + toNum(item.actual_cost ?? item.cost ?? item.mid_cost), 0)
+        : updatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0)
+    );
+
+    // The deposit and every draw are percentages of the contract, so a change to
+    // the line items has to carry through to their dollar figures in the same
+    // write. Skipping this is what left a schedule whose percentages summed to
+    // 100% while its amounts still added up to the previous total.
+    const depositFields = depositFieldsFor(depositPercentOf(project, calculatedNewTotal), calculatedNewTotal);
+    const syncedPhases = syncPhaseAmounts(project?.payment_phases, calculatedNewTotal);
 
     setProject((prev: any) => ({
       ...prev,
       items: updatedItems,
-      amount: calculatedNewTotal
+      amount: calculatedNewTotal,
+      ...depositFields,
+      payment_phases: syncedPhases,
     }));
 
     try {
-      const { data, error } = await supabase
-        .from("invoices")
-        .update({
+      const { data, error, dropped } = await updateTolerant(
+        supabase,
+        "invoices",
+        {
           items: updatedItems,
-          amount: calculatedNewTotal
-        })
-        .eq("id", projectId)
-        .select();
+          amount: calculatedNewTotal,
+          payment_phases: syncedPhases,
+          ...depositFields,
+        },
+        (q: any) => q.eq("id", projectId),
+        "*"
+      );
 
-      if (error) throw error;
+      if (error) throw new Error(describeDbError(error));
 
-      if (!data || data.length === 0) {
+      if (!data) {
         throw new Error("Update affected 0 rows — RLS may be blocking writes. Check Supabase RLS policies on the invoices table.");
+      }
+
+      if (dropped.length > 0) {
+        console.warn(`[invoices] scope saved without ${dropped.join(", ")} — column missing from the table.`);
       }
 
       setProject((prev: any) => ({
         ...prev,
-        items: data[0].items,
-        amount: data[0].amount
+        items: data.items,
+        amount: data.amount,
+        payment_phases: data.payment_phases ?? syncedPhases,
+        deposit_percentage: data.deposit_percentage ?? depositFields.deposit_percentage,
+        deposit_amount: data.deposit_amount ?? depositFields.deposit_amount,
       }));
     } catch (err: any) {
       toast("Error saving: " + err.message, "error");
       fetchComprehensiveProjectData();
     }
+  }
+
+  // ── Deposit & draw schedule ───────────────────────────────────────────
+  // Percentages are what get stored. Dollar figures are mirrored alongside them
+  // so anything reading the row directly still sees a sensible number, but they
+  // are always recomputed — never trusted — on the way back out.
+
+  /**
+   * Writes go through updateTolerant and check that a row actually changed.
+   * The old handler did a bare update with no row check, so when deposit_amount
+   * was missing from the table the whole statement failed and took
+   * deposit_percentage down with it — the admin showed the new percentage while
+   * the database and the homeowner portal kept the old one.
+   */
+  async function persistProjectFields(fields: Record<string, any>, label: string): Promise<boolean> {
+    const { data, error, dropped } = await updateTolerant(
+      supabase,
+      "invoices",
+      fields,
+      (q: any) => q.eq("id", projectId),
+      "id"
+    );
+
+    if (error) {
+      toast(`Failed to save ${label}: ${describeDbError(error)}`, "error");
+      return false;
+    }
+
+    if (!data) {
+      toast(
+        `${label} did not save — the update changed no rows. Check the RLS policies on the invoices table.`,
+        "error"
+      );
+      return false;
+    }
+
+    if (dropped.length > 0) {
+      console.warn(`[invoices] ${label} saved without ${dropped.join(", ")} — column missing from the table.`);
+    }
+
+    return true;
+  }
+
+  async function saveDeposit() {
+    const total = toNum(project?.amount);
+    const fields = depositFieldsFor(depositPercentOf(project, total), total);
+    // The deposit is draw #1, so it moves with it.
+    const syncedPhases = syncPhaseAmounts(project?.payment_phases, total);
+
+    const ok = await persistProjectFields(
+      { ...fields, payment_phases: syncedPhases },
+      "deposit"
+    );
+    if (ok) setProject((prev: any) => ({ ...prev, ...fields, payment_phases: syncedPhases }));
+  }
+
+  async function savePhases(phases: any[]) {
+    const total = toNum(project?.amount);
+    const synced = syncPhaseAmounts(phases, total);
+    setProject((prev: any) => ({ ...prev, payment_phases: synced }));
+    await persistProjectFields({ payment_phases: synced }, "payment schedule");
   }
 
   // ── AI Scope Amendment ────────────────────────────────────────────────
@@ -1062,7 +1158,8 @@ export default function ProjectWorkspaceControlHub() {
             <p className="text-[11px] text-slate-400 font-medium mt-0.5">Configure deposit percentage and payment draw phases. Changes sync instantly to the homeowner portal.</p>
           </div>
 
-          {/* Deposit Amount & Percentage */}
+          {/* Deposit Amount & Percentage — the percentage is what's stored; the
+              dollar figure is always derived from the current project total. */}
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
@@ -1071,26 +1168,14 @@ export default function ProjectWorkspaceControlHub() {
                 <input
                   type="number"
                   min="0"
-                  value={project?.deposit_amount ?? (toNum(project?.amount) * (toNum(project?.deposit_percentage ?? 20) / 100))}
-                  onChange={(e) => {
-                    const depositAmt = toNum(e.target.value);
-                    const newPercent = toNum(project?.amount) > 0 ? (depositAmt / toNum(project?.amount)) * 100 : 0;
+                  value={depositAmountOf(project, project?.amount)}
+                  onChange={(e) =>
                     setProject((prev: any) => ({
                       ...prev,
-                      deposit_amount: depositAmt,
-                      deposit_percentage: Math.min(100, Math.max(0, newPercent))
-                    }));
-                  }}
-                  onBlur={async () => {
-                    const { error } = await supabase
-                      .from("invoices")
-                      .update({
-                        deposit_amount: project?.deposit_amount,
-                        deposit_percentage: project?.deposit_percentage
-                      })
-                      .eq("id", projectId);
-                    if (error) toast("Failed to save deposit: " + error.message, "error");
-                  }}
+                      ...depositFieldsFor(amountToPercent(e.target.value, prev?.amount), prev?.amount),
+                    }))
+                  }
+                  onBlur={saveDeposit}
                   className="w-32 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
@@ -1100,33 +1185,22 @@ export default function ProjectWorkspaceControlHub() {
                   type="number"
                   min="0"
                   max="100"
-                  value={project?.deposit_percentage ?? 20}
-                  onChange={(e) => {
-                    const percent = Math.min(100, Math.max(0, toNum(e.target.value)));
-                    const depositAmt = toNum(project?.amount) * (percent / 100);
+                  value={displayPercent(depositPercentOf(project, project?.amount))}
+                  onChange={(e) =>
                     setProject((prev: any) => ({
                       ...prev,
-                      deposit_percentage: percent,
-                      deposit_amount: depositAmt
-                    }));
-                  }}
-                  onBlur={async () => {
-                    const { error } = await supabase
-                      .from("invoices")
-                      .update({
-                        deposit_percentage: project?.deposit_percentage,
-                        deposit_amount: project?.deposit_amount
-                      })
-                      .eq("id", projectId);
-                    if (error) toast("Failed to save deposit: " + error.message, "error");
-                  }}
+                      ...depositFieldsFor(e.target.value, prev?.amount),
+                    }))
+                  }
+                  onBlur={saveDeposit}
                   className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
                 <span className="text-[10px] font-bold text-slate-400">%</span>
               </div>
             </div>
             <p className="text-[11px] text-slate-500 font-medium px-2">
-              Edit either amount or percentage — the other updates automatically.
+              Edit either amount or percentage — the other updates automatically. The deposit is stored as a
+              percentage, so it follows the project total if the scope changes.
             </p>
           </div>
 
@@ -1136,17 +1210,21 @@ export default function ProjectWorkspaceControlHub() {
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Draw Phases</p>
               <p className="text-[9px] font-bold text-slate-400">
                 Total: <span className={`font-black ${
-                  (project?.payment_phases || []).reduce((s: number, p: any) => s + toNum(p.percentage), 0) === 100
+                  totalScheduledPercent(project?.payment_phases, project?.amount) === 100
                     ? "text-emerald-600" : "text-red-500"
                 }`}>
-                  {(project?.payment_phases || []).reduce((s: number, p: any) => s + toNum(p.percentage), 0)}%
+                  {displayPercent(totalScheduledPercent(project?.payment_phases, project?.amount))}%
+                </span>
+                <span className="text-slate-400 font-medium">
+                  {" "}· ${totalScheduledAmount(project?.payment_phases, project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} of $
+                  {toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </p>
             </div>
 
             {Array.isArray(project?.payment_phases) && project.payment_phases.map((phase: any, idx: number) => {
-              const phaseAmount = phase.amount ?? (toNum(project?.amount) * (toNum(phase.percentage ?? 0) / 100));
-              const phasePercent = phase.percentage ?? (toNum(project?.amount) > 0 ? (toNum(phase.amount) / toNum(project?.amount)) * 100 : 0);
+              const phaseAmount = phaseAmountOf(phase, project?.amount);
+              const phasePercent = phasePercentOf(phase, project?.amount);
               const isApprovedProject = project?.status === "approved";
               const activePhaseIdx = project?.current_phase_index || 0;
               const isPhasePaid = isApprovedProject && project?.deposit_cleared && (idx === 0 || idx < activePhaseIdx);
@@ -1159,10 +1237,7 @@ export default function ProjectWorkspaceControlHub() {
                 setProject((prev: any) => ({ ...prev, payment_phases: updated }));
               };
 
-              const savePhase = async () => {
-                const { error } = await supabase.from("invoices").update({ payment_phases: project.payment_phases }).eq("id", projectId);
-                if (error) toast("Failed to save phase: " + error.message, "error");
-              };
+              const savePhase = () => savePhases(project.payment_phases);
 
               return (
                 <div key={idx} className="bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group space-y-2">
@@ -1184,9 +1259,8 @@ export default function ProjectWorkspaceControlHub() {
                         min="0"
                         value={phaseAmount}
                         onChange={(e) => {
-                          const amt = toNum(e.target.value);
-                          const newPercent = toNum(project?.amount) > 0 ? (amt / toNum(project?.amount)) * 100 : 0;
-                          updatePhase({ amount: amt, percentage: newPercent });
+                          const percentage = amountToPercent(e.target.value, project?.amount);
+                          updatePhase({ percentage, amount: roundCents(e.target.value) });
                         }}
                         onBlur={savePhase}
                         className="w-24 py-1.5 text-xs font-black text-slate-900 text-right outline-none bg-transparent"
@@ -1200,11 +1274,10 @@ export default function ProjectWorkspaceControlHub() {
                         type="number"
                         min="0"
                         max="100"
-                        value={Math.round(phasePercent * 10) / 10}
+                        value={displayPercent(phasePercent)}
                         onChange={(e) => {
                           const percent = Math.min(100, Math.max(0, toNum(e.target.value)));
-                          const amt = toNum(project?.amount) * (percent / 100);
-                          updatePhase({ percentage: percent, amount: amt });
+                          updatePhase({ percentage: percent, amount: phaseAmountOf({ percentage: percent }, project?.amount) });
                         }}
                         onBlur={savePhase}
                         className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
@@ -1223,10 +1296,7 @@ export default function ProjectWorkspaceControlHub() {
                       onClick={async () => {
                         if (project.payment_phases.length <= 1) return toast("Must have at least one phase.", "info");
                         if (!confirm(`Remove "${phase.name}"?`)) return;
-                        const updated = project.payment_phases.filter((_: any, i: number) => i !== idx);
-                        setProject((prev: any) => ({ ...prev, payment_phases: updated }));
-                        const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
-                        if (error) toast("Failed to remove phase: " + error.message, "error");
+                        await savePhases(project.payment_phases.filter((_: any, i: number) => i !== idx));
                       }}
                       className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all duration-200 shrink-0 p-1"
                     >
@@ -1306,17 +1376,8 @@ export default function ProjectWorkspaceControlHub() {
               type="button"
               onClick={async () => {
                 const currentPhases = Array.isArray(project?.payment_phases) ? [...project.payment_phases] : [];
-                const usedPercent = currentPhases.reduce((s: number, p: any) => {
-                  if (p.percentage) return s + toNum(p.percentage);
-                  if (p.amount) return s + (toNum(p.amount) / toNum(project?.amount)) * 100;
-                  return s;
-                }, 0);
-                const remaining = Math.max(0, 100 - usedPercent);
-                const remainingAmount = toNum(project?.amount) * (remaining / 100);
-                const updated = [...currentPhases, { name: "New Phase", percentage: remaining, amount: remainingAmount }];
-                setProject((prev: any) => ({ ...prev, payment_phases: updated }));
-                const { error } = await supabase.from("invoices").update({ payment_phases: updated }).eq("id", projectId);
-                if (error) toast("Failed to add phase: " + error.message, "error");
+                const remaining = Math.max(0, 100 - totalScheduledPercent(currentPhases, project?.amount));
+                await savePhases([...currentPhases, { name: "New Phase", percentage: remaining }]);
               }}
               className="w-full border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl py-2.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-wider transition-all duration-200 outline-none"
             >

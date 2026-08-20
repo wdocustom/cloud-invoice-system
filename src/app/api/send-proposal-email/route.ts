@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       amount: invoice.amount || 0,
       items: invoice.items || [],
       deposit_percentage: invoice.deposit_percentage,
+      deposit_amount: invoice.deposit_amount,
       payment_phases: invoice.payment_phases,
       estimated_start_date: invoice.estimated_start_date,
       project_length: invoice.project_length,

@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import { toNum } from "./utils";
 import { categoryOf } from "./scope-amendment";
+import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phasePercentOf } from "./payment-schedule";
 
 interface PdfInvoiceData {
   proposal_number?: string;
@@ -12,6 +13,7 @@ interface PdfInvoiceData {
   amount: number;
   items: any[];
   deposit_percentage?: number;
+  deposit_amount?: number;
   payment_phases?: any[];
   estimated_start_date?: string;
   project_length?: string;
@@ -38,8 +40,8 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const isApproved = invoice.status === "approved";
   const baseTotal = toNum(invoice.amount);
-  const depositPct = invoice.deposit_percentage ?? 20;
-  const depositAmt = baseTotal * (depositPct / 100);
+  const depositPct = displayPercent(depositPercentOf(invoice, baseTotal));
+  const depositAmt = depositAmountOf(invoice, baseTotal);
 
   let y = MARGIN;
 
@@ -288,7 +290,8 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
     y += 6;
 
     invoice.payment_phases.forEach((phase: any) => {
-      const phaseAmt = baseTotal * (phase.percentage / 100);
+      const phasePct = displayPercent(phasePercentOf(phase, baseTotal));
+      const phaseAmt = phaseAmountOf(phase, baseTotal);
 
       doc.setDrawColor(240, 240, 238);
       doc.line(MARGIN, y + 6, PAGE_W - MARGIN, y + 6);
@@ -301,7 +304,7 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
       doc.setTextColor(156, 149, 144);
       doc.setFontSize(7);
       doc.setFont("helvetica", "normal");
-      doc.text(`${phase.percentage}%`, MARGIN + CONTENT_W / 2, y + 4);
+      doc.text(`${phasePct}%`, MARGIN + CONTENT_W / 2, y + 4);
 
       doc.setTextColor(26, 26, 26);
       doc.setFontSize(8);

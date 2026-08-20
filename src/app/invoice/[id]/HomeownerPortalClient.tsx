@@ -7,6 +7,7 @@ import { toast } from "@/lib/toast";
 import type { Invoice } from "@/lib/types";
 import { generateProposalPdf } from "@/lib/generate-pdf";
 import { categoryOf } from "@/lib/scope-amendment";
+import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phasePercentOf } from "@/lib/payment-schedule";
 import { TERMS_AND_CONDITIONS } from "@/lib/terms";
 
 interface HomeownerPortalProps {
@@ -199,7 +200,8 @@ export default function HomeownerPortalClient({
     .reduce((sum: number, co: any) => sum + toNum(co.amount), 0);
 
   const combinedProjectTotal = baseTotal + approvedCoTotal;
-  const depositAmount = invoice?.deposit_amount ?? (baseTotal * ((invoice?.deposit_percentage || 20) / 100));
+  const depositPercent = displayPercent(depositPercentOf(invoice, baseTotal));
+  const depositAmount = depositAmountOf(invoice, baseTotal);
 
   const handleRemoveIndex = (idx: number) => {
     if (isLocked) return;
@@ -761,7 +763,7 @@ export default function HomeownerPortalClient({
                 </div>
                 <div className="bg-brand-warm rounded-xl border border-brand-stone/40 p-4 text-[13px] text-brand-charcoal space-y-3 font-medium">
                   <div className="flex justify-between items-center pb-2.5 border-b border-brand-stone/40">
-                    <span className="text-brand-muted">Deposit ({invoice.deposit_percentage ?? 20}%)</span>
+                    <span className="text-brand-muted">Deposit ({depositPercent}%)</span>
                     <span className="font-semibold" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -1111,14 +1113,14 @@ export default function HomeownerPortalClient({
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
-                  const phaseVal = phase.amount ?? (baseTotal * ((phase.percentage ?? 0) / 100));
-                  const phasePercent = phase.percentage ?? (baseTotal > 0 ? (toNum(phase.amount) / baseTotal) * 100 : 0);
+                  const phaseVal = phaseAmountOf(phase, baseTotal);
+                  const phasePercent = phasePercentOf(phase, baseTotal);
                   return (
                     <div key={idx} className="bg-slate-50/50 border border-slate-200/60 p-3 rounded-xl text-xs">
                       <div className="flex justify-between items-center">
                         <div className="space-y-0.5">
                           <p className="font-extrabold text-slate-800 tracking-tight">{phase.name}</p>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {Math.round(phasePercent * 10) / 10}%</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {displayPercent(phasePercent)}%</p>
                         </div>
                         <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
@@ -1129,7 +1131,7 @@ export default function HomeownerPortalClient({
             </div>
             <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-medium">Construction Deposit ({invoice.deposit_percentage ?? 20}%):</span>
+                <span className="text-slate-500 font-medium">Construction Deposit ({depositPercent}%):</span>
                 <span className="font-sans font-black text-slate-950 text-sm" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
@@ -1249,8 +1251,8 @@ export default function HomeownerPortalClient({
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
               <div className="space-y-2">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
-                  const phaseVal = phase.amount ?? (baseTotal * ((phase.percentage ?? 0) / 100));
-                  const phasePercent = phase.percentage ?? (baseTotal > 0 ? (toNum(phase.amount) / baseTotal) * 100 : 0);
+                  const phaseVal = phaseAmountOf(phase, baseTotal);
+                  const phasePercent = phasePercentOf(phase, baseTotal);
                   const activePhaseIdx = invoice.current_phase_index || 0;
                   const isPaid = invoice.deposit_cleared && idx < activePhaseIdx;
                   const isFirstPhaseDepositPaid = invoice.deposit_cleared && idx === 0;
@@ -1271,7 +1273,7 @@ export default function HomeownerPortalClient({
                               <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-slate-200 text-slate-400">PEND</span>
                             )}
                           </div>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {Math.round(phasePercent * 10) / 10}%</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {displayPercent(phasePercent)}%</p>
                         </div>
                         <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>

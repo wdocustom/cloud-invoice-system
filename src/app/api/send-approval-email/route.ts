@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { depositAmountOf, depositPercentOf, displayPercent } from "@/lib/payment-schedule";
 import {
   buildApprovalConfirmationHtml,
   buildContractorApprovalNotificationHtml,
@@ -49,8 +50,8 @@ export async function POST(request: Request) {
 
     const portalUrl = `${base_url}/invoice/${invoice_id}`;
     const workspaceUrl = `${base_url}/admin/projects/${invoice_id}`;
-    const depositPct = invoice.deposit_percentage ?? 20;
-    const depositAmount = invoice.deposit_amount ?? ((invoice.amount || 0) * (depositPct / 100));
+    const depositPct = displayPercent(depositPercentOf(invoice, invoice.amount));
+    const depositAmount = depositAmountOf(invoice, invoice.amount);
     const projectLabel =
       invoice.project_title || invoice.job_address || "Your Project";
 
