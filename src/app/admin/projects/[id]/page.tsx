@@ -6,6 +6,13 @@ import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { updateTolerant } from "@/lib/db";
 import { formatChangeOrderNumber } from "@/lib/document-numbers";
+import {
+  applyScopeAmendment,
+  groupItemsByCategory,
+  midCostOf,
+  orderItemsByCategory,
+  type ScopeOperationPreview,
+} from "@/lib/scope-amendment";
 
 export default function ProjectWorkspaceControlHub() {
   const router = useRouter();
@@ -29,6 +36,7 @@ export default function ProjectWorkspaceControlHub() {
 
   // Line Item Insertion States
   const [newTitle, setNewTitle] = useState("");
+  const [newCategory, setNewCategory] = useState("");
   const [newMidDescription, setNewMidDescription] = useState("");
   const [newMidCost, setNewMidCost] = useState("");
   const [newHighTitle, setNewHighTitle] = useState("");
@@ -88,6 +96,13 @@ export default function ProjectWorkspaceControlHub() {
   const [isGeneratingCo, setIsGeneratingCo] = useState(false);
   const [isDeployingCo, setIsDeployingCo] = useState(false);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
+
+  // AI Scope Amendment States
+  const [amendRequest, setAmendRequest] = useState("");
+  const [isAnalyzingAmendment, setIsAnalyzingAmendment] = useState(false);
+  const [amendment, setAmendment] = useState<any>(null);
+  const [rejectedOps, setRejectedOps] = useState<number[]>([]);
+  const [isApplyingAmendment, setIsApplyingAmendment] = useState(false);
 
   useEffect(() => {
     if (projectId) {
@@ -271,6 +286,77 @@ export default function ProjectWorkspaceControlHub() {
     }
   }
 
+  // ── AI Scope Amendment ────────────────────────────────────────────────
+  // The contractor types what they want to add; the AI decides whether each
+  // piece folds into a line that already exists or needs one of its own. It
+  // only ever *proposes* — nothing reaches the ledger until the changes below
+  // are reviewed and applied.
+
+  async function analyzeScopeAmendment() {
+    if (!amendRequest.trim()) {
+      return toast("Describe what you'd like to add to this proposal.", "info");
+    }
+
+    setIsAnalyzingAmendment(true);
+    setAmendment(null);
+    setRejectedOps([]);
+
+    try {
+      const res = await fetch("/api/amend-scope", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoice_id: projectId, request: amendRequest.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Scope analysis failed");
+
+      setAmendment(data);
+      toast(`${data.previews.length} scope change${data.previews.length === 1 ? "" : "s"} proposed`, "success");
+    } catch (err: any) {
+      toast(err.message || "Scope analysis failed", "error");
+    } finally {
+      setIsAnalyzingAmendment(false);
+    }
+  }
+
+  function toggleAmendmentOp(idx: number) {
+    setRejectedOps((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]));
+  }
+
+  function discardAmendment() {
+    setAmendment(null);
+    setRejectedOps([]);
+  }
+
+  const acceptedPreviews: ScopeOperationPreview[] = amendment
+    ? amendment.previews.filter((_: any, idx: number) => !rejectedOps.includes(idx))
+    : [];
+  const acceptedMidDelta = acceptedPreviews.reduce((sum, p) => sum + toNum(p.mid_delta), 0);
+
+  async function applyAcceptedAmendment() {
+    if (acceptedPreviews.length === 0) return toast("No changes selected to apply.", "info");
+
+    setIsApplyingAmendment(true);
+    flushPendingDebounce();
+
+    try {
+      const currentItems = Array.isArray(project?.items) ? project.items : [];
+      const accepted = amendment.operations.filter((_: any, idx: number) => !rejectedOps.includes(idx));
+      const nextItems = applyScopeAmendment(currentItems, accepted, amendment.category_order || []);
+
+      await saveGlobalScopeItemChanges(nextItems);
+
+      setAmendment(null);
+      setRejectedOps([]);
+      setAmendRequest("");
+      toast(`Applied ${accepted.length} scope change${accepted.length === 1 ? "" : "s"}`, "success");
+    } catch (err: any) {
+      toast("Failed to apply changes: " + err.message, "error");
+    } finally {
+      setIsApplyingAmendment(false);
+    }
+  }
+
   const insertNewLineRow = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newMidCost) return toast("Please fill out item title and standard cost", "info");
@@ -282,6 +368,7 @@ export default function ProjectWorkspaceControlHub() {
     const fallbackHighCost = newHighCost ? toNum(newHighCost) : toNum(newMidCost) * 1.35;
 
     const payloadItem = {
+      category: newCategory.trim(),
       title: newTitle.trim(),
       mid_description: newMidDescription.trim(),
       mid_cost: toNum(newMidCost),
@@ -291,7 +378,7 @@ export default function ProjectWorkspaceControlHub() {
     };
 
     const currentItems = Array.isArray(project.items) ? [...project.items] : [];
-    const nextItemsArray = [...currentItems, payloadItem];
+    const nextItemsArray = orderItemsByCategory([...currentItems, payloadItem]);
 
     setNewTitle("");
     setNewMidDescription("");
@@ -299,6 +386,7 @@ export default function ProjectWorkspaceControlHub() {
     setNewHighTitle("");
     setNewHighDescription("");
     setNewHighCost("");
+    setNewCategory("");
 
     saveGlobalScopeItemChanges(nextItemsArray);
   };
@@ -1271,9 +1359,208 @@ export default function ProjectWorkspaceControlHub() {
             </button>
           </div>
 
+          {/* AI SCOPE AMENDMENT — pre-approval only; after approval added scope
+              belongs in a change order the homeowner signs separately. */}
+          {project?.status !== "approved" && (
+            <div className="border border-blue-100 bg-blue-50/20 rounded-2xl p-5 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h4 className="font-black text-blue-600 uppercase tracking-wide text-[10px]">✦ Add Scope with AI</h4>
+                  <p className="text-slate-400 font-medium text-[10px] mt-0.5">
+                    List what you want to add. The estimator checks it against the scope already in this proposal,
+                    folds work into the line it belongs to, prices what&apos;s genuinely new, and files everything by category.
+                    Nothing changes until you approve it below.
+                  </p>
+                </div>
+              </div>
+
+              <textarea
+                value={amendRequest}
+                onChange={(e) => setAmendRequest(e.target.value)}
+                rows={3}
+                placeholder="e.g. add 6 can lights in the living room, upgrade the island counter to quartz, add a wet bar sink with supply and drain, tile the mudroom floor"
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all resize-y"
+              />
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={analyzeScopeAmendment}
+                  disabled={isAnalyzingAmendment || !amendRequest.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
+                >
+                  {isAnalyzingAmendment ? "Analyzing scope..." : "Analyze Additions"}
+                </button>
+              </div>
+
+              {/* Proposed changes — reviewed line by line before anything is saved */}
+              {amendment && (
+                <div className="space-y-3 pt-1 animate-fadeIn">
+                  {amendment.summary && (
+                    <div className="bg-white border border-slate-200 rounded-xl p-3.5">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Estimator Summary</p>
+                      <p className="text-[11px] font-medium text-slate-700 leading-relaxed">{amendment.summary}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {amendment.previews.map((preview: ScopeOperationPreview, idx: number) => {
+                      const rejected = rejectedOps.includes(idx);
+                      const op = preview.operation;
+                      const isMerge = op.action === "merge";
+                      const isRecat = op.action === "recategorize";
+                      const badge = isMerge
+                        ? `Merged into line #${(op.target_index ?? 0) + 1}`
+                        : isRecat
+                        ? `Recategorized line #${(op.target_index ?? 0) + 1}`
+                        : "New line item";
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`border rounded-xl p-3.5 transition-all ${
+                            rejected ? "bg-slate-50 border-slate-200 opacity-50" : "bg-white border-slate-200"
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <button
+                              type="button"
+                              onClick={() => toggleAmendmentOp(idx)}
+                              title={rejected ? "Include this change" : "Skip this change"}
+                              className={`w-5 h-5 rounded-md border shrink-0 mt-0.5 flex items-center justify-center text-[10px] font-black transition-all ${
+                                rejected
+                                  ? "bg-white border-slate-300 text-transparent hover:border-slate-400"
+                                  : "bg-blue-600 border-blue-600 text-white"
+                              }`}
+                            >
+                              ✓
+                            </button>
+
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${
+                                  isMerge
+                                    ? "bg-amber-50 text-amber-700 border-amber-100"
+                                    : isRecat
+                                    ? "bg-slate-100 text-slate-600 border-slate-200"
+                                    : "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                }`}>
+                                  {badge}
+                                </span>
+                                <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                                  {op.category}
+                                </span>
+                              </div>
+
+                              <p className="text-[11px] font-black text-slate-900">{preview.after.title}</p>
+
+                              {op.addition && (
+                                <p className="text-[10px] font-medium text-slate-500">
+                                  Covers: <span className="italic">&ldquo;{op.addition}&rdquo;</span>
+                                </p>
+                              )}
+                              {op.reason && (
+                                <p className="text-[10px] font-medium text-slate-400 leading-relaxed">{op.reason}</p>
+                              )}
+
+                              {/* Before → after, computed from the saved proposal */}
+                              {preview.before && !isRecat && (
+                                <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5">
+                                  <div>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Was</p>
+                                    <p className="text-[10px] font-medium text-slate-500 leading-relaxed">
+                                      {preview.before.title} — ${midCostOf(preview.before).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Becomes</p>
+                                    <p className="text-[10px] font-medium text-slate-700 leading-relaxed">
+                                      {preview.after.mid_description}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              {!preview.before && preview.after.mid_description && (
+                                <p className="text-[10px] font-medium text-slate-600 leading-relaxed bg-slate-50 border border-slate-100 rounded-lg p-2.5">
+                                  {preview.after.mid_description}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="text-right shrink-0">
+                              <p className="text-[11px] font-black text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
+                                ${toNum(preview.after.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </p>
+                              {toNum(preview.mid_delta) !== 0 && (
+                                <p className={`text-[9px] font-black ${toNum(preview.mid_delta) > 0 ? "text-emerald-600" : "text-red-500"}`} style={{fontVariantNumeric:'tabular-nums'}}>
+                                  {toNum(preview.mid_delta) > 0 ? "+" : "−"}${Math.abs(toNum(preview.mid_delta)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Apply bar */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3.5">
+                    <div className="space-y-0.5">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                        {acceptedPreviews.length} of {amendment.previews.length} change{amendment.previews.length === 1 ? "" : "s"} selected
+                      </p>
+                      <p className="text-[11px] font-bold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
+                        Proposal total {acceptedMidDelta >= 0 ? "increases" : "decreases"} by $
+                        {Math.abs(acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        <span className="text-slate-400 font-medium">
+                          {" "}→ ${(toNum(project?.amount) + acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={discardAmendment}
+                        disabled={isApplyingAmendment}
+                        className="bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-600 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all outline-none"
+                      >
+                        Discard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={applyAcceptedAmendment}
+                        disabled={isApplyingAmendment || acceptedPreviews.length === 0}
+                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-black text-[10px] px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
+                      >
+                        {isApplyingAmendment ? "Applying..." : `Apply ${acceptedPreviews.length} Change${acceptedPreviews.length === 1 ? "" : "s"}`}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* DUAL-TIER WORKSPACE INPUT ROW LOOPS */}
           <div className="space-y-6">
-            {Array.isArray(project?.items) && project.items.map((item: any, idx: number) => (
+            {groupItemsByCategory(project?.items).map((group) => (
+              <div key={group.category} className="space-y-4">
+
+                {/* Category band — the AI files lines under these, and the
+                    stored order follows them so the portal and PDF match. */}
+                <div className="flex items-center gap-3">
+                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest shrink-0">{group.category}</span>
+                  <span className="text-[9px] font-bold text-slate-300 shrink-0">
+                    {group.entries.length} line{group.entries.length === 1 ? "" : "s"}
+                  </span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-[10px] font-black text-slate-600 shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>
+                    ${group.entries.reduce((sum, e) => sum + midCostOf(e.item), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                <div className="space-y-6">
+                {group.entries.map(({ item, index: idx }: { item: any; index: number }) => (
               <div key={idx} className="border border-slate-200 rounded-2xl p-5 bg-slate-50/30 space-y-4 relative group transition-all hover:border-slate-300">
                 <button 
                   type="button" 
@@ -1292,6 +1579,21 @@ export default function ProjectWorkspaceControlHub() {
                     onChange={(e) => updateInlineItemField(idx, "title", e.target.value)}
                     placeholder="Core Specification Group Title"
                     className="flex-1 bg-white border py-3 px-4 rounded-xl text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm" 
+                  />
+                  {/* Uncontrolled and committed on blur: editing the category
+                      regroups the ledger, which would remount a controlled
+                      input and drop focus after the first keystroke. */}
+                  <input
+                    type="text"
+                    key={`category-${idx}-${item.category || ""}`}
+                    defaultValue={item.category || ""}
+                    onBlur={(e) => {
+                      const next = e.target.value.trim();
+                      if (next !== (item.category || "").trim()) updateInlineItemField(idx, "category", next);
+                    }}
+                    placeholder="Category"
+                    title="Groups this line in the proposal, the client portal, and the PDF"
+                    className="w-36 bg-white border py-3 px-4 rounded-xl text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm"
                   />
                 </div>
 
@@ -1383,6 +1685,9 @@ export default function ProjectWorkspaceControlHub() {
                 )}
 
               </div>
+                ))}
+                </div>
+              </div>
             ))}
           </div>
 
@@ -1407,6 +1712,13 @@ export default function ProjectWorkspaceControlHub() {
                 value={newMidCost}
                 onChange={(e) => setNewMidCost(e.target.value)}
                 className="py-3 px-4 bg-white border rounded-xl outline-none font-black text-xs text-slate-800 shadow-sm text-right focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+              />
+              <input
+                type="text"
+                placeholder="Category (e.g., Electrical) — groups this line in the proposal, portal, and PDF"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="sm:col-span-4 py-3 px-4 bg-white border rounded-xl outline-none font-bold text-xs text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
               />
             </div>
 

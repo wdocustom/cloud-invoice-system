@@ -6,6 +6,7 @@ import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import type { Invoice } from "@/lib/types";
 import { generateProposalPdf } from "@/lib/generate-pdf";
+import { categoryOf } from "@/lib/scope-amendment";
 import { TERMS_AND_CONDITIONS } from "@/lib/terms";
 
 interface HomeownerPortalProps {
@@ -700,9 +701,17 @@ export default function HomeownerPortalClient({
                 {masterItems.map((item: any, idx: number) => {
                   const isItemActive = activeIndices.includes(idx);
                   const isExpanded = expandedIndices.includes(idx);
+                  const category = categoryOf(item);
+                  const startsCategory = idx === 0 || categoryOf(masterItems[idx - 1]) !== category;
                   return (
+                    <div key={idx}>
+                    {startsCategory && (
+                      <div className="flex items-center gap-3 px-1 pt-3 pb-1.5">
+                        <span className="text-[10px] font-semibold text-brand-muted uppercase tracking-widest shrink-0">{category}</span>
+                        <div className="flex-1 h-px bg-brand-stone/40" />
+                      </div>
+                    )}
                     <div
-                      key={idx}
                       className={`px-5 py-4 rounded-2xl border bg-white shadow-soft transition-all duration-200 ${
                         !isItemActive ? 'opacity-35 border-dashed border-brand-stone/40 bg-brand-warm/30' : 'border-brand-stone/30 hover:shadow-card hover:border-brand-stone/50'
                       }`}
@@ -734,6 +743,7 @@ export default function HomeownerPortalClient({
                           </p>
                         </div>
                       )}
+                    </div>
                     </div>
                   );
                 })}
@@ -902,8 +912,23 @@ export default function HomeownerPortalClient({
                   const isItemActive = activeIndices.includes(idx);
                   const isExpanded = expandedIndices.includes(idx);
                   if (!isItemActive) return null;
+                  const category = categoryOf(item);
+                  // Compare against the previous *included* line — declined lines
+                  // are skipped here, so array order alone would misplace a band.
+                  const prevShown = masterItems
+                    .slice(0, idx)
+                    .filter((_: any, i: number) => activeIndices.includes(i))
+                    .pop();
+                  const startsCategory = !prevShown || categoryOf(prevShown) !== category;
                   return (
-                    <div key={idx} className="px-5 py-3 rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] transition-all duration-200 text-xs hover:border-slate-300">
+                    <div key={idx}>
+                    {startsCategory && (
+                      <div className="flex items-center gap-3 px-1 pt-3 pb-1.5">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">{category}</span>
+                        <div className="flex-1 h-px bg-slate-200" />
+                      </div>
+                    )}
+                    <div className="px-5 py-3 rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] transition-all duration-200 text-xs hover:border-slate-300">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-2.5 flex-1 min-w-0">
                           <button type="button" onClick={() => toggleExpandDescription(idx)} className="flex items-center justify-center w-5 h-5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 font-sans font-black text-xs bg-slate-50/60 shrink-0 outline-none">
@@ -932,6 +957,7 @@ export default function HomeownerPortalClient({
                           <p className="text-slate-500 font-medium leading-relaxed">{item.description}</p>
                         </div>
                       )}
+                    </div>
                     </div>
                   );
                 })}
