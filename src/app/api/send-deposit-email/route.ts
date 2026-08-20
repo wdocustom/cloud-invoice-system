@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { depositAmountOf } from "@/lib/payment-schedule";
 import { buildDepositEmailHtml } from "@/lib/email-templates";
 
 function getSupabase() {
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    const depositAmount = invoice.deposit_amount ?? ((invoice.amount || 0) * ((invoice.deposit_percentage || 20) / 100));
+    const depositAmount = depositAmountOf(invoice, invoice.amount);
     const portalUrl = `${base_url}/invoice/${invoice_id}`;
 
     const options = invoice.homeowner_options || [];
