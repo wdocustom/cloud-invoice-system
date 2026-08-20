@@ -737,26 +737,26 @@ export default function ProjectWorkspaceControlHub() {
       
       {/* Navigation Header Banner */}
       <div className="bg-slate-900 text-white shadow-md border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-5 flex items-center justify-between">
-          <div className="space-y-0.5">
+        <div className="max-w-7xl mx-auto px-4 py-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <div className="space-y-0.5 min-w-0">
             <button onClick={() => router.push("/admin/projects")} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition block mb-1">
               ← BACK TO PROJECT INDEX LEDGER
             </button>
-            <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100">
+            <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100 break-words">
               {project?.homeowner_name || "CLIENT"} WORKSPACE
             </h1>
             {project?.proposal_number && (
-              <p className="font-mono text-[11px] font-bold text-amber-400/90 tracking-widest">
+              <p className="font-mono text-[11px] font-bold text-amber-400/90 tracking-widest break-words">
                 {project.proposal_number}
                 {project.estimate_number && (
-                  <span className="text-slate-500 font-medium normal-case tracking-normal ml-2">
+                  <span className="text-slate-500 font-medium normal-case tracking-normal ml-2 whitespace-nowrap">
                     from {project.estimate_number}
                   </span>
                 )}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className={`text-[9px] rounded-full px-3 py-1 font-black uppercase tracking-wider border ${
               project?.status === "approved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
               project?.status === "declined" ? "bg-red-500/10 text-red-400 border-red-500/20" :
@@ -1161,8 +1161,8 @@ export default function ProjectWorkspaceControlHub() {
           {/* Deposit Amount & Percentage — the percentage is what's stored; the
               dollar figure is always derived from the current project total. */}
           <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1 min-w-0">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit $</label>
                 <span className="text-[10px] font-bold text-slate-400">$</span>
                 <input
@@ -1176,10 +1176,10 @@ export default function ProjectWorkspaceControlHub() {
                     }))
                   }
                   onBlur={saveDeposit}
-                  className="w-32 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  className="flex-1 min-w-0 sm:w-32 sm:flex-none bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                 />
               </div>
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1">
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1 min-w-0">
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit %</label>
                 <input
                   type="number"
@@ -1241,18 +1241,20 @@ export default function ProjectWorkspaceControlHub() {
 
               return (
                 <div key={idx} className="bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">#{idx + 1}</span>
-                    <input
-                      type="text"
-                      value={phase.name}
-                      onChange={(e) => updatePhase({ name: e.target.value })}
-                      onBlur={savePhase}
-                      className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                    />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1 sm:min-w-0">
+                      <span className="text-[9px] font-black text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">#{idx + 1}</span>
+                      <input
+                        type="text"
+                        value={phase.name}
+                        onChange={(e) => updatePhase({ name: e.target.value })}
+                        onBlur={savePhase}
+                        className="flex-1 min-w-0 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                      />
+                    </div>
 
-                    {/* Amount Input */}
-                    <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
+                    {/* Amount Input — takes the free space on its own mobile row */}
+                    <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 flex-1 sm:flex-none sm:shrink-0">
                       <span className="text-[10px] font-bold text-slate-400">$</span>
                       <input
                         type="number"
@@ -1263,7 +1265,7 @@ export default function ProjectWorkspaceControlHub() {
                           updatePhase({ percentage, amount: roundCents(e.target.value) });
                         }}
                         onBlur={savePhase}
-                        className="w-24 py-1.5 text-xs font-black text-slate-900 text-right outline-none bg-transparent"
+                        className="w-full sm:w-24 min-w-0 py-1.5 text-xs font-black text-slate-900 text-right outline-none bg-transparent"
                         style={{fontVariantNumeric:'tabular-nums'}}
                       />
                     </div>
@@ -1632,14 +1634,14 @@ export default function ProjectWorkspaceControlHub() {
                 </button>
 
                 {/* Primary Row Header Component */}
-                <div className="flex gap-4 items-center border-b pb-3">
-                  <span className="text-[10px] font-black text-slate-400 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-sm">LINE #{idx + 1}</span>
+                <div className="flex flex-wrap gap-2 sm:gap-4 items-center border-b pb-3 sm:pr-10">
+                  <span className="text-[10px] font-black text-slate-400 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-sm shrink-0">LINE #{idx + 1}</span>
                   <input 
                     type="text" 
                     value={item.title || ""} 
                     onChange={(e) => updateInlineItemField(idx, "title", e.target.value)}
                     placeholder="Core Specification Group Title"
-                    className="flex-1 bg-white border py-3 px-4 rounded-xl text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm" 
+                    className="w-full sm:w-auto sm:flex-1 sm:min-w-[10rem] bg-white border py-3 px-4 rounded-xl text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm" 
                   />
                   {/* Uncontrolled and committed on blur: editing the category
                       regroups the ledger, which would remount a controlled
@@ -1654,7 +1656,7 @@ export default function ProjectWorkspaceControlHub() {
                     }}
                     placeholder="Category"
                     title="Groups this line in the proposal, the client portal, and the PDF"
-                    className="w-36 bg-white border py-3 px-4 rounded-xl text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm"
+                    className="w-full sm:w-36 min-w-0 bg-white border py-3 px-4 rounded-xl text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm"
                   />
                 </div>
 
@@ -1805,7 +1807,7 @@ export default function ProjectWorkspaceControlHub() {
                     placeholder="Premium luxury upgrade options data metrics description..."
                     value={newHighDescription}
                     onChange={(e) => setNewHighDescription(e.target.value)}
-                    className="flex-1 py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                    className="flex-1 min-w-0 py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
                   />
                   <input 
                     type="number"
@@ -1893,7 +1895,7 @@ export default function ProjectWorkspaceControlHub() {
                                 }
                               }}
                               autoFocus
-                              className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                              className="flex-1 min-w-0 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                             />
                             <button
                               type="button"
@@ -2176,7 +2178,7 @@ export default function ProjectWorkspaceControlHub() {
                                 onChange={(e) => searchLibrary(e.target.value)}
                                 autoFocus
                                 placeholder="Search past selections... (e.g. NeoMatte, quartz, grey)"
-                                className="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+                                className="flex-1 min-w-0 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
                               />
                               <button
                                 type="button"
@@ -2407,7 +2409,7 @@ export default function ProjectWorkspaceControlHub() {
               onChange={(e) => setNewNote(e.target.value)}
               placeholder="Add a note..."
               rows={2}
-              className="flex-1 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm resize-none"
+              className="flex-1 min-w-0 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm resize-none"
             />
             <button
               type="button"
@@ -2685,7 +2687,7 @@ export default function ProjectWorkspaceControlHub() {
               value={qaMessage}
               onChange={(e) => setQaMessage(e.target.value)}
               placeholder="Type a reply to your client..."
-              className="flex-1 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm"
+              className="flex-1 min-w-0 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm"
             />
             <button
               type="submit"
@@ -2903,7 +2905,7 @@ export default function ProjectWorkspaceControlHub() {
                             updated[idx] = { ...updated[idx], title: e.target.value };
                             setCoItems(updated);
                           }}
-                          className="flex-1 text-xs font-bold text-slate-900 bg-transparent outline-none"
+                          className="flex-1 min-w-0 text-xs font-bold text-slate-900 bg-transparent outline-none"
                         />
                         <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
                           <span className="text-[10px] font-bold text-slate-400">$</span>
