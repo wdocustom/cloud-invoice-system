@@ -213,7 +213,16 @@ export default function PublicEstimatePage() {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1">Estimated Range</p>
-                    <p className="text-2xl font-black text-luxury-gold tracking-tight">${fmt(result.total_projected_low)} — ${fmt(result.total_projected_high)}</p>
+                    <p className="text-2xl font-black text-luxury-gold tracking-tight">
+                      ${fmt(result.total_projected_low)} —{" "}
+                      {unlocked ? (
+                        <>${fmt(result.total_projected_high)}</>
+                      ) : (
+                        <span className="blur-[6px] select-none pointer-events-none" aria-hidden="true">
+                          ${fmt(result.total_projected_high)}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
                 {result.timeline_weeks && (
