@@ -729,8 +729,8 @@ export default function ProjectWorkspaceControlHub() {
   if (loading) return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-6 w-6 animate-spin rounded-full border border-carbon-700/70 border-t-chalk-50" />
-        <p className="font-sans text-[10px] uppercase tracking-architect text-steel-400">Loading project</p>
+        <div className="h-6 w-6 animate-spin rounded-full border border-rule-300/70 border-t-ink-900" />
+        <p className="font-sans text-[13px] tracking-architect text-ink-500">Loading project</p>
       </div>
     </div>
   );
@@ -739,7 +739,7 @@ export default function ProjectWorkspaceControlHub() {
     <div className="pb-28 text-left">
       
       {/* Navigation Header Banner */}
-      <div className="sticky top-0 z-40 border-b border-carbon-700/70 bg-carbon-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-40 border-b border-rule-300/70 bg-paper-100/85 backdrop-blur-md">
         <div className="mx-auto max-w-6xl px-5 py-5 sm:px-8 sm:py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
 
@@ -747,7 +747,7 @@ export default function ProjectWorkspaceControlHub() {
               <button
                 type="button"
                 onClick={() => router.push("/admin/projects")}
-                className="group inline-flex items-center gap-1.5 font-sans text-[10px] font-medium uppercase tracking-architect text-steel-400 transition-colors duration-200 ease-architect hover:text-chalk-50"
+                className="group inline-flex items-center gap-1.5 font-sans text-[13px] tracking-architect text-ink-500 transition-colors duration-200 ease-architect hover:text-ink-900"
               >
                 <svg aria-hidden className="h-3 w-3 transition-transform duration-300 ease-architect group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -761,9 +761,9 @@ export default function ProjectWorkspaceControlHub() {
 
               {project?.proposal_number && (
                 <p className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-sans text-[10.5px] tracking-architect">
-                  <span className="break-all text-ember-500">{project.proposal_number}</span>
+                  <span className="break-all text-bronze-500">{project.proposal_number}</span>
                   {project.estimate_number && (
-                    <span className="whitespace-nowrap text-[10px] normal-case tracking-[0.08em] text-steel-400">
+                    <span className="whitespace-nowrap text-[10px] normal-case tracking-[0.08em] text-ink-500">
                       from {project.estimate_number}
                     </span>
                   )}
@@ -778,9 +778,9 @@ export default function ProjectWorkspaceControlHub() {
                 "badge-pending"
               }`}>
                 <span className={`badge-dot ${
-                  project?.status === "approved" ? "bg-signal-500" :
-                  project?.status === "declined" ? "bg-crimson-500" :
-                  "bg-ember-400"
+                  project?.status === "approved" ? "bg-forest-500" :
+                  project?.status === "declined" ? "bg-brick-500" :
+                  "bg-bronze-400"
                 }`} />
                 {project?.status || "PENDING"}
               </span>
@@ -814,7 +814,7 @@ export default function ProjectWorkspaceControlHub() {
                 <button
                   type="button"
                   onClick={markDeclined}
-                  className="btn-outline border-crimson-200 px-3 text-crimson-700 hover:border-crimson-500 hover:bg-crimson-50 sm:px-4"
+                  className="btn-outline border-brick-200 px-3 text-brick-700 hover:border-brick-500 hover:bg-brick-50 sm:px-4"
                 >
                   Mark Declined
                 </button>
@@ -836,34 +836,34 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* METRICS ROW CARDS AREA */}
       <div className="mx-auto max-w-6xl px-4 pt-7 sm:px-8 sm:pt-9">
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-panel bg-carbon-800/60 shadow-riser ring-1 ring-carbon-700/50 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-panel bg-paper-200/60 shadow-riser ring-1 ring-rule-300/50 lg:grid-cols-3">
 
         {/* PROJECT ADDRESS CARD */}
-        <div className="relative flex flex-col justify-between gap-5 overflow-hidden bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950">
+        <div className="relative flex flex-col justify-between gap-5 overflow-hidden bg-paper-50 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-paper-100">
           <div>
-            <div className="flex items-baseline justify-between gap-3 border-b border-carbon-700/55 pb-2.5">
+            <div className="flex items-baseline justify-between gap-3 border-b border-rule-300/55 pb-2.5">
               <p className="eyebrow">Project Address</p>
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(true)}
-                className="font-sans text-[10px] font-medium uppercase tracking-architect text-steel-400 transition-colors duration-200 ease-architect hover:text-chalk-50"
+                className="font-sans text-[13px] tracking-architect text-ink-500 transition-colors duration-200 ease-architect hover:text-ink-900"
               >
                 Edit
               </button>
             </div>
             <h3 className="mt-3 display-sm">{project?.job_address || "No address specified."}</h3>
             {project?.project_title && (
-              <p className="mt-1.5 font-sans text-[10px] uppercase tracking-architect text-ember-500">{project.project_title}</p>
+              <p className="mt-1.5 font-sans text-[13px] tracking-architect text-bronze-500">{project.project_title}</p>
             )}
           </div>
           <div className="space-y-1.5">
             <div>
               <p className="eyebrow">Client</p>
-              <p className="mt-1 text-[13px] font-medium text-chalk-50">{project?.homeowner_name || "N/A"}</p>
+              <p className="mt-1 text-[13px] font-medium text-ink-900">{project?.homeowner_name || "N/A"}</p>
             </div>
-            <p className="truncate font-sans text-[11px] text-steel-400">{project?.homeowner_email || "N/A"}</p>
+            <p className="truncate font-sans text-[11px] text-ink-500">{project?.homeowner_email || "N/A"}</p>
             {project?.homeowner_phone && (
-              <a href={`tel:${project.homeowner_phone}`} className="block truncate font-sans text-[11px] text-steel-400 transition-colors duration-200 ease-architect hover:text-chalk-50">
+              <a href={`tel:${project.homeowner_phone}`} className="block truncate font-sans text-[11px] text-ink-500 transition-colors duration-200 ease-architect hover:text-ink-900">
                 {project.homeowner_phone}
               </a>
             )}
@@ -871,9 +871,9 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         {/* PROJECT COST METRIC CARD */}
-        <div className="flex flex-col justify-between gap-5 bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950">
+        <div className="flex flex-col justify-between gap-5 bg-paper-50 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-paper-100">
           <div>
-            <p className="eyebrow border-b border-carbon-700/55 pb-2.5">Project Cost</p>
+            <p className="eyebrow border-b border-rule-300/55 pb-2.5">Project Cost</p>
             {(() => {
               const items = Array.isArray(project?.items) ? project.items : [];
               const hasActuals = project?.status === "approved" && items.some((i: any) => i.actual_cost != null);
@@ -883,13 +883,13 @@ export default function ProjectWorkspaceControlHub() {
                 return (
                   <div className="mt-3 space-y-2.5">
                     <h2 className="figure text-[1.75rem] leading-none sm:text-[2rem]">
-                      <span className="text-steel-500">$</span>{actualTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      <span className="text-ink-400">$</span>{actualTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </h2>
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-sans text-[10px] uppercase tracking-architect">
-                      <span className="text-steel-400">
-                        Bid <span className="tnum text-steel-300">${bidTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-sans text-[13px] tracking-architect">
+                      <span className="text-ink-500">
+                        Bid <span className="tnum text-ink-500">${bidTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </span>
-                      <span className={`tnum ${actualTotal > bidTotal ? 'text-crimson-600' : 'text-signal-600'}`}>
+                      <span className={`tnum ${actualTotal > bidTotal ? 'text-brick-600' : 'text-forest-600'}`}>
                         {actualTotal > bidTotal ? '▲' : '▼'} ${Math.abs(actualTotal - bidTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </div>
@@ -898,7 +898,7 @@ export default function ProjectWorkspaceControlHub() {
               }
               return (
                 <h2 className="figure mt-3 text-[1.75rem] leading-none sm:text-[2rem]">
-                  <span className="text-steel-500">$</span>{toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <span className="text-ink-400">$</span>{toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h2>
               );
             })()}
@@ -917,55 +917,55 @@ export default function ProjectWorkspaceControlHub() {
                 toast("Failed to update deposit status: " + error.message, "error");
               }
             }}
-            className="flex items-center justify-between gap-3 rounded-edge border border-carbon-700/70 bg-carbon-950 px-3 py-2.5 transition-colors duration-300 ease-architect hover:border-carbon-700 hover:bg-carbon-900"
+            className="flex items-center justify-between gap-3 rounded-edge border border-rule-300/70 bg-paper-100 px-3 py-2.5 transition-colors duration-300 ease-architect hover:border-rule-300 hover:bg-paper-50"
           >
             <span className="eyebrow">Deposit Paid</span>
-            <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project?.deposit_cleared ? 'bg-signal-500 justify-end' : 'bg-carbon-800 justify-start'}`}>
-              <span className="h-3 w-3 rounded-full bg-carbon-900" />
+            <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project?.deposit_cleared ? 'bg-forest-500 justify-end' : 'bg-paper-200 justify-start'}`}>
+              <span className="h-3 w-3 rounded-full bg-paper-50" />
             </span>
           </button>
         </div>
 
         {/* PORTAL ANALYTICS FEED CARD */}
-        <div className="bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950">
-          <div className="flex items-baseline justify-between gap-3 border-b border-carbon-700/55 pb-2.5">
+        <div className="bg-paper-50 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-paper-100">
+          <div className="flex items-baseline justify-between gap-3 border-b border-rule-300/55 pb-2.5">
             <p className="eyebrow">Portal Analytics</p>
             <span className="badge badge-neutral">Views<span className="tnum">{project?.view_count || 0}</span></span>
           </div>
           <div className="mt-1 max-h-52 overflow-y-auto scrollbar-none">
             {Array.isArray(project?.view_history) && [...project.view_history].reverse().map((hit: any, i: number) => (
-              <div key={i} className="border-b border-carbon-700/50 py-2.5 last:border-b-0">
+              <div key={i} className="border-b border-rule-300/50 py-2.5 last:border-b-0">
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-sans text-[10px] tabular-nums tracking-architect text-steel-400">#{project.view_history.length - i}</span>
-                  <span className="font-sans text-[10px] tabular-nums text-steel-400">
+                  <span className="font-sans text-[10px] tabular-nums tracking-architect text-ink-500">#{project.view_history.length - i}</span>
+                  <span className="font-sans text-[10px] tabular-nums text-ink-500">
                     {hit.timestamp ? new Date(hit.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : "—"}
                   </span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {hit.ip && (
-                    <span className="rounded-edge border border-carbon-700/70 bg-carbon-950 px-1.5 py-0.5 font-sans text-[9px] tabular-nums text-steel-400">{hit.ip}</span>
+                    <span className="rounded-edge border border-rule-300/70 bg-paper-100 px-1.5 py-0.5 font-sans text-[9px] tabular-nums text-ink-500">{hit.ip}</span>
                   )}
                   {hit.device && (
-                    <span className={`rounded-edge border px-1.5 py-0.5 font-sans text-[9px] uppercase tracking-architect ${
-                      hit.device.includes("iOS") ? "border-carbon-700/70 bg-carbon-900 text-steel-300" :
-                      hit.device.includes("Android") ? "border-signal-200 bg-signal-50 text-signal-700" :
-                      "border-carbon-700/70 bg-carbon-950 text-steel-400"
+                    <span className={`rounded-edge border px-1.5 py-0.5 font-sans text-[13px] tracking-architect ${
+                      hit.device.includes("iOS") ? "border-rule-300/70 bg-paper-50 text-ink-500" :
+                      hit.device.includes("Android") ? "border-forest-200 bg-forest-50 text-forest-700" :
+                      "border-rule-300/70 bg-paper-100 text-ink-500"
                     }`}>{hit.device}</span>
                   )}
                   {hit.browser && (
-                    <span className="rounded-edge border border-ember-200 bg-ember-50 px-1.5 py-0.5 font-sans text-[9px] uppercase tracking-architect text-ember-600">{hit.browser}</span>
+                    <span className="rounded-edge border border-bronze-200 bg-bronze-50 px-1.5 py-0.5 font-sans text-[13px] tracking-architect text-bronze-600">{hit.browser}</span>
                   )}
                   {hit.screen && (
-                    <span className="rounded-edge border border-carbon-700/70 bg-carbon-950 px-1.5 py-0.5 font-sans text-[9px] tabular-nums text-steel-400">{hit.screen}</span>
+                    <span className="rounded-edge border border-rule-300/70 bg-paper-100 px-1.5 py-0.5 font-sans text-[9px] tabular-nums text-ink-500">{hit.screen}</span>
                   )}
                 </div>
                 {hit.referrer && (
-                  <p className="mt-1 truncate font-sans text-[9px] text-steel-500">via {hit.referrer}</p>
+                  <p className="mt-1 truncate font-sans text-[9px] text-ink-400">via {hit.referrer}</p>
                 )}
               </div>
             ))}
             {(!project?.view_history || project.view_history.length === 0) && (
-              <p className="py-8 text-center font-sans text-[10px] uppercase tracking-architect text-steel-500">No portal views yet</p>
+              <p className="py-8 text-center font-sans text-[13px] tracking-architect text-ink-400">No portal views yet</p>
             )}
           </div>
         </div>
@@ -977,7 +977,7 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">01</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">01</span>
             <h2 className="display-sm">Programme</h2>
           </div>
           <span className="eyebrow hidden sm:block">Dates</span>
@@ -1030,7 +1030,7 @@ export default function ProjectWorkspaceControlHub() {
         <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
           <div className="title-block">
             <div className="flex items-baseline gap-3">
-              <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">02</span>
+              <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">02</span>
               <h2 className="display-sm">Client Announcement</h2>
             </div>
             {project?.announcement && (
@@ -1045,14 +1045,14 @@ export default function ProjectWorkspaceControlHub() {
                   if (error) toast("Failed to clear: " + error.message, "error");
                   else toast("Announcement cleared", "success");
                 }}
-                className="shrink-0 font-sans text-[10px] font-medium uppercase tracking-architect text-steel-400 transition-colors duration-200 ease-architect hover:text-crimson-600"
+                className="shrink-0 font-sans text-[13px] tracking-architect text-ink-500 transition-colors duration-200 ease-architect hover:text-brick-600"
               >
                 Clear
               </button>
             )}
           </div>
 
-          <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+          <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
             This message runs as a priority banner at the top of the homeowner portal. Leave it blank to show the default status line.
           </p>
 
@@ -1078,11 +1078,11 @@ export default function ProjectWorkspaceControlHub() {
           />
 
           {project?.announcement && (
-            <div className="mt-3 flex items-start gap-3 border-l-2 border-ember-400 bg-ember-50/60 px-5 py-4">
-              <svg aria-hidden className="mt-px h-3.5 w-3.5 shrink-0 text-ember-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="mt-3 flex items-start gap-3 border-l-2 border-bronze-400 bg-bronze-50/60 px-5 py-4">
+              <svg aria-hidden className="mt-px h-3.5 w-3.5 shrink-0 text-bronze-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253 1.077.583 2.123.983 3.13.457 1.15.83 1.62 1.677 1.62.848 0 1.535-.687 1.535-1.535 0-.264-.067-.523-.194-.755a19.5 19.5 0 01-1.03-2.16m-2.97-.3a48.4 48.4 0 013.66.66m-3.66-9.54a48.4 48.4 0 003.66-.66m0 10.2a24.3 24.3 0 000-9.54m0 9.54a3.75 3.75 0 000-9.54" />
               </svg>
-              <p className="text-[12px] leading-relaxed text-steel-300">
+              <p className="text-[12px] leading-relaxed text-ink-500">
                 <span className="eyebrow-ink mr-2">Live on portal</span>
                 {project.announcement}
               </p>
@@ -1096,14 +1096,14 @@ export default function ProjectWorkspaceControlHub() {
         <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
           <div className="title-block">
             <div className="flex items-baseline gap-3">
-              <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">02</span>
+              <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">02</span>
               <h2 className="display-sm">Proposal Expiration</h2>
             </div>
             <span className="eyebrow hidden sm:block">Hold</span>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <p className="max-w-md text-[12.5px] leading-relaxed text-steel-400">
+            <p className="max-w-md text-[12.5px] leading-relaxed text-ink-500">
               Set a deadline to hold pricing and a schedule slot. A live countdown appears on the client portal.
             </p>
             <div className="flex items-end gap-2">
@@ -1140,7 +1140,7 @@ export default function ProjectWorkspaceControlHub() {
                     if (error) toast("Failed to clear expiration: " + error.message, "error");
                     else toast("Expiration removed", "success");
                   }}
-                  className="mb-[1px] flex h-[38px] w-9 shrink-0 items-center justify-center rounded-edge border border-carbon-700 text-steel-400 transition-colors duration-200 ease-architect hover:border-crimson-300 hover:bg-crimson-50 hover:text-crimson-600"
+                  className="mb-[1px] flex h-[38px] w-9 shrink-0 items-center justify-center rounded-edge border border-rule-300 text-ink-500 transition-colors duration-200 ease-architect hover:border-brick-300 hover:bg-brick-50 hover:text-brick-600"
                   title="Clear expiration"
                 >
                   <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -1152,14 +1152,14 @@ export default function ProjectWorkspaceControlHub() {
           </div>
 
           {project?.proposal_expires_at && (
-            <div className="mt-4 flex items-center gap-2.5 border-t border-carbon-700/55 pt-3.5">
+            <div className="mt-4 flex items-center gap-2.5 border-t border-rule-300/55 pt-3.5">
               {new Date(project.proposal_expires_at) > new Date() ? (
                 <>
-                  <span className="badge-dot animate-pulse bg-ember-400" />
-                  <p className="text-[12px] text-steel-300">
+                  <span className="badge-dot animate-pulse bg-bronze-400" />
+                  <p className="text-[12px] text-ink-500">
                     Expires <span className="tnum">{new Date(project.proposal_expires_at).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                     {' · '}
-                    <span className="font-sans text-[10.5px] uppercase tracking-architect text-ember-600">
+                    <span className="font-sans text-[13px] tracking-architect text-bronze-600">
                       {(() => {
                         const diff = new Date(project.proposal_expires_at).getTime() - Date.now();
                         const days = Math.floor(diff / 86400000);
@@ -1173,15 +1173,15 @@ export default function ProjectWorkspaceControlHub() {
                 </>
               ) : (
                 <>
-                  <span className="badge-dot bg-crimson-500" />
-                  <p className="text-[12px] text-crimson-700">Proposal expired — the client can no longer accept</p>
+                  <span className="badge-dot bg-brick-500" />
+                  <p className="text-[12px] text-brick-700">Proposal expired — the client can no longer accept</p>
                 </>
               )}
             </div>
           )}
 
           {Array.isArray(project?.proposal_emails) && project.proposal_emails.length > 0 && (
-            <div className="mt-4 border-t border-carbon-700/55 pt-3.5">
+            <div className="mt-4 border-t border-rule-300/55 pt-3.5">
               <p className="eyebrow mb-2">Email History</p>
               <div className="flex flex-wrap gap-1.5">
                 {project.proposal_emails.map((log: any, i: number) => (
@@ -1201,25 +1201,25 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">03</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">03</span>
             <h2 className="display-sm">Schedule Horizon</h2>
           </div>
           <span className="eyebrow hidden sm:block">Production Phases</span>
         </div>
 
-        <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
           Nest trade rows and track phase progress against the production calendar.
         </p>
 
         <div className="panel blueprint-grid mt-4 overflow-hidden">
-          <div className="flex items-baseline justify-between gap-4 border-b border-carbon-700/55 bg-carbon-900/60 px-5 py-3 sm:px-5">
+          <div className="flex items-baseline justify-between gap-4 border-b border-rule-300/55 bg-paper-50/60 px-5 py-3 sm:px-5">
             <span className="eyebrow">Phase Track</span>
             <span className="eyebrow hidden sm:block">Calendar Grid</span>
           </div>
 
           <div className="px-6 py-14 text-center">
             <p className="display-sm">Horizon track not configured</p>
-            <p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed text-steel-400">
+            <p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed text-ink-500">
               Phase rows appear here once the production calendar is built out for this project.
             </p>
           </div>
@@ -1230,13 +1230,13 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">04</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">04</span>
             <h2 className="display-sm">Schedule of Values</h2>
           </div>
           <span className="eyebrow hidden sm:block">Deposit &amp; Draws</span>
         </div>
 
-        <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
           Configure the deposit and the payment draw phases. Changes sync instantly to the homeowner portal.
         </p>
 
@@ -1246,8 +1246,8 @@ export default function ProjectWorkspaceControlHub() {
           <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-[minmax(0,1fr)_120px]">
             <div>
               <label htmlFor="deposit-amount" className="field-label">Deposit Amount</label>
-              <div className="flex items-center gap-1.5 rounded-edge border border-carbon-700 bg-carbon-900 px-3.5 transition-all duration-200 ease-architect focus-within:border-carbon-600 focus-within:ring-[3px] focus-within:ring-ember-300/20">
-                <span className="font-sans text-[11px] text-steel-500">$</span>
+              <div className="flex items-center gap-1.5 rounded-edge border border-rule-300 bg-paper-50 px-3.5 transition-all duration-200 ease-architect focus-within:border-rule-400 focus-within:ring-[3px] focus-within:ring-bronze-300/20">
+                <span className="font-sans text-[11px] text-ink-400">$</span>
                 <input
                   id="deposit-amount"
                   type="number"
@@ -1260,13 +1260,13 @@ export default function ProjectWorkspaceControlHub() {
                     }))
                   }
                   onBlur={saveDeposit}
-                  className="no-spin tnum w-full min-w-0 bg-transparent py-2.5 text-[13px] font-medium text-chalk-50 outline-none"
+                  className="no-spin tnum w-full min-w-0 bg-transparent py-2.5 text-[13px] font-medium text-ink-900 outline-none"
                 />
               </div>
             </div>
             <div>
               <label htmlFor="deposit-percent" className="field-label">Deposit %</label>
-              <div className="flex items-center gap-1.5 rounded-edge border border-carbon-700 bg-carbon-900 px-3.5 transition-all duration-200 ease-architect focus-within:border-carbon-600 focus-within:ring-[3px] focus-within:ring-ember-300/20">
+              <div className="flex items-center gap-1.5 rounded-edge border border-rule-300 bg-paper-50 px-3.5 transition-all duration-200 ease-architect focus-within:border-rule-400 focus-within:ring-[3px] focus-within:ring-bronze-300/20">
                 <input
                   id="deposit-percent"
                   type="number"
@@ -1280,13 +1280,13 @@ export default function ProjectWorkspaceControlHub() {
                     }))
                   }
                   onBlur={saveDeposit}
-                  className="no-spin tnum w-full min-w-0 bg-transparent py-2.5 text-[13px] font-medium text-chalk-50 outline-none"
+                  className="no-spin tnum w-full min-w-0 bg-transparent py-2.5 text-[13px] font-medium text-ink-900 outline-none"
                 />
-                <span className="font-sans text-[11px] text-steel-500">%</span>
+                <span className="font-sans text-[11px] text-ink-400">%</span>
               </div>
             </div>
           </div>
-          <p className="mt-2.5 text-[11.5px] leading-relaxed text-steel-400">
+          <p className="mt-2.5 text-[11.5px] leading-relaxed text-ink-500">
             Edit either amount or percentage — the other updates automatically. The deposit is stored as a
             percentage, so it follows the project total if the scope changes.
           </p>
@@ -1294,16 +1294,16 @@ export default function ProjectWorkspaceControlHub() {
 
         {/* Phase Rows */}
         <div className="mt-7">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-carbon-700/70 pb-2.5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule-300/70 pb-2.5">
             <p className="eyebrow">Draw Phases</p>
-            <p className="font-sans text-[10px] uppercase tracking-architect text-steel-400">
+            <p className="font-sans text-[13px] tracking-architect text-ink-500">
               Total <span className={`tnum ${
                 totalScheduledPercent(project?.payment_phases, project?.amount) === 100
-                  ? "text-signal-600" : "text-crimson-600"
+                  ? "text-forest-600" : "text-brick-600"
               }`}>
                 {displayPercent(totalScheduledPercent(project?.payment_phases, project?.amount))}%
               </span>
-              <span className="tnum text-steel-500">
+              <span className="tnum text-ink-400">
                 {" "}· ${totalScheduledAmount(project?.payment_phases, project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} of $
                 {toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </span>
@@ -1328,12 +1328,12 @@ export default function ProjectWorkspaceControlHub() {
             const savePhase = () => savePhases(project.payment_phases);
 
             return (
-              <div key={idx} className="group relative border-b border-carbon-700/55 py-3.5 transition-colors duration-300 ease-architect hover:bg-carbon-900">
-                <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-ember-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+              <div key={idx} className="group relative border-b border-rule-300/55 py-3.5 transition-colors duration-300 ease-architect hover:bg-paper-50">
+                <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
 
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:pl-3">
                   <div className="flex w-full items-center gap-2.5 sm:w-auto sm:min-w-0 sm:flex-1">
-                    <span className="shrink-0 font-sans text-[10px] tabular-nums tracking-architect text-steel-500">
+                    <span className="shrink-0 font-sans text-[10px] tabular-nums tracking-architect text-ink-400">
                       #{idx + 1}
                     </span>
                     <input
@@ -1342,13 +1342,13 @@ export default function ProjectWorkspaceControlHub() {
                       onChange={(e) => updatePhase({ name: e.target.value })}
                       onBlur={savePhase}
                       title="Draw phase name"
-                      className="min-w-0 flex-1 border-0 border-b border-transparent bg-transparent py-1 text-[13px] font-medium text-chalk-50 outline-none transition-colors duration-200 ease-architect hover:border-carbon-700/70 focus:border-carbon-600"
+                      className="min-w-0 flex-1 border-0 border-b border-transparent bg-transparent py-1 text-[13px] font-medium text-ink-900 outline-none transition-colors duration-200 ease-architect hover:border-rule-300/70 focus:border-rule-400"
                     />
                   </div>
 
                   {/* Amount Input — takes the free space on its own mobile row */}
-                  <div className="flex flex-1 items-center gap-1 rounded-edge border border-carbon-700/70 bg-carbon-900 px-2 transition-colors duration-200 ease-architect focus-within:border-carbon-600 sm:w-[124px] sm:flex-none">
-                    <span className="font-sans text-[10px] text-steel-500">$</span>
+                  <div className="flex flex-1 items-center gap-1 rounded-edge border border-rule-300/70 bg-paper-50 px-2 transition-colors duration-200 ease-architect focus-within:border-rule-400 sm:w-[124px] sm:flex-none">
+                    <span className="font-sans text-[10px] text-ink-400">$</span>
                     <input
                       type="number"
                       min="0"
@@ -1359,12 +1359,12 @@ export default function ProjectWorkspaceControlHub() {
                       }}
                       onBlur={savePhase}
                       title="Draw amount"
-                      className="no-spin tnum w-full min-w-0 bg-transparent py-1.5 text-right text-[12.5px] font-medium text-chalk-50 outline-none"
+                      className="no-spin tnum w-full min-w-0 bg-transparent py-1.5 text-right text-[12.5px] font-medium text-ink-900 outline-none"
                     />
                   </div>
 
                   {/* Percentage Display */}
-                  <div className="flex shrink-0 items-center gap-1 rounded-edge border border-carbon-700/70 bg-carbon-900 px-2 transition-colors duration-200 ease-architect focus-within:border-carbon-600">
+                  <div className="flex shrink-0 items-center gap-1 rounded-edge border border-rule-300/70 bg-paper-50 px-2 transition-colors duration-200 ease-architect focus-within:border-rule-400">
                     <input
                       type="number"
                       min="0"
@@ -1376,16 +1376,16 @@ export default function ProjectWorkspaceControlHub() {
                       }}
                       onBlur={savePhase}
                       title="Draw percentage"
-                      className="no-spin tnum w-11 bg-transparent py-1.5 text-center text-[12.5px] font-medium text-chalk-50 outline-none"
+                      className="no-spin tnum w-11 bg-transparent py-1.5 text-center text-[12.5px] font-medium text-ink-900 outline-none"
                     />
-                    <span className="font-sans text-[10px] text-steel-500">%</span>
+                    <span className="font-sans text-[10px] text-ink-400">%</span>
                   </div>
 
                   {isApprovedProject && isPhasePaid && (
-                    <span className="badge badge-approved shrink-0"><span className="badge-dot bg-signal-500" />Paid</span>
+                    <span className="badge badge-approved shrink-0"><span className="badge-dot bg-forest-500" />Paid</span>
                   )}
                   {isApprovedProject && isPhaseActive && !isPhasePaid && (
-                    <span className="badge badge-pending shrink-0"><span className="badge-dot bg-ember-400" />Due</span>
+                    <span className="badge badge-pending shrink-0"><span className="badge-dot bg-bronze-400" />Due</span>
                   )}
                   <button
                     type="button"
@@ -1395,7 +1395,7 @@ export default function ProjectWorkspaceControlHub() {
                       await savePhases(project.payment_phases.filter((_: any, i: number) => i !== idx));
                     }}
                     title="Remove draw phase"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-steel-500 transition-all duration-200 ease-architect hover:bg-crimson-50 hover:text-crimson-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-ink-400 transition-all duration-200 ease-architect hover:bg-brick-50 hover:text-brick-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   >
                     <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1425,7 +1425,7 @@ export default function ProjectWorkspaceControlHub() {
                         setSendingReminderIdx(null);
                       }
                     }}
-                    className="btn-outline mt-2.5 w-full py-2 text-[10px] uppercase tracking-architect sm:ml-3 sm:w-auto"
+                    className="btn-outline mt-2.5 w-full py-2 text-[13px] tracking-architect sm:ml-3 sm:w-auto"
                   >
                     <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     {sendingReminderIdx === 0 ? "Loading..." : "Send Deposit Email"}
@@ -1461,7 +1461,7 @@ export default function ProjectWorkspaceControlHub() {
                         setSendingReminderIdx(null);
                       }
                     }}
-                    className="btn-outline mt-2.5 w-full border-ember-200 py-2 text-[10px] uppercase tracking-architect text-ember-600 hover:border-ember-400 hover:bg-ember-50 sm:ml-3 sm:w-auto"
+                    className="btn-outline mt-2.5 w-full border-bronze-200 py-2 text-[13px] tracking-architect text-bronze-600 hover:border-bronze-400 hover:bg-bronze-50 sm:ml-3 sm:w-auto"
                   >
                     <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     {sendingReminderIdx === idx ? "Sending..." : "Send Payment Reminder"}
@@ -1479,7 +1479,7 @@ export default function ProjectWorkspaceControlHub() {
               const remaining = Math.max(0, 100 - totalScheduledPercent(currentPhases, project?.amount));
               await savePhases([...currentPhases, { name: "New Phase", percentage: remaining }]);
             }}
-            className="mt-4 w-full rounded-edge border border-dashed border-carbon-700 py-2.5 font-sans text-[10px] uppercase tracking-architect text-steel-400 transition-colors duration-200 ease-architect hover:border-carbon-600 hover:text-chalk-50"
+            className="mt-4 w-full rounded-edge border border-dashed border-rule-300 py-2.5 font-sans text-[13px] tracking-architect text-ink-500 transition-colors duration-200 ease-architect hover:border-rule-400 hover:text-ink-900"
           >
             Add Draw Phase
           </button>
@@ -1490,7 +1490,7 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">05</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">05</span>
             <h2 className="display-sm">Line Items</h2>
           </div>
           <button
@@ -1507,17 +1507,17 @@ export default function ProjectWorkspaceControlHub() {
                 toast("Failed to update luxury tier visibility: " + error.message, "error");
               }
             }}
-            className="flex shrink-0 items-center gap-2.5 rounded-edge border border-carbon-700 bg-carbon-900 px-2.5 py-1.5 transition-colors duration-300 ease-architect hover:border-carbon-600/70 hover:bg-carbon-950"
+            className="flex shrink-0 items-center gap-2.5 rounded-edge border border-rule-300 bg-paper-50 px-2.5 py-1.5 transition-colors duration-300 ease-architect hover:border-rule-400/70 hover:bg-paper-100"
             title="Show or hide the high tier on the client portal"
           >
             <span className="eyebrow">High Tier</span>
-            <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project?.show_luxury_tier ? 'bg-chalk-50 justify-end' : 'bg-carbon-800 justify-start'}`}>
-              <span className="h-3 w-3 rounded-full bg-carbon-900" />
+            <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project?.show_luxury_tier ? 'bg-paper-50 justify-end' : 'bg-paper-200 justify-start'}`}>
+              <span className="h-3 w-3 rounded-full bg-paper-50" />
             </span>
           </button>
         </div>
 
-        <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
           Amend descriptions and values, or append new scope directly into the contract ledger.
         </p>
 
@@ -1528,7 +1528,7 @@ export default function ProjectWorkspaceControlHub() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="eyebrow-ink">Add Scope with AI</p>
-                <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-steel-400">
+                <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-ink-500">
                   List what you want to add. The estimator checks it against the scope already in this proposal,
                   folds work into the line it belongs to, prices what&apos;s genuinely new, and files everything by category.
                   Nothing changes until you approve it below.
@@ -1563,11 +1563,11 @@ export default function ProjectWorkspaceControlHub() {
                 {amendment.summary && (
                   <div className="panel p-4">
                     <p className="eyebrow">Estimator Summary</p>
-                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-steel-300">{amendment.summary}</p>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-500">{amendment.summary}</p>
                   </div>
                 )}
 
-                <div className="mt-3 border-t border-carbon-700/70">
+                <div className="mt-3 border-t border-rule-300/70">
                   {amendment.previews.map((preview: ScopeOperationPreview, idx: number) => {
                     const rejected = rejectedOps.includes(idx);
                     const op = preview.operation;
@@ -1582,8 +1582,8 @@ export default function ProjectWorkspaceControlHub() {
                     return (
                       <div
                         key={idx}
-                        className={`border-b border-carbon-700/55 px-1 py-4 transition-all duration-300 ease-architect ${
-                          rejected ? "opacity-40" : "bg-carbon-900/60"
+                        className={`border-b border-rule-300/55 px-1 py-4 transition-all duration-300 ease-architect ${
+                          rejected ? "opacity-40" : "bg-paper-50/60"
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -1593,8 +1593,8 @@ export default function ProjectWorkspaceControlHub() {
                             title={rejected ? "Include this change" : "Skip this change"}
                             className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-edge border transition-all duration-200 ease-architect ${
                               rejected
-                                ? "border-carbon-700 bg-carbon-900 text-transparent hover:border-carbon-600"
-                                : "border-chalk-50 bg-chalk-50 text-carbon-950"
+                                ? "border-rule-300 bg-paper-50 text-transparent hover:border-rule-400"
+                                : "border-rule-300 bg-paper-50 text-ink-900"
                             }`}
                           >
                             <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -1618,36 +1618,36 @@ export default function ProjectWorkspaceControlHub() {
                               </span>
                             </div>
 
-                            <p className="text-[13px] font-medium leading-snug tracking-[-0.01em] text-chalk-50">{preview.after.title}</p>
+                            <p className="text-[13px] font-medium leading-snug tracking-[-0.01em] text-ink-900">{preview.after.title}</p>
 
                             {op.addition && (
-                              <p className="text-[11.5px] text-steel-400">
+                              <p className="text-[11.5px] text-ink-500">
                                 Covers <span className="italic">&ldquo;{op.addition}&rdquo;</span>
                               </p>
                             )}
                             {op.reason && (
-                              <p className="text-[11.5px] leading-relaxed text-steel-400">{op.reason}</p>
+                              <p className="text-[11.5px] leading-relaxed text-ink-500">{op.reason}</p>
                             )}
 
                             {/* Before → after, computed from the saved proposal */}
                             {preview.before && !isRecat && (
-                              <div className="space-y-2 border-l border-carbon-700/70 pl-3">
+                              <div className="space-y-2 border-l border-rule-300/70 pl-3">
                                 <div>
                                   <p className="eyebrow">Was</p>
-                                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-steel-400">
+                                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-ink-500">
                                     {preview.before.title} — ${midCostOf(preview.before).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                   </p>
                                 </div>
                                 <div>
                                   <p className="eyebrow">Becomes</p>
-                                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-steel-300">
+                                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-ink-500">
                                     {preview.after.mid_description}
                                   </p>
                                 </div>
                               </div>
                             )}
                             {!preview.before && preview.after.mid_description && (
-                              <p className="border-l border-carbon-700/70 pl-3 text-[11.5px] leading-relaxed text-steel-300">
+                              <p className="border-l border-rule-300/70 pl-3 text-[11.5px] leading-relaxed text-ink-500">
                                 {preview.after.mid_description}
                               </p>
                             )}
@@ -1658,7 +1658,7 @@ export default function ProjectWorkspaceControlHub() {
                               ${toNum(preview.after.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </p>
                             {toNum(preview.mid_delta) !== 0 && (
-                              <p className={`mt-0.5 font-sans text-[10px] tabular-nums ${toNum(preview.mid_delta) > 0 ? "text-signal-600" : "text-crimson-600"}`}>
+                              <p className={`mt-0.5 font-sans text-[10px] tabular-nums ${toNum(preview.mid_delta) > 0 ? "text-forest-600" : "text-brick-600"}`}>
                                 {toNum(preview.mid_delta) > 0 ? "+" : "−"}${Math.abs(toNum(preview.mid_delta)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </p>
                             )}
@@ -1670,15 +1670,15 @@ export default function ProjectWorkspaceControlHub() {
                 </div>
 
                 {/* Apply bar */}
-                <div className="mt-4 flex flex-col justify-between gap-3 border-t border-carbon-700 pt-4 sm:flex-row sm:items-end">
+                <div className="mt-4 flex flex-col justify-between gap-3 border-t border-rule-300 pt-4 sm:flex-row sm:items-end">
                   <div>
                     <p className="eyebrow">
                       {acceptedPreviews.length} of {amendment.previews.length} change{amendment.previews.length === 1 ? "" : "s"} selected
                     </p>
-                    <p className="mt-1.5 text-[12.5px] text-chalk-50">
+                    <p className="mt-1.5 text-[12.5px] text-ink-900">
                       Proposal total {acceptedMidDelta >= 0 ? "increases" : "decreases"} by <span className="tnum font-medium">$
                       {Math.abs(acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                      <span className="tnum text-steel-400">
+                      <span className="tnum text-ink-500">
                         {" "}→ ${(toNum(project?.amount) + acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </p>
@@ -1714,12 +1714,12 @@ export default function ProjectWorkspaceControlHub() {
 
               {/* Category band — the AI files lines under these, and the
                   stored order follows them so the portal and PDF match. */}
-              <div className="flex items-baseline gap-3 border-b border-carbon-700 pb-2">
-                <span className="shrink-0 font-sans text-[10px] font-medium uppercase tracking-architect text-chalk-50">{group.category}</span>
-                <span className="shrink-0 font-sans text-[10px] uppercase tracking-architect text-steel-500">
+              <div className="flex items-baseline gap-3 border-b border-rule-300 pb-2">
+                <span className="shrink-0 font-sans text-[13px] tracking-architect text-ink-900">{group.category}</span>
+                <span className="shrink-0 font-sans text-[13px] tracking-architect text-ink-400">
                   {group.entries.length} line{group.entries.length === 1 ? "" : "s"}
                 </span>
-                <span aria-hidden className="h-px flex-1 self-center bg-carbon-800/70" />
+                <span aria-hidden className="h-px flex-1 self-center bg-paper-200/70" />
                 <span className="figure shrink-0 text-[12.5px]">
                   ${group.entries.reduce((sum, e) => sum + midCostOf(e.item), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
@@ -1727,15 +1727,15 @@ export default function ProjectWorkspaceControlHub() {
 
               <div>
               {group.entries.map(({ item, index: idx }: { item: any; index: number }) => (
-            <div key={idx} className="group relative border-b border-carbon-700/55 py-5 transition-colors duration-300 ease-architect hover:bg-carbon-900">
-              <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-ember-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+            <div key={idx} className="group relative border-b border-rule-300/55 py-5 transition-colors duration-300 ease-architect hover:bg-paper-50">
+              <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
 
               <div className="sm:pl-4">
                 <button
                   type="button"
                   onClick={() => removeLineRowItem(idx)}
                   title="Remove line item"
-                  className="absolute right-0 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-edge text-steel-500 transition-all duration-200 ease-architect hover:bg-crimson-50 hover:text-crimson-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                  className="absolute right-0 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-edge text-ink-400 transition-all duration-200 ease-architect hover:bg-brick-50 hover:text-brick-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 >
                   <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1744,14 +1744,14 @@ export default function ProjectWorkspaceControlHub() {
 
                 {/* Primary Row Header Component */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pr-9">
-                  <span className="shrink-0 font-sans text-[10px] tabular-nums tracking-architect text-steel-500">LINE {idx + 1}</span>
+                  <span className="shrink-0 font-sans text-[10px] tabular-nums tracking-architect text-ink-400">LINE {idx + 1}</span>
                   <input
                     type="text"
                     value={item.title || ""}
                     onChange={(e) => updateInlineItemField(idx, "title", e.target.value)}
                     placeholder="Line item title"
                     title="Line item title"
-                    className="w-full min-w-0 border-0 border-b border-transparent bg-transparent py-1 font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-chalk-50 outline-none transition-colors duration-200 ease-architect placeholder:font-sans placeholder:text-[13px] placeholder:text-steel-500 hover:border-carbon-700/70 focus:border-carbon-600 sm:w-auto sm:min-w-[12rem] sm:flex-1"
+                    className="w-full min-w-0 border-0 border-b border-transparent bg-transparent py-1 font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-ink-900 outline-none transition-colors duration-200 ease-architect placeholder:font-sans placeholder:text-[13px] placeholder:text-ink-400 hover:border-rule-300/70 focus:border-rule-400 sm:w-auto sm:min-w-[12rem] sm:flex-1"
                   />
                   {/* Uncontrolled and committed on blur: editing the category
                       regroups the ledger, which would remount a controlled
@@ -1766,25 +1766,25 @@ export default function ProjectWorkspaceControlHub() {
                     }}
                     placeholder="Category"
                     title="Groups this line in the proposal, the client portal, and the PDF"
-                    className="w-full min-w-0 rounded-edge border border-carbon-700/70 bg-carbon-950 px-2.5 py-1.5 font-sans text-[10px] uppercase tracking-architect text-steel-300 outline-none transition-all duration-200 ease-architect focus:border-carbon-600 focus:bg-carbon-900 sm:w-40"
+                    className="w-full min-w-0 rounded-edge border border-rule-300/70 bg-paper-100 px-2.5 py-1.5 font-sans text-[13px] tracking-architect text-ink-500 outline-none transition-all duration-200 ease-architect focus:border-rule-400 focus:bg-paper-50 sm:w-40"
                   />
                 </div>
 
                 {/* Cost+ Bid vs Actual (post-approval) */}
                 {project?.status === "approved" && (
-                  <div className="mt-4 grid grid-cols-1 gap-px overflow-hidden rounded-panel bg-carbon-800/60 shadow-riser ring-1 ring-carbon-700/50 sm:grid-cols-2">
-                    <div className="bg-carbon-900 px-5 py-4">
+                  <div className="mt-4 grid grid-cols-1 gap-px overflow-hidden rounded-panel bg-paper-200/60 shadow-riser ring-1 ring-rule-300/50 sm:grid-cols-2">
+                    <div className="bg-paper-50 px-5 py-4">
                       <p className="eyebrow">Bid Amount</p>
                       <p className="figure mt-1.5 text-[15px]">
                         ${toNum(item.cost || item.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </p>
                     </div>
-                    <div className={`px-5 py-4 ${item.actual_cost != null ? 'bg-signal-50' : 'bg-ember-50'}`}>
-                      <p className={`eyebrow ${item.actual_cost != null ? 'text-signal-700' : 'text-ember-600'}`}>
+                    <div className={`px-5 py-4 ${item.actual_cost != null ? 'bg-forest-50' : 'bg-bronze-50'}`}>
+                      <p className={`eyebrow ${item.actual_cost != null ? 'text-forest-700' : 'text-bronze-600'}`}>
                         Actual Cost
                       </p>
                       <div className="mt-1.5 flex items-baseline gap-1">
-                        <span className="font-sans text-[12px] text-steel-400">$</span>
+                        <span className="font-sans text-[12px] text-ink-500">$</span>
                         <input
                           type="number"
                           value={item.actual_cost ?? ""}
@@ -1794,11 +1794,11 @@ export default function ProjectWorkspaceControlHub() {
                           }}
                           placeholder="Enter actual"
                           title="Actual cost"
-                          className="figure no-spin w-full bg-transparent text-[15px] outline-none placeholder:font-sans placeholder:text-[12px] placeholder:font-normal placeholder:text-steel-500"
+                          className="figure no-spin w-full bg-transparent text-[15px] outline-none placeholder:font-sans placeholder:text-[12px] placeholder:font-normal placeholder:text-ink-400"
                         />
                       </div>
                       {item.actual_cost != null && (
-                        <p className={`mt-1 font-sans text-[10px] tabular-nums ${toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? 'text-crimson-600' : 'text-signal-700'}`}>
+                        <p className={`mt-1 font-sans text-[10px] tabular-nums ${toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? 'text-brick-600' : 'text-forest-700'}`}>
                           {toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? '▲' : '▼'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)).toLocaleString(undefined, {minimumFractionDigits:2})} ({toNum(item.cost || item.mid_cost) > 0 ? ((toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)) / toNum(item.cost || item.mid_cost) * 100).toFixed(1) : '0'}%)
                         </p>
                       )}
@@ -1810,17 +1810,17 @@ export default function ProjectWorkspaceControlHub() {
                 {project?.status !== "approved" && (
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                   {/* Standard Mid Tier Configuration Box */}
-                  <div className="border-t border-carbon-700/70 pt-3">
+                  <div className="border-t border-rule-300/70 pt-3">
                     <div className="flex items-center justify-between gap-3">
                       <span className="eyebrow">Standard Tier</span>
-                      <div className="flex max-w-[128px] items-center gap-1 rounded-edge border border-carbon-700/70 bg-carbon-900 px-2 transition-colors duration-200 ease-architect focus-within:border-carbon-600">
-                        <span className="font-sans text-[10px] text-steel-500">$</span>
+                      <div className="flex max-w-[128px] items-center gap-1 rounded-edge border border-rule-300/70 bg-paper-50 px-2 transition-colors duration-200 ease-architect focus-within:border-rule-400">
+                        <span className="font-sans text-[10px] text-ink-400">$</span>
                         <input
                           type="number"
                           value={item.mid_cost || ""}
                           onChange={(e) => updateInlineItemField(idx, "mid_cost", toNum(e.target.value))}
                           title="Standard tier cost"
-                          className="no-spin tnum w-full bg-transparent py-1.5 text-right text-[12.5px] font-medium text-chalk-50 outline-none"
+                          className="no-spin tnum w-full bg-transparent py-1.5 text-right text-[12.5px] font-medium text-ink-900 outline-none"
                         />
                       </div>
                     </div>
@@ -1835,17 +1835,17 @@ export default function ProjectWorkspaceControlHub() {
                   </div>
 
                   {/* Luxury High Tier Configuration Box */}
-                  <div className="border-t border-ember-300 pt-3">
+                  <div className="border-t border-bronze-300 pt-3">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="eyebrow text-ember-600">High Tier Upgrade</span>
-                      <div className="flex max-w-[128px] items-center gap-1 rounded-edge border border-ember-200 bg-carbon-900 px-2 transition-colors duration-200 ease-architect focus-within:border-ember-500">
-                        <span className="font-sans text-[10px] text-ember-400">$</span>
+                      <span className="eyebrow text-bronze-600">High Tier Upgrade</span>
+                      <div className="flex max-w-[128px] items-center gap-1 rounded-edge border border-bronze-200 bg-paper-50 px-2 transition-colors duration-200 ease-architect focus-within:border-bronze-500">
+                        <span className="font-sans text-[10px] text-bronze-400">$</span>
                         <input
                           type="number"
                           value={item.high_cost || ""}
                           onChange={(e) => updateInlineItemField(idx, "high_cost", toNum(e.target.value))}
                           title="High tier cost"
-                          className="no-spin tnum w-full bg-transparent py-1.5 text-right text-[12.5px] font-medium text-chalk-50 outline-none"
+                          className="no-spin tnum w-full bg-transparent py-1.5 text-right text-[12.5px] font-medium text-ink-900 outline-none"
                         />
                       </div>
                     </div>
@@ -1854,7 +1854,7 @@ export default function ProjectWorkspaceControlHub() {
                       onChange={(e) => updateInlineItemField(idx, "high_description", e.target.value)}
                       placeholder="High tier premium specification and upgrade options..."
                       title="High tier specification"
-                      className="mt-2 w-full resize-y rounded-edge border border-ember-200 bg-ember-50/40 px-3.5 py-2.5 text-[12px] leading-relaxed text-chalk-50 outline-none transition-all duration-200 ease-architect placeholder:text-steel-500 focus:border-ember-500 focus:bg-carbon-900 focus:ring-[3px] focus:ring-ember-500/10"
+                      className="mt-2 w-full resize-y rounded-edge border border-bronze-200 bg-bronze-50/40 px-3.5 py-2.5 text-[12px] leading-relaxed text-ink-900 outline-none transition-all duration-200 ease-architect placeholder:text-ink-400 focus:border-bronze-500 focus:bg-paper-50 focus:ring-[3px] focus:ring-bronze-500/10"
                       rows={2}
                     />
                   </div>
@@ -1872,7 +1872,7 @@ export default function ProjectWorkspaceControlHub() {
         {/* DUAL LAYER INTEGRATED ENTRY ROW INJECTOR COMPONENT FORM */}
         <form onSubmit={insertNewLineRow} className="panel-sunken mt-7 p-5 sm:p-7">
           <p className="eyebrow-ink">Add Contract Line Item</p>
-          <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-steel-400">
+          <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-ink-500">
             Append a further line with both tier options into the contract ledger.
           </p>
 
@@ -1926,8 +1926,8 @@ export default function ProjectWorkspaceControlHub() {
             </div>
             <div>
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <label htmlFor="new-item-high-desc" className="field-label text-ember-600">High Tier Description</label>
-                <span className="mb-1.5 font-sans text-[9.5px] uppercase tracking-architect text-steel-500">Blank auto-prices at +35%</span>
+                <label htmlFor="new-item-high-desc" className="field-label text-bronze-600">High Tier Description</label>
+                <span className="mb-1.5 font-sans text-[13px] tracking-architect text-ink-400">Blank auto-prices at +35%</span>
               </div>
               <div className="flex gap-2">
                 <input
@@ -1967,7 +1967,7 @@ export default function ProjectWorkspaceControlHub() {
         <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
           <div className="title-block">
             <div className="flex items-baseline gap-3">
-              <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">06</span>
+              <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">06</span>
               <h2 className="display-sm">Selections</h2>
             </div>
             <button
@@ -1983,30 +1983,30 @@ export default function ProjectWorkspaceControlHub() {
                   toast(newVal ? "Selections tab is now visible to homeowner" : "Selections tab hidden from homeowner", "success");
                 }
               }}
-              className={`flex shrink-0 items-center gap-2.5 rounded-edge border px-2.5 py-1.5 font-sans text-[10px] font-medium uppercase tracking-architect transition-colors duration-300 ease-architect ${
+              className={`flex shrink-0 items-center gap-2.5 rounded-edge border px-2.5 py-1.5 font-sans text-[13px] tracking-architect transition-colors duration-300 ease-architect ${
                 project.selections_visible
-                  ? 'border-signal-200 bg-signal-50 text-signal-700 hover:border-signal-500'
-                  : 'border-carbon-700 bg-carbon-900 text-steel-400 hover:border-carbon-600/70 hover:text-chalk-50'
+                  ? 'border-forest-200 bg-forest-50 text-forest-700 hover:border-forest-500'
+                  : 'border-rule-300 bg-paper-50 text-ink-500 hover:border-rule-400/70 hover:text-ink-900'
               }`}
             >
-              <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project.selections_visible ? 'bg-signal-500 justify-end' : 'bg-carbon-800 justify-start'}`}>
-                <span className="h-3 w-3 rounded-full bg-carbon-900" />
+              <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project.selections_visible ? 'bg-forest-500 justify-end' : 'bg-paper-200 justify-start'}`}>
+                <span className="h-3 w-3 rounded-full bg-paper-50" />
               </span>
               <span className="hidden sm:inline">{project.selections_visible ? 'Visible to Client' : 'Hidden from Client'}</span>
             </button>
           </div>
 
-          <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+          <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
             Build selection categories — tile, hardware, countertops — each with the options the homeowner chooses from in their Selections tab.
           </p>
 
           {/* Existing Categories */}
           {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
-            <div className="mt-5 border-t border-carbon-700/70">
+            <div className="mt-5 border-t border-rule-300/70">
               {project.homeowner_options.map((group: any, gIdx: number) => {
                 const chosen = project?.homeowner_selections?.[group.category];
                 return (
-                  <div key={gIdx} className="border-b border-carbon-700/55">
+                  <div key={gIdx} className="border-b border-rule-300/55">
                     {/* Category Header */}
                     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-3">
                       {editingCategoryIdx === gIdx ? (
@@ -2050,16 +2050,16 @@ export default function ProjectWorkspaceControlHub() {
                         </div>
                       ) : (
                         <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                          <span className="truncate font-sans text-[10.5px] font-medium uppercase tracking-architect text-chalk-50">{group.category}</span>
+                          <span className="truncate font-sans text-[13px] tracking-architect text-ink-900">{group.category}</span>
                           {chosen && (
                             <span className="badge badge-approved shrink-0">
-                              <span className="badge-dot bg-signal-500" />
+                              <span className="badge-dot bg-forest-500" />
                               {chosen}
                             </span>
                           )}
                           {!chosen && (
                             <span className="badge badge-pending shrink-0">
-                              <span className="badge-dot bg-ember-400" />
+                              <span className="badge-dot bg-bronze-400" />
                               Awaiting Selection
                             </span>
                           )}
@@ -2070,7 +2070,7 @@ export default function ProjectWorkspaceControlHub() {
                           <button
                             type="button"
                             onClick={() => { setEditingCategoryIdx(gIdx); setEditingCategoryName(group.category); }}
-                            className="btn-quiet font-sans text-[10px] uppercase tracking-architect"
+                            className="btn-quiet font-sans text-[13px] tracking-architect"
                           >
                             Rename
                           </button>
@@ -2083,7 +2083,7 @@ export default function ProjectWorkspaceControlHub() {
                               delete clearedSelections[group.category];
                               saveSelectionOptions(updated, clearedSelections);
                             }}
-                            className="btn-quiet font-sans text-[10px] uppercase tracking-architect hover:bg-crimson-50 hover:text-crimson-600"
+                            className="btn-quiet font-sans text-[13px] tracking-architect hover:bg-brick-50 hover:text-brick-600"
                           >
                             Delete
                           </button>
@@ -2104,8 +2104,8 @@ export default function ProjectWorkspaceControlHub() {
                               key={cIdx}
                               className={`group/choice relative overflow-hidden rounded-edge border transition-all duration-300 ease-architect ${
                                 isChosen
-                                  ? 'border-chalk-50 bg-chalk-50 text-carbon-950'
-                                  : 'border-carbon-700 bg-carbon-900 text-steel-300 hover:border-carbon-600'
+                                  ? 'border-rule-300 bg-paper-50 text-ink-900'
+                                  : 'border-rule-300 bg-paper-50 text-ink-500 hover:border-rule-400'
                               } ${imageUrl ? 'sm:w-[148px]' : ''}`}
                             >
                               {imageUrl && (
@@ -2115,7 +2115,7 @@ export default function ProjectWorkspaceControlHub() {
                               )}
                               <div className="flex items-center gap-1.5 px-3 py-2">
                                 {isChosen && (
-                                  <svg aria-hidden className="h-3 w-3 shrink-0 text-ember-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <svg aria-hidden className="h-3 w-3 shrink-0 text-bronze-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                   </svg>
                                 )}
@@ -2139,7 +2139,7 @@ export default function ProjectWorkspaceControlHub() {
                                   }}
                                   title={`Remove ${choiceLabel}`}
                                   className={`ml-auto shrink-0 transition-opacity duration-200 ease-architect focus-visible:opacity-100 sm:opacity-0 sm:group-hover/choice:opacity-100 ${
-                                    isChosen ? 'text-carbon-900/50 hover:text-carbon-950' : 'text-steel-500 hover:text-crimson-600'
+                                    isChosen ? 'text-ink-900/50 hover:text-ink-900' : 'text-ink-400 hover:text-brick-600'
                                   }`}
                                 >
                                   <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -2148,7 +2148,7 @@ export default function ProjectWorkspaceControlHub() {
                                 </button>
                               </div>
                               {productUrl && (
-                                <a href={productUrl} target="_blank" rel="noopener noreferrer" className={`block px-3 pb-2 font-sans text-[9.5px] uppercase tracking-architect underline-offset-2 hover:underline ${isChosen ? 'text-ember-300' : 'text-ember-600'}`}>
+                                <a href={productUrl} target="_blank" rel="noopener noreferrer" className={`block px-3 pb-2 font-sans text-[13px] tracking-architect underline-offset-2 hover:underline ${isChosen ? 'text-bronze-300' : 'text-bronze-600'}`}>
                                   Product link
                                 </a>
                               )}
@@ -2159,13 +2159,13 @@ export default function ProjectWorkspaceControlHub() {
 
                       {/* Add Choice Input */}
                       {addingChoiceIdx === gIdx ? (
-                        <div className="mt-3 space-y-2 border-t border-carbon-700/55 pt-3">
+                        <div className="mt-3 space-y-2 border-t border-rule-300/55 pt-3">
                           {newChoiceImageUrl && (
                             <div className="flex items-start gap-3">
-                              <img src={newChoiceImageUrl} alt="Sample preview" className="h-20 w-20 rounded-edge border border-carbon-700/70 object-cover" />
+                              <img src={newChoiceImageUrl} alt="Sample preview" className="h-20 w-20 rounded-edge border border-rule-300/70 object-cover" />
                               <div className="min-w-0 flex-1">
-                                <p className="eyebrow text-signal-600">Photo attached</p>
-                                <p className="mt-1 truncate font-sans text-[10px] text-steel-400">{newChoiceImageUrl.split('/').pop()}</p>
+                                <p className="eyebrow text-forest-600">Photo attached</p>
+                                <p className="mt-1 truncate font-sans text-[10px] text-ink-500">{newChoiceImageUrl.split('/').pop()}</p>
                               </div>
                             </div>
                           )}
@@ -2233,48 +2233,48 @@ export default function ProjectWorkspaceControlHub() {
                             <button
                               type="button"
                               onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
-                              className="inline-flex items-center gap-1.5 font-sans text-[10px] font-medium uppercase tracking-architect text-steel-400 transition-colors duration-200 ease-architect hover:text-chalk-50"
+                              className="inline-flex items-center gap-1.5 font-sans text-[13px] tracking-architect text-ink-500 transition-colors duration-200 ease-architect hover:text-ink-900"
                             >
                               <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                               Add Option
                             </button>
-                            <span aria-hidden className="h-3 w-px bg-carbon-800" />
+                            <span aria-hidden className="h-3 w-px bg-paper-200" />
                             <button
                               type="button"
                               disabled={scanningIdx === gIdx}
                               onClick={() => startScan(gIdx)}
-                              className="inline-flex items-center gap-1.5 font-sans text-[10px] font-medium uppercase tracking-architect text-ember-600 transition-colors duration-200 ease-architect hover:text-ember-500 disabled:opacity-40"
+                              className="inline-flex items-center gap-1.5 font-sans text-[13px] tracking-architect text-bronze-600 transition-colors duration-200 ease-architect hover:text-bronze-500 disabled:opacity-40"
                             >
                               <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                               {scanningIdx === gIdx ? "Analyzing..." : "Upload / Scan"}
                             </button>
-                            <span aria-hidden className="h-3 w-px bg-carbon-800" />
+                            <span aria-hidden className="h-3 w-px bg-paper-200" />
                             <button
                               type="button"
                               onClick={() => { setLibrarySearchIdx(librarySearchIdx === gIdx ? null : gIdx); setLibraryQuery(""); setLibraryResults([]); }}
-                              className={`inline-flex items-center gap-1.5 font-sans text-[10px] font-medium uppercase tracking-architect transition-colors duration-200 ease-architect ${librarySearchIdx === gIdx ? 'text-chalk-50' : 'text-steel-400 hover:text-chalk-50'}`}
+                              className={`inline-flex items-center gap-1.5 font-sans text-[13px] tracking-architect transition-colors duration-200 ease-architect ${librarySearchIdx === gIdx ? 'text-ink-900' : 'text-ink-500 hover:text-ink-900'}`}
                             >
                               <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                               Reuse From Library
                             </button>
                           </div>
-                          <p className="mt-2 text-[11.5px] leading-relaxed text-steel-400">Upload a photo of a sample — add the back/label photo too so the scan can read the product name.</p>
+                          <p className="mt-2 text-[11.5px] leading-relaxed text-ink-500">Upload a photo of a sample — add the back/label photo too so the scan can read the product name.</p>
                         </div>
                       )}
 
                       {/* Scan step: staged photos before submitting to AI */}
                       {scanStep?.gIdx === gIdx && scanStep.files.length > 0 && (
-                        <div className="mt-3 border-l-2 border-ember-400 bg-ember-50/50 px-5 py-5">
-                          <p className="eyebrow text-ember-600">Photos staged for scan</p>
+                        <div className="mt-3 border-l-2 border-bronze-400 bg-bronze-50/50 px-5 py-5">
+                          <p className="eyebrow text-bronze-600">Photos staged for scan</p>
                           <div className="mt-2.5 flex flex-wrap gap-2">
                             {scanStep.files.map((f, fIdx) => (
                               <div key={fIdx} className="relative">
                                 <img
                                   src={URL.createObjectURL(f)}
                                   alt={`Photo ${fIdx + 1}`}
-                                  className="h-16 w-16 rounded-edge border border-ember-200 object-cover"
+                                  className="h-16 w-16 rounded-edge border border-bronze-200 object-cover"
                                 />
-                                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-chalk-50 font-sans text-[8px] tabular-nums text-carbon-950">
+                                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-paper-50 font-sans text-[8px] tabular-nums text-ink-900">
                                   {fIdx + 1}
                                 </span>
                               </div>
@@ -2283,13 +2283,13 @@ export default function ProjectWorkspaceControlHub() {
                               type="button"
                               onClick={addSecondPhoto}
                               title="Add another photo"
-                              className="flex h-16 w-16 flex-col items-center justify-center gap-1 rounded-edge border border-dashed border-ember-300 text-ember-500 transition-colors duration-200 ease-architect hover:border-ember-500 hover:text-ember-600"
+                              className="flex h-16 w-16 flex-col items-center justify-center gap-1 rounded-edge border border-dashed border-bronze-300 text-bronze-500 transition-colors duration-200 ease-architect hover:border-bronze-500 hover:text-bronze-600"
                             >
                               <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                              <span className="font-sans text-[7.5px] uppercase tracking-architect">Add</span>
+                              <span className="font-sans text-[7.5px] tracking-architect">Add</span>
                             </button>
                           </div>
-                          <p className="mt-2.5 text-[11.5px] leading-relaxed text-steel-400">
+                          <p className="mt-2.5 text-[11.5px] leading-relaxed text-ink-500">
                             {scanStep.files.length === 1 ? "Have a back/label photo? Tap + to add it so the scan can read the product name." : `${scanStep.files.length} photos ready — labels are read from all of them.`}
                           </p>
                           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -2313,7 +2313,7 @@ export default function ProjectWorkspaceControlHub() {
 
                       {/* Library Search Panel */}
                       {librarySearchIdx === gIdx && (
-                        <div className="mt-3 border-l-2 border-carbon-700 bg-carbon-900/70 px-5 py-5">
+                        <div className="mt-3 border-l-2 border-rule-300 bg-paper-50/70 px-5 py-5">
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
@@ -2328,16 +2328,16 @@ export default function ProjectWorkspaceControlHub() {
                               type="button"
                               onClick={() => { setLibrarySearchIdx(null); setLibraryQuery(""); setLibraryResults([]); }}
                               title="Close library search"
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-edge text-steel-400 transition-colors duration-200 ease-architect hover:bg-carbon-850 hover:text-chalk-50"
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-edge text-ink-500 transition-colors duration-200 ease-architect hover:bg-paper-200 hover:text-ink-900"
                             >
                               <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </button>
                           </div>
-                          {libraryLoading && <p className="mt-2.5 font-sans text-[10px] uppercase tracking-architect text-steel-400">Searching...</p>}
+                          {libraryLoading && <p className="mt-2.5 font-sans text-[13px] tracking-architect text-ink-500">Searching...</p>}
                           {!libraryLoading && libraryQuery && libraryResults.length === 0 && (
-                            <p className="mt-2.5 font-sans text-[10px] uppercase tracking-architect text-steel-400">No matches in past projects</p>
+                            <p className="mt-2.5 font-sans text-[13px] tracking-architect text-ink-500">No matches in past projects</p>
                           )}
                           {libraryResults.length > 0 && (
                             <div className="mt-2.5 max-h-52 overflow-y-auto scrollbar-none">
@@ -2346,14 +2346,14 @@ export default function ProjectWorkspaceControlHub() {
                                   key={rIdx}
                                   type="button"
                                   onClick={() => addFromLibrary(gIdx, item)}
-                                  className="flex w-full items-center gap-3 border-b border-carbon-700/55 bg-carbon-900 px-3 py-2.5 text-left transition-colors duration-200 ease-architect last:border-b-0 hover:bg-carbon-950"
+                                  className="flex w-full items-center gap-3 border-b border-rule-300/55 bg-paper-50 px-3 py-2.5 text-left transition-colors duration-200 ease-architect last:border-b-0 hover:bg-paper-100"
                                 >
                                   {item.image_url && (
-                                    <img src={item.image_url} alt={item.label} className="h-10 w-10 shrink-0 rounded-edge border border-carbon-700/70 object-cover" />
+                                    <img src={item.image_url} alt={item.label} className="h-10 w-10 shrink-0 rounded-edge border border-rule-300/70 object-cover" />
                                   )}
                                   <div className="min-w-0 flex-1">
-                                    <p className="truncate text-[12.5px] font-medium text-chalk-50">{item.label}</p>
-                                    <p className="mt-0.5 truncate font-sans text-[9.5px] uppercase tracking-architect text-steel-400">
+                                    <p className="truncate text-[12.5px] font-medium text-ink-900">{item.label}</p>
+                                    <p className="mt-0.5 truncate font-sans text-[13px] tracking-architect text-ink-500">
                                       {item.source_category} &middot; {item.source_project}
                                     </p>
                                   </div>
@@ -2373,16 +2373,16 @@ export default function ProjectWorkspaceControlHub() {
 
           {/* Empty State */}
           {(!project?.homeowner_options || project.homeowner_options.length === 0) && (
-            <div className="blueprint-grid mt-5 border border-carbon-700/70 px-6 py-14 text-center">
+            <div className="blueprint-grid mt-5 border border-rule-300/70 px-6 py-14 text-center">
               <p className="display-sm">No selection categories yet</p>
-              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-steel-400">
+              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-ink-500">
                 Add categories below for your client to choose finishes, materials and hardware.
               </p>
             </div>
           )}
 
           {/* Add New Category */}
-          <div className="mt-6 border-t border-carbon-700/70 pt-5">
+          <div className="mt-6 border-t border-rule-300/70 pt-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <div className="min-w-0 flex-1">
                 <label htmlFor="new-selection-category" className="field-label">New Selection Category</label>
@@ -2429,24 +2429,24 @@ export default function ProjectWorkspaceControlHub() {
           {/* Summary row + Send Reminder */}
           {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
             <div className="mt-5">
-              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-panel bg-carbon-800/60 shadow-riser ring-1 ring-carbon-700/50 sm:grid-cols-4">
-                <div className="bg-carbon-900 px-5 py-4">
+              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-panel bg-paper-200/60 shadow-riser ring-1 ring-rule-300/50 sm:grid-cols-4">
+                <div className="bg-paper-50 px-5 py-4">
                   <p className="eyebrow">Categories</p>
                   <p className="figure mt-1 text-[15px]">{project.homeowner_options.length}</p>
                 </div>
-                <div className="bg-carbon-900 px-5 py-4">
+                <div className="bg-paper-50 px-5 py-4">
                   <p className="eyebrow">Options</p>
                   <p className="figure mt-1 text-[15px]">{project.homeowner_options.reduce((s: number, g: any) => s + (g.choices?.length || 0), 0)}</p>
                 </div>
-                <div className="bg-carbon-900 px-5 py-4">
+                <div className="bg-paper-50 px-5 py-4">
                   <p className="eyebrow">Selected</p>
-                  <p className="figure mt-1 text-[15px] text-signal-600">
+                  <p className="figure mt-1 text-[15px] text-forest-600">
                     {Object.keys(project?.homeowner_selections || {}).length}
                   </p>
                 </div>
-                <div className="bg-carbon-900 px-5 py-4">
+                <div className="bg-paper-50 px-5 py-4">
                   <p className="eyebrow">Pending</p>
-                  <p className="figure mt-1 text-[15px] text-ember-500">
+                  <p className="figure mt-1 text-[15px] text-bronze-500">
                     {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length}
                   </p>
                 </div>
@@ -2476,7 +2476,7 @@ export default function ProjectWorkspaceControlHub() {
                       setIsSendingSelectionReminder(false);
                     }
                   }}
-                  className="btn-outline mt-3 w-full border-ember-200 text-ember-600 hover:border-ember-400 hover:bg-ember-50"
+                  className="btn-outline mt-3 w-full border-bronze-200 text-bronze-600 hover:border-bronze-400 hover:bg-bronze-50"
                 >
                   <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                   {isSendingSelectionReminder ? "Sending..." : "Send Selection Reminder"}
@@ -2491,13 +2491,13 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">07</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">07</span>
             <h2 className="display-sm">Field Log</h2>
           </div>
           <span className="eyebrow hidden sm:block">Site Record</span>
         </div>
 
-        <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
           Record site progress and capture photographs straight from the device camera into the client portal.
         </p>
 
@@ -2514,7 +2514,7 @@ export default function ProjectWorkspaceControlHub() {
               />
 
               {/* IMAGE DROPZONE FIELD INPUT SYSTEM */}
-              <label className="mt-2.5 flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-edge border border-dashed border-carbon-700 px-3 py-2.5 text-center font-sans text-[10px] uppercase tracking-architect text-steel-400 transition-colors duration-200 ease-architect hover:border-carbon-600 hover:text-chalk-50">
+              <label className="mt-2.5 flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-edge border border-dashed border-rule-300 px-3 py-2.5 text-center font-sans text-[13px] tracking-architect text-ink-500 transition-colors duration-200 ease-architect hover:border-rule-400 hover:text-ink-900">
                 <svg aria-hidden className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" /></svg>
                 <span className="truncate">{attachedPhotoName ? `${attachedPhotoName.slice(0, 20)}...` : "Capture Site Photo"}</span>
                 <input type="file" accept="image/*" capture="environment" onChange={handleDailyLogPhotoLoad} className="hidden" />
@@ -2529,17 +2529,17 @@ export default function ProjectWorkspaceControlHub() {
             </button>
           </div>
 
-          <div className="max-h-[320px] overflow-y-auto border-t border-carbon-700/70 pr-1 scrollbar-none">
+          <div className="max-h-[320px] overflow-y-auto border-t border-rule-300/70 pr-1 scrollbar-none">
             {Array.isArray(project?.daily_logs) && project.daily_logs.map((log: any, i: number) => (
-              <div key={i} className="border-b border-carbon-700/55 py-4">
+              <div key={i} className="border-b border-rule-300/55 py-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <span className="font-sans text-[10px] font-medium uppercase tracking-architect text-steel-300">{log.author || "Site Superintendent"}</span>
-                  <span className="font-sans text-[10px] tabular-nums text-steel-400">{new Date(log.timestamp).toLocaleString()}</span>
+                  <span className="font-sans text-[13px] tracking-architect text-ink-500">{log.author || "Site Superintendent"}</span>
+                  <span className="font-sans text-[10px] tabular-nums text-ink-500">{new Date(log.timestamp).toLocaleString()}</span>
                 </div>
                 <div className="mt-2 space-y-3">
-                  {log.notes && <p className="text-[12.5px] leading-relaxed text-steel-300">{log.notes}</p>}
+                  {log.notes && <p className="text-[12.5px] leading-relaxed text-ink-500">{log.notes}</p>}
                   {log.photo && (
-                    <div className="max-w-xs overflow-hidden rounded-edge border border-carbon-700/70 bg-carbon-900">
+                    <div className="max-w-xs overflow-hidden rounded-edge border border-rule-300/70 bg-paper-50">
                       <img src={log.photo} alt="Site progress attachment" className="h-auto max-h-44 w-full object-cover" />
                     </div>
                   )}
@@ -2549,7 +2549,7 @@ export default function ProjectWorkspaceControlHub() {
             {(!project?.daily_logs || project.daily_logs.length === 0) && (
               <div className="blueprint-grid px-6 py-14 text-center">
                 <p className="display-sm">No field records yet</p>
-                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-steel-400">
+                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-ink-500">
                   Entries you save here appear on the homeowner portal timeline.
                 </p>
               </div>
@@ -2562,13 +2562,13 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">08</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">08</span>
             <h2 className="display-sm">Contractor Notes</h2>
           </div>
           <span className="eyebrow hidden sm:block">Internal</span>
         </div>
 
-        <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
           Private notes for your own reference. Toggle a note visible to share it with the homeowner.
         </p>
 
@@ -2611,14 +2611,14 @@ export default function ProjectWorkspaceControlHub() {
           </button>
         </div>
 
-        <div className="mt-5 max-h-[340px] overflow-y-auto border-t border-carbon-700/70 scrollbar-none">
+        <div className="mt-5 max-h-[340px] overflow-y-auto border-t border-rule-300/70 scrollbar-none">
           {Array.isArray(project?.contractor_notes) && project.contractor_notes.map((note: any, i: number) => (
-            <div key={i} className="group relative border-b border-carbon-700/55 py-3.5 transition-colors duration-300 ease-architect hover:bg-carbon-900">
-              <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-ember-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+            <div key={i} className="group relative border-b border-rule-300/55 py-3.5 transition-colors duration-300 ease-architect hover:bg-paper-50">
+              <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
               <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:gap-4 sm:pl-3">
                 <div className="min-w-0 flex-1">
-                  <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-steel-300">{note.text}</p>
-                  <p className="mt-1.5 font-sans text-[10px] tabular-nums text-steel-400">
+                  <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-ink-500">{note.text}</p>
+                  <p className="mt-1.5 font-sans text-[10px] tabular-nums text-ink-500">
                     {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   </p>
                 </div>
@@ -2634,8 +2634,8 @@ export default function ProjectWorkspaceControlHub() {
                     }}
                     className={`badge transition-colors duration-200 ease-architect ${
                       note.visible
-                        ? "badge-approved hover:bg-signal-100"
-                        : "badge-neutral hover:bg-carbon-850"
+                        ? "badge-approved hover:bg-forest-100"
+                        : "badge-neutral hover:bg-paper-200"
                     }`}
                   >
                     <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -2656,7 +2656,7 @@ export default function ProjectWorkspaceControlHub() {
                       setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
                     }}
                     title="Delete note"
-                    className="flex h-7 w-7 items-center justify-center rounded-edge text-steel-500 transition-all duration-200 ease-architect hover:bg-crimson-50 hover:text-crimson-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="flex h-7 w-7 items-center justify-center rounded-edge text-ink-400 transition-all duration-200 ease-architect hover:bg-brick-50 hover:text-brick-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   >
                     <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -2669,7 +2669,7 @@ export default function ProjectWorkspaceControlHub() {
           {(!project?.contractor_notes || project.contractor_notes.length === 0) && (
             <div className="blueprint-grid px-6 py-12 text-center">
               <p className="display-sm">No notes yet</p>
-              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-steel-400">
+              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-ink-500">
                 Keep internal observations about this project here.
               </p>
             </div>
@@ -2681,13 +2681,13 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">09</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">09</span>
             <h2 className="display-sm">Messages</h2>
           </div>
           <span className="eyebrow hidden sm:block">Client Thread</span>
         </div>
 
-        <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
           Messages sent here appear on the homeowner portal — use the thread to answer questions and move toward approval.
         </p>
 
@@ -2697,8 +2697,8 @@ export default function ProjectWorkspaceControlHub() {
               <div key={i} className={`flex ${msg.author === "contractor" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[88%] rounded-edge text-[12.5px] leading-relaxed sm:max-w-[75%] ${
                   msg.author === "contractor"
-                    ? "bg-chalk-50 text-carbon-900"
-                    : "border border-carbon-700/70 bg-carbon-900 text-steel-300"
+                    ? "bg-paper-50 text-ink-900"
+                    : "border border-rule-300/70 bg-paper-50 text-ink-500"
                 }`}>
                   {editingQaIndex === i ? (
                     <div className="space-y-2 px-3.5 py-2.5">
@@ -2707,14 +2707,14 @@ export default function ProjectWorkspaceControlHub() {
                         id={`qa-edit-${i}`}
                         value={editingQaText}
                         onChange={(e) => setEditingQaText(e.target.value)}
-                        className="min-h-[52px] w-full rounded-edge border border-carbon-950/15 bg-chalk-100 p-2.5 text-[12.5px] leading-relaxed text-carbon-900 outline-none transition-colors duration-200 ease-architect focus:border-carbon-950/40"
+                        className="min-h-[52px] w-full rounded-edge border border-rule-300/15 bg-paper-100 p-2.5 text-[12.5px] leading-relaxed text-ink-900 outline-none transition-colors duration-200 ease-architect focus:border-rule-300/40"
                         rows={2}
                       />
                       <div className="flex justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => setEditingQaIndex(null)}
-                          className="rounded-edge px-2 py-1 font-sans text-[10px] uppercase tracking-architect text-carbon-900/50 transition-colors duration-200 ease-architect hover:text-carbon-950"
+                          className="rounded-edge px-2 py-1 font-sans text-[13px] tracking-architect text-ink-900/50 transition-colors duration-200 ease-architect hover:text-ink-900"
                         >
                           Cancel
                         </button>
@@ -2733,7 +2733,7 @@ export default function ProjectWorkspaceControlHub() {
                               toast("Failed to update message: " + err.message, "error");
                             }
                           }}
-                          className="rounded-edge border border-carbon-950/20 px-2.5 py-1 font-sans text-[10px] uppercase tracking-architect text-ember-300 transition-colors duration-200 ease-architect hover:border-carbon-950/45 hover:text-ember-200"
+                          className="rounded-edge border border-rule-300/20 px-2.5 py-1 font-sans text-[13px] tracking-architect text-bronze-300 transition-colors duration-200 ease-architect hover:border-rule-300/45 hover:text-bronze-200"
                         >
                           Save
                         </button>
@@ -2743,12 +2743,12 @@ export default function ProjectWorkspaceControlHub() {
                     <div className="px-3.5 py-2.5">
                       {msg.image_url && (
                         <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="mb-2 block">
-                          <img src={msg.image_url} alt="Attachment" className="max-h-48 max-w-full rounded-edge border border-carbon-950/10" />
+                          <img src={msg.image_url} alt="Attachment" className="max-h-48 max-w-full rounded-edge border border-rule-300/10" />
                         </a>
                       )}
-                      {msg.text && <p>{msg.text}{msg.edited && <span className="ml-1.5 font-sans text-[9px] uppercase tracking-architect opacity-50">edited</span>}</p>}
+                      {msg.text && <p>{msg.text}{msg.edited && <span className="ml-1.5 font-sans text-[13px] tracking-architect opacity-50">edited</span>}</p>}
                       <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                        <p className={`font-sans text-[9.5px] uppercase tracking-architect ${msg.author === "contractor" ? "text-carbon-900/45" : "text-steel-400"}`}>
+                        <p className={`font-sans text-[13px] tracking-architect ${msg.author === "contractor" ? "text-ink-900/45" : "text-ink-500"}`}>
                           {msg.author === "contractor" ? "You" : project?.homeowner_name || "Homeowner"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </p>
                         {msg.author === "contractor" && (
@@ -2756,7 +2756,7 @@ export default function ProjectWorkspaceControlHub() {
                             <button
                               type="button"
                               onClick={() => { setEditingQaIndex(i); setEditingQaText(msg.text); }}
-                              className="font-sans text-[9.5px] uppercase tracking-architect text-carbon-900/45 transition-colors duration-200 ease-architect hover:text-carbon-950"
+                              className="font-sans text-[13px] tracking-architect text-ink-900/45 transition-colors duration-200 ease-architect hover:text-ink-900"
                             >
                               Edit
                             </button>
@@ -2774,7 +2774,7 @@ export default function ProjectWorkspaceControlHub() {
                                   toast("Failed to delete message: " + err.message, "error");
                                 }
                               }}
-                              className="font-sans text-[9.5px] uppercase tracking-architect text-crimson-200/70 transition-colors duration-200 ease-architect hover:text-crimson-100"
+                              className="font-sans text-[13px] tracking-architect text-brick-200/70 transition-colors duration-200 ease-architect hover:text-brick-100"
                             >
                               Delete
                             </button>
@@ -2789,7 +2789,7 @@ export default function ProjectWorkspaceControlHub() {
           ) : (
             <div className="blueprint-grid px-6 py-12 text-center">
               <p className="display-sm">No messages yet</p>
-              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-steel-400">
+              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-ink-500">
                 Open the conversation to guide your client toward approval.
               </p>
             </div>
@@ -2797,14 +2797,14 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         {qaAttachment && (
-          <div className="mt-3 flex items-center gap-3 rounded-edge border border-carbon-700/70 bg-carbon-900 px-3 py-2">
-            <img src={qaAttachment.preview} alt="Attached" className="h-12 w-12 rounded-edge border border-carbon-700/70 object-cover" />
-            <span className="min-w-0 flex-1 truncate font-sans text-[10.5px] text-steel-300">{qaAttachment.file.name}</span>
+          <div className="mt-3 flex items-center gap-3 rounded-edge border border-rule-300/70 bg-paper-50 px-3 py-2">
+            <img src={qaAttachment.preview} alt="Attached" className="h-12 w-12 rounded-edge border border-rule-300/70 object-cover" />
+            <span className="min-w-0 flex-1 truncate font-sans text-[10.5px] text-ink-500">{qaAttachment.file.name}</span>
             <button
               type="button"
               onClick={() => { URL.revokeObjectURL(qaAttachment.preview); setQaAttachment(null); }}
               title="Remove attachment"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-steel-500 transition-colors duration-200 ease-architect hover:bg-crimson-50 hover:text-crimson-600"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-ink-400 transition-colors duration-200 ease-architect hover:bg-brick-50 hover:text-brick-600"
             >
               <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -2880,7 +2880,7 @@ export default function ProjectWorkspaceControlHub() {
               };
               input.click();
             }}
-            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-edge border border-carbon-700/70 bg-carbon-900 text-steel-400 transition-colors duration-200 ease-architect hover:border-carbon-600 hover:bg-carbon-950 hover:text-chalk-50"
+            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-edge border border-rule-300/70 bg-paper-50 text-ink-500 transition-colors duration-200 ease-architect hover:border-rule-400 hover:bg-paper-100 hover:text-ink-900"
             title="Attach photo"
           >
             <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -2908,19 +2908,19 @@ export default function ProjectWorkspaceControlHub() {
       <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
         <div className="title-block">
           <div className="flex items-baseline gap-3">
-            <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">10</span>
+            <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">10</span>
             <h2 className="display-sm">Documents</h2>
           </div>
           <span className="eyebrow hidden sm:block">Drawing Set</span>
         </div>
 
-        <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
           Contracts, permits and plans uploaded here appear in the homeowner&apos;s Docs tab.
         </p>
 
-        <label className={`mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-edge border border-dashed border-carbon-700 py-5 transition-colors duration-200 ease-architect hover:border-carbon-600 ${isUploadingDoc ? 'pointer-events-none opacity-50' : ''}`}>
-          <svg aria-hidden className="h-4 w-4 text-steel-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /></svg>
-          <span className="font-sans text-[10px] uppercase tracking-architect text-steel-400">{isUploadingDoc ? "Uploading..." : "Upload Document"}</span>
+        <label className={`mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-edge border border-dashed border-rule-300 py-5 transition-colors duration-200 ease-architect hover:border-rule-400 ${isUploadingDoc ? 'pointer-events-none opacity-50' : ''}`}>
+          <svg aria-hidden className="h-4 w-4 text-ink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /></svg>
+          <span className="font-sans text-[13px] tracking-architect text-ink-500">{isUploadingDoc ? "Uploading..." : "Upload Document"}</span>
           <input
             type="file"
             accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.heic"
@@ -2961,15 +2961,15 @@ export default function ProjectWorkspaceControlHub() {
         </label>
 
         {Array.isArray(project?.documents) && project.documents.length > 0 ? (
-          <div className="mt-5 border-t border-carbon-700/70">
+          <div className="mt-5 border-t border-rule-300/70">
             {project.documents.map((doc: any, i: number) => (
-              <div key={i} className="group relative flex items-center justify-between gap-3 border-b border-carbon-700/55 py-3 transition-colors duration-300 ease-architect hover:bg-carbon-900">
-                <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-ember-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+              <div key={i} className="group relative flex items-center justify-between gap-3 border-b border-rule-300/55 py-3 transition-colors duration-300 ease-architect hover:bg-paper-50">
+                <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
                 <div className="flex min-w-0 items-center gap-3 sm:pl-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-edge border border-carbon-700 bg-carbon-900 font-sans text-[9px] uppercase tracking-architect text-steel-400">{doc.name?.split('.').pop()?.slice(0, 4)}</span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-edge border border-rule-300 bg-paper-50 font-sans text-[13px] tracking-architect text-ink-500">{doc.name?.split('.').pop()?.slice(0, 4)}</span>
                   <div className="min-w-0">
-                    <p className="truncate text-[12.5px] font-medium text-chalk-50">{doc.name}</p>
-                    <p className="mt-0.5 font-sans text-[9.5px] uppercase tracking-architect text-steel-400">
+                    <p className="truncate text-[12.5px] font-medium text-ink-900">{doc.name}</p>
+                    <p className="mt-0.5 font-sans text-[13px] tracking-architect text-ink-500">
                       {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
                     </p>
@@ -2980,7 +2980,7 @@ export default function ProjectWorkspaceControlHub() {
                     href={doc.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-outline px-3 py-1.5 font-sans text-[10px] uppercase tracking-architect"
+                    className="btn-outline px-3 py-1.5 font-sans text-[13px] tracking-architect"
                   >
                     View
                   </a>
@@ -2994,7 +2994,7 @@ export default function ProjectWorkspaceControlHub() {
                       if (error) toast("Failed to remove: " + error.message, "error");
                     }}
                     title={`Remove ${doc.name}`}
-                    className="flex h-7 w-7 items-center justify-center rounded-edge text-steel-500 transition-all duration-200 ease-architect hover:bg-crimson-50 hover:text-crimson-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                    className="flex h-7 w-7 items-center justify-center rounded-edge text-ink-400 transition-all duration-200 ease-architect hover:bg-brick-50 hover:text-brick-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                   >
                     <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -3005,9 +3005,9 @@ export default function ProjectWorkspaceControlHub() {
             ))}
           </div>
         ) : (
-          <div className="blueprint-grid mt-5 border border-carbon-700/70 px-6 py-12 text-center">
+          <div className="blueprint-grid mt-5 border border-rule-300/70 px-6 py-12 text-center">
             <p className="display-sm">No documents yet</p>
-            <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-steel-400">
+            <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-ink-500">
               Upload contracts, permits and plan sets for the client record.
             </p>
           </div>
@@ -3019,31 +3019,31 @@ export default function ProjectWorkspaceControlHub() {
         <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-8">
           <div className="title-block">
             <div className="flex items-baseline gap-3">
-              <span className="font-sans text-[10px] font-medium tracking-architect text-ember-500">11</span>
+              <span className="font-sans text-[10px] font-medium tracking-architect text-bronze-500">11</span>
               <h2 className="display-sm">Change Orders</h2>
             </div>
             <span className="eyebrow hidden sm:block">Post-Contract</span>
           </div>
 
-          <p className="max-w-2xl text-[12.5px] leading-relaxed text-steel-400">
+          <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
             Draft scope modifications with AI-generated line items. Deployed change orders appear on the homeowner portal for approval.
           </p>
 
           {/* Existing Change Orders */}
           {changeOrders.length > 0 && (
             <div className="mt-5">
-              <p className="eyebrow border-b border-carbon-700/70 pb-2.5">Deployed Change Orders</p>
+              <p className="eyebrow border-b border-rule-300/70 pb-2.5">Deployed Change Orders</p>
               {changeOrders.map((co: any) => (
-                <div key={co.id} className="group relative flex items-start justify-between gap-4 border-b border-carbon-700/55 py-3.5 transition-colors duration-300 ease-architect hover:bg-carbon-900">
-                  <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-ember-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                <div key={co.id} className="group relative flex items-start justify-between gap-4 border-b border-rule-300/55 py-3.5 transition-colors duration-300 ease-architect hover:bg-paper-50">
+                  <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
                   <div className="min-w-0 sm:pl-3">
                     {co.proposal_number && (
-                      <p className="font-sans text-[10px] tracking-architect text-steel-500">{co.proposal_number}</p>
+                      <p className="font-sans text-[10px] tracking-architect text-ink-400">{co.proposal_number}</p>
                     )}
-                    <p className="mt-1 truncate text-[13px] font-medium text-chalk-50">{co.description || co.project_title || "Change Order"}</p>
+                    <p className="mt-1 truncate text-[13px] font-medium text-ink-900">{co.description || co.project_title || "Change Order"}</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       <span className={`badge ${co.status === 'approved' ? 'badge-approved' : 'badge-pending'}`}>
-                        <span className={`badge-dot ${co.status === 'approved' ? 'bg-signal-500' : 'bg-ember-400'}`} />
+                        <span className={`badge-dot ${co.status === 'approved' ? 'bg-forest-500' : 'bg-bronze-400'}`} />
                         {co.status === 'approved' ? 'Approved' : 'Pending'}
                       </span>
                       {co.status === 'approved' && (
@@ -3104,7 +3104,7 @@ export default function ProjectWorkspaceControlHub() {
             >
               {isGeneratingCo ? (
                 <>
-                  <span className="h-3 w-3 animate-spin rounded-full border border-carbon-950/40 border-t-carbon-950" />
+                  <span className="h-3 w-3 animate-spin rounded-full border border-rule-300/40 border-t-ink-900" />
                   Generating...
                 </>
               ) : (
@@ -3117,11 +3117,11 @@ export default function ProjectWorkspaceControlHub() {
 
             {/* Generated Items Preview */}
             {coItems.length > 0 && (
-              <div className="mt-5 border-t border-carbon-700/70 pt-4">
+              <div className="mt-5 border-t border-rule-300/70 pt-4">
                 <p className="eyebrow">Generated Items — edit costs before deploying</p>
                 <div className="mt-2">
                   {coItems.map((item: any, idx: number) => (
-                    <div key={idx} className="border-b border-carbon-700/55 py-3">
+                    <div key={idx} className="border-b border-rule-300/55 py-3">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           type="text"
@@ -3132,10 +3132,10 @@ export default function ProjectWorkspaceControlHub() {
                             setCoItems(updated);
                           }}
                           title="Change order line title"
-                          className="min-w-0 flex-1 border-0 border-b border-transparent bg-transparent py-1 text-[13px] font-medium text-chalk-50 outline-none transition-colors duration-200 ease-architect hover:border-carbon-700/70 focus:border-carbon-600"
+                          className="min-w-0 flex-1 border-0 border-b border-transparent bg-transparent py-1 text-[13px] font-medium text-ink-900 outline-none transition-colors duration-200 ease-architect hover:border-rule-300/70 focus:border-rule-400"
                         />
-                        <div className="flex shrink-0 items-center gap-1 rounded-edge border border-carbon-700/70 bg-carbon-900 px-2 transition-colors duration-200 ease-architect focus-within:border-carbon-600">
-                          <span className="font-sans text-[10px] text-steel-500">$</span>
+                        <div className="flex shrink-0 items-center gap-1 rounded-edge border border-rule-300/70 bg-paper-50 px-2 transition-colors duration-200 ease-architect focus-within:border-rule-400">
+                          <span className="font-sans text-[10px] text-ink-400">$</span>
                           <input
                             type="number"
                             value={item.mid_cost || ""}
@@ -3145,21 +3145,21 @@ export default function ProjectWorkspaceControlHub() {
                               setCoItems(updated);
                             }}
                             title="Change order line cost"
-                            className="no-spin tnum w-20 bg-transparent py-1.5 text-right text-[12.5px] font-medium text-chalk-50 outline-none"
+                            className="no-spin tnum w-20 bg-transparent py-1.5 text-right text-[12.5px] font-medium text-ink-900 outline-none"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={() => setCoItems(coItems.filter((_, i) => i !== idx))}
                           title="Remove line"
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-steel-500 transition-colors duration-200 ease-architect hover:bg-crimson-50 hover:text-crimson-600"
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-ink-400 transition-colors duration-200 ease-architect hover:bg-brick-50 hover:text-brick-600"
                         >
                           <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
                       </div>
-                      <p className="mt-1.5 text-[11.5px] leading-relaxed text-steel-400">{item.mid_description}</p>
+                      <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-500">{item.mid_description}</p>
                     </div>
                   ))}
                 </div>
@@ -3234,15 +3234,15 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* CLIENT SPEC PROFILE INTERACTION MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-chalk-50/55 p-3 backdrop-blur-[3px] sm:p-7">
-          <div className="w-full max-w-lg animate-rise overflow-hidden rounded-sheet shadow-lift ring-1 ring-carbon-700/60 bg-carbon-900 text-left shadow-lift">
-            <div className="border-b border-carbon-700/70 bg-chalk-50 px-6 py-5 text-carbon-900 sm:px-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper-50/55 p-3 backdrop-blur-[3px] sm:p-7">
+          <div className="w-full max-w-lg animate-rise overflow-hidden rounded-sheet shadow-lift ring-1 ring-rule-300/60 bg-paper-50 text-left shadow-lift">
+            <div className="border-b border-rule-300/70 bg-paper-50 px-6 py-5 text-ink-900 sm:px-6">
               <p className="eyebrow-invert">Record</p>
               <h3 className="mt-1.5 display-md">Client Profile</h3>
             </div>
 
             <div className="max-h-[70vh] overflow-y-auto px-6 py-7 sm:px-6">
-              <p className="text-[12px] leading-relaxed text-steel-400">
+              <p className="text-[12px] leading-relaxed text-ink-500">
                 Updates sync instantly to the homeowner portal and the downstream document set.
               </p>
 
@@ -3302,7 +3302,7 @@ export default function ProjectWorkspaceControlHub() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-carbon-700/70 bg-carbon-950 px-6 py-5 sm:px-6">
+            <div className="flex items-center justify-end gap-2 border-t border-rule-300/70 bg-paper-100 px-6 py-5 sm:px-6">
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
@@ -3325,26 +3325,26 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* Deposit Email Preview Modal */}
       {depositPreviewHtml && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-chalk-50/60 p-3 backdrop-blur-[3px] sm:p-7" onClick={() => setDepositPreviewHtml(null)}>
-          <div className="flex max-h-[90vh] w-full max-w-2xl animate-rise flex-col overflow-hidden rounded-sheet shadow-lift ring-1 ring-carbon-700/60 bg-carbon-900 shadow-lift" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4 border-b border-carbon-700/70 bg-chalk-50 px-6 py-5 text-carbon-900 sm:px-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper-50/60 p-3 backdrop-blur-[3px] sm:p-7" onClick={() => setDepositPreviewHtml(null)}>
+          <div className="flex max-h-[90vh] w-full max-w-2xl animate-rise flex-col overflow-hidden rounded-sheet shadow-lift ring-1 ring-rule-300/60 bg-paper-50 shadow-lift" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4 border-b border-rule-300/70 bg-paper-50 px-6 py-5 text-ink-900 sm:px-6">
               <div className="min-w-0">
                 <p className="eyebrow-invert">Preview</p>
                 <h3 className="mt-1.5 display-md">Deposit Email</h3>
-                <p className="mt-2 truncate font-sans text-[10.5px] text-carbon-900/55">{project?.homeowner_email}</p>
+                <p className="mt-2 truncate font-sans text-[10.5px] text-ink-900/55">{project?.homeowner_email}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setDepositPreviewHtml(null)}
                 title="Close preview"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-edge text-carbon-900/55 transition-colors duration-200 ease-architect hover:bg-carbon-900/10 hover:text-carbon-950"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-edge text-ink-900/55 transition-colors duration-200 ease-architect hover:bg-paper-50/10 hover:text-ink-900"
               >
                 <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto bg-carbon-900 p-1">
+            <div className="flex-1 overflow-y-auto bg-paper-50 p-1">
               <iframe
                 srcDoc={depositPreviewHtml}
                 className="w-full rounded-edge border-0"
@@ -3352,7 +3352,7 @@ export default function ProjectWorkspaceControlHub() {
                 title="Deposit email preview"
               />
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-carbon-700/70 bg-carbon-950 px-6 py-5 sm:px-6">
+            <div className="flex items-center justify-end gap-2 border-t border-rule-300/70 bg-paper-100 px-6 py-5 sm:px-6">
               <button
                 type="button"
                 onClick={() => setDepositPreviewHtml(null)}

@@ -6,25 +6,17 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-carbon-950 text-chalk-50 antialiased selection:bg-ember-200/40">
-      {/* Studio rail — the title strip that runs above every workspace sheet. */}
-      <div className="bg-chalk-50 text-carbon-900">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5 sm:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-5 w-5 items-center justify-center border border-carbon-900/25 text-[8px] font-medium tracking-[0.08em] text-carbon-900/80">
-              W
-            </span>
-            <span className="font-sans text-[10px] font-medium uppercase tracking-title text-carbon-900/85">
-              WDO Custom
-            </span>
-            <span aria-hidden className="h-3 w-px bg-carbon-900/20" />
-            <span className="truncate font-sans text-[10px] font-medium uppercase tracking-architect text-carbon-900/45">
-              Studio Administration
-            </span>
+    <div className="min-h-screen bg-paper-100 text-ink-900 antialiased selection:bg-bronze-200/40">
+      {/* Office rail. A touch darker than the client side so staff always know
+          which side of the product they are on. */}
+      <div className="border-b border-rule-400 bg-paper-200">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-2.5 sm:px-8">
+          <div className="flex min-w-0 items-baseline gap-2.5">
+            <span className="text-[14px] font-semibold tracking-[-0.01em] text-ink-900">WDO Custom</span>
+            <span aria-hidden className="h-3 w-px shrink-0 bg-rule-400" />
+            <span className="truncate text-[13px] text-ink-500">Office</span>
           </div>
-          <span className="hidden shrink-0 font-sans text-[10px] uppercase tracking-architect text-carbon-900/35 sm:block">
-            Omaha, NE
-          </span>
+          <span className="hidden shrink-0 text-[13px] text-ink-400 sm:block">Omaha, NE</span>
         </div>
       </div>
       {children}

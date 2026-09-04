@@ -6,13 +6,13 @@
   --background: #FBFBFA;
   --foreground: #1A1A1A;
 
-  /* Bold industrial luxury — consumed by the admin and client portal. */
-  --carbon: #08090A;
-  --carbon-raised: #0F1112;
-  --rule: #2A2E31;
-  --rule-strong: #3A3F43;
-  --chalk: #FFFFFF;
-  --ember: #F58220;
+  /* WDO job file — consumed by the client portal and the office. */
+  --paper: #F6F3EE;
+  --sheet: #FFFCF8;
+  --ink: #1A1916;
+  --ink-secondary: #5C5852;
+  --rule: #D9D2C8;
+  --bronze: #6B4F35;
 }
 
 body {
@@ -29,24 +29,16 @@ body {
     scrollbar-width: none;
   }
 
-  /* Figures lock to a monospaced grid so columns of money never jitter. */
+  /* Money and dates always line up in a column. */
   .tnum {
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: tabular-nums lining-nums;
     font-feature-settings: "tnum" 1, "lnum" 1;
   }
 
-  /* Machined plate texture where the old washes sat — a faint milled grid. */
-  .blueprint-grid {
-    background-image:
-      linear-gradient(to right, rgba(255,255,255,0.022) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.022) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
+  /* Kept only so existing call sites resolve; the job file has no texture. */
+  .blueprint-grid,
   .blueprint-grid-dark {
-    background-image:
-      linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
-    background-size: 32px 32px;
+    background-image: none;
   }
 
   .fade-edge-r {
@@ -57,185 +49,192 @@ body {
 
 @layer components {
   /* ── Surfaces ──────────────────────────────────────────────────────────
-     Flat machined blocks. Boundaries are hairlines, never blur. */
+     More paper, fewer boxes. A panel is a sheet with a stone rule, not a
+     floating card. */
   .panel {
-    @apply bg-carbon-900 border border-carbon-700 rounded-none;
+    @apply bg-paper-50 border border-rule-300 rounded-panel;
   }
   .panel-raised {
-    @apply bg-carbon-850 border border-carbon-600 rounded-none;
+    @apply bg-paper-50 border border-rule-300 rounded-panel shadow-lift;
   }
   .panel-sunken {
-    @apply bg-carbon-950 border border-carbon-800 rounded-none;
+    @apply bg-paper-200 border border-rule-200 rounded-panel;
   }
-  /* The inversion: a stark white block used for the moments that must shout. */
   .panel-ink {
-    @apply bg-chalk-50 text-carbon-950 border border-chalk-50 rounded-none;
+    @apply bg-ink-900 text-paper-100 rounded-panel;
   }
 
+  /* Section rhythm of a printed spec: title, rule, content. */
   .title-block {
-    @apply flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 pb-4 mb-7 border-b border-carbon-700;
+    @apply flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 pb-3 mb-6 border-b border-rule-300;
   }
 
   /* ── Type ──────────────────────────────────────────────────────────────
-     Micro-labels are structural: uppercase, bold, widely tracked. */
+     Sentence case with slight tracking. Labels do not shout. */
   .eyebrow {
-    @apply font-sans text-[10px] font-bold uppercase tracking-architect text-steel-400;
+    @apply font-sans text-[11px] font-medium tracking-architect text-ink-400;
   }
   .eyebrow-ink {
-    @apply font-sans text-[10px] font-bold uppercase tracking-architect text-steel-300;
+    @apply font-sans text-[11px] font-medium tracking-architect text-ink-500;
   }
   .eyebrow-invert {
-    @apply font-sans text-[10px] font-bold uppercase tracking-architect text-carbon-950/60;
+    @apply font-sans text-[11px] font-medium tracking-architect text-paper-100/70;
   }
-  /* Headlines are heavy and tightly kerned. */
+  /* Reserved for genuine specifications — LICENSE, DRAW #, proposal numbers. */
+  .spec-label {
+    @apply font-sans text-[10px] font-semibold uppercase tracking-title text-ink-400;
+  }
+
+  /* Four sizes, no more: page title, section, subsection, and the numeral. */
   .display-xl {
-    @apply font-display font-black uppercase tracking-tighter text-chalk-50 text-[2.5rem] leading-[0.92] sm:text-[3.75rem];
+    @apply font-display font-semibold tracking-[-0.02em] text-ink-900 text-[1.75rem] leading-[1.15] sm:text-[2.125rem];
   }
   .display-lg {
-    @apply font-display font-black uppercase tracking-tighter text-chalk-50 text-[1.875rem] leading-[0.95] sm:text-[2.5rem];
+    @apply font-display font-semibold tracking-[-0.015em] text-ink-900 text-[1.375rem] leading-[1.2] sm:text-[1.625rem];
   }
   .display-md {
-    @apply font-display font-bold uppercase tracking-tight text-chalk-50 text-[1.375rem] leading-[1.05] sm:text-[1.75rem];
+    @apply font-display font-semibold tracking-[-0.01em] text-ink-900 text-[1.0625rem] leading-[1.3] sm:text-[1.1875rem];
   }
   .display-sm {
-    @apply font-display font-bold uppercase tracking-tight text-chalk-50 text-[1rem] leading-[1.15] sm:text-[1.125rem];
+    @apply font-display font-semibold tracking-[-0.005em] text-ink-900 text-[0.9375rem] leading-[1.35];
   }
-  /* Money. Heavy, tight, tabular. */
   .figure {
-    @apply font-sans font-bold tracking-tight text-chalk-50 tnum;
+    @apply font-sans font-semibold tracking-[-0.01em] text-ink-900 tnum;
   }
-  /* Headline money — the number that commands the page. */
+  /* The contract total. Large and calm, not a checkout slab. */
   .figure-hero {
-    @apply font-sans font-black tracking-tighter tnum leading-[0.9];
+    @apply font-sans font-semibold tracking-[-0.025em] text-ink-900 tnum leading-[1.05];
   }
 
   /* ── Rules ─────────────────────────────────────────────────────────────*/
   .hairline {
-    @apply border-carbon-700;
+    @apply border-rule-300;
   }
   .hairline-soft {
-    @apply border-carbon-800;
+    @apply border-rule-200;
   }
   .divide-hairline > * + * {
-    @apply border-t border-carbon-800;
+    @apply border-t border-rule-200;
   }
 
   /* ── Controls ──────────────────────────────────────────────────────────
-     Hard-edged blocks. The primary action is a stark white slab. */
+     Charcoal primary. Bronze appears on hover and focus only. */
   .btn-ink {
-    @apply inline-flex items-center justify-center gap-2 bg-chalk-50 text-carbon-950 font-bold text-[11px] uppercase tracking-architect
-           px-6 py-3.5 rounded-none border border-chalk-50
-           transition-colors duration-200 ease-architect
-           hover:bg-chalk-200 hover:border-chalk-200
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember-500 focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-950
-           disabled:bg-carbon-800 disabled:text-steel-600 disabled:border-carbon-700 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 bg-ink-900 text-paper-50 font-medium text-[14px]
+           px-5 py-3 rounded-edge border border-ink-900
+           transition-colors duration-150 ease-architect
+           hover:bg-bronze-500 hover:border-bronze-500
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bronze-500 focus-visible:ring-offset-2 focus-visible:ring-offset-paper-100
+           disabled:bg-rule-300 disabled:text-ink-400 disabled:border-rule-300 disabled:pointer-events-none;
   }
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 bg-transparent text-chalk-100 font-bold text-[11px] uppercase tracking-architect
-           px-6 py-3.5 rounded-none border border-carbon-600
-           transition-colors duration-200 ease-architect
-           hover:border-steel-400 hover:text-chalk-50
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember-500 focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-950
-           disabled:opacity-40 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 bg-paper-50 text-ink-900 font-medium text-[14px]
+           px-5 py-3 rounded-edge border border-rule-400
+           transition-colors duration-150 ease-architect
+           hover:border-ink-700
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bronze-500 focus-visible:ring-offset-2 focus-visible:ring-offset-paper-100
+           disabled:opacity-45 disabled:pointer-events-none;
   }
   .btn-brass {
-    @apply inline-flex items-center justify-center gap-2 bg-ember-500 text-carbon-950 font-bold text-[11px] uppercase tracking-architect
-           px-6 py-3.5 rounded-none border border-ember-500
-           transition-colors duration-200 ease-architect
-           hover:bg-ember-600 hover:border-ember-600
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember-500 focus-visible:ring-offset-2 focus-visible:ring-offset-carbon-950
-           disabled:opacity-40 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 bg-bronze-500 text-paper-50 font-medium text-[14px]
+           px-5 py-3 rounded-edge border border-bronze-500
+           transition-colors duration-150 ease-architect
+           hover:bg-bronze-600 hover:border-bronze-600
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bronze-500 focus-visible:ring-offset-2 focus-visible:ring-offset-paper-100
+           disabled:opacity-45 disabled:pointer-events-none;
   }
   .btn-quiet {
-    @apply inline-flex items-center justify-center gap-1.5 text-steel-400 font-bold text-[11px] uppercase tracking-architect
-           px-3.5 py-2.5 rounded-none border border-transparent
-           transition-colors duration-200 ease-architect
-           hover:text-chalk-50 hover:bg-carbon-800
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember-500;
+    @apply inline-flex items-center justify-center gap-1.5 text-ink-500 font-medium text-[14px]
+           px-3 py-2 rounded-edge border border-transparent
+           transition-colors duration-150 ease-architect
+           hover:text-ink-900 hover:bg-paper-200
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bronze-500;
   }
 
-  /* Inputs are recessed slots milled into the panel. */
+  /* Inputs are ruled fields on paper. 16px so iOS never zooms on focus. */
   .field {
-    @apply w-full bg-carbon-950 rounded-none border border-carbon-700
-           px-4 py-3 text-[13px] text-chalk-50 font-medium
-           placeholder:text-steel-600 placeholder:font-normal
-           transition-colors duration-200 ease-architect
-           focus:outline-none focus:border-ember-500 focus:ring-0;
+    @apply w-full bg-paper-50 rounded-edge border border-rule-400
+           px-3.5 py-3 text-[16px] sm:text-[14px] text-ink-900
+           placeholder:text-ink-300
+           transition-colors duration-150 ease-architect
+           focus:outline-none focus:border-bronze-500 focus:ring-1 focus:ring-bronze-500;
   }
   .field-sunken {
-    @apply w-full bg-carbon-950 rounded-none border border-carbon-800
-           px-4 py-3 text-[13px] text-chalk-50 font-medium
-           placeholder:text-steel-600 placeholder:font-normal
-           transition-colors duration-200 ease-architect
-           focus:outline-none focus:border-ember-500 focus:ring-0;
+    @apply w-full bg-paper-100 rounded-edge border border-rule-300
+           px-3.5 py-3 text-[16px] sm:text-[14px] text-ink-900
+           placeholder:text-ink-300
+           transition-colors duration-150 ease-architect
+           focus:outline-none focus:bg-paper-50 focus:border-bronze-500 focus:ring-1 focus:ring-bronze-500;
   }
   .field-label {
-    @apply block font-sans text-[10px] font-bold uppercase tracking-architect text-steel-400 mb-2;
+    @apply block font-sans text-[13px] font-medium text-ink-700 mb-1.5;
   }
 
   /* ── Status ────────────────────────────────────────────────────────────
-     Square tags: dark tint, hairline edge, vivid type. */
+     A status is a word with a rule around it, not a candy pill. */
   .badge {
-    @apply inline-flex items-center gap-1.5 font-sans text-[9.5px] font-bold uppercase tracking-architect
-           px-2.5 py-1 rounded-none border whitespace-nowrap;
+    @apply inline-flex items-center gap-1.5 font-sans text-[12px] font-medium
+           px-2 py-0.5 rounded-edge border whitespace-nowrap;
   }
   .badge-pending {
-    @apply bg-ember-50 text-ember-600 border-ember-200;
+    @apply bg-dust-50 text-dust-700 border-dust-200;
   }
   .badge-approved {
-    @apply bg-signal-50 text-signal-600 border-signal-200;
+    @apply bg-forest-50 text-forest-700 border-forest-200;
   }
   .badge-declined {
-    @apply bg-crimson-50 text-crimson-600 border-crimson-200;
+    @apply bg-brick-50 text-brick-700 border-brick-200;
   }
   .badge-neutral {
-    @apply bg-carbon-800 text-steel-300 border-carbon-600;
+    @apply bg-paper-200 text-ink-500 border-rule-300;
   }
   .badge-ink {
-    @apply bg-chalk-50 text-carbon-950 border-chalk-50;
+    @apply bg-ink-900 text-paper-100 border-ink-900;
   }
   .badge-dot {
     @apply w-[5px] h-[5px] rounded-full shrink-0;
   }
 
-  /* ── Interactive rows ──────────────────────────────────────────────────*/
+  /* ── Rows ──────────────────────────────────────────────────────────────
+     Job rows, not social cards. */
   .row-interactive {
-    @apply relative bg-carbon-900 border border-carbon-700 rounded-none
-           transition-colors duration-200 ease-architect
-           hover:bg-carbon-850 hover:border-carbon-600;
+    @apply relative bg-transparent border-b border-rule-200
+           transition-colors duration-150 ease-architect
+           hover:bg-paper-50;
   }
   .row-marker::before {
     content: "";
-    @apply absolute left-0 top-0 bottom-0 w-[3px] bg-ember-500 origin-top
-           scale-y-0 opacity-0 transition-all duration-200 ease-architect;
+    @apply absolute left-0 top-0 bottom-0 w-[2px] bg-bronze-500 origin-top
+           opacity-0 transition-opacity duration-150 ease-architect;
   }
   .row-interactive:hover .row-marker::before,
   .row-marker:hover::before {
-    @apply scale-y-100 opacity-100;
+    @apply opacity-100;
   }
 
-  /* ── Tabs ──────────────────────────────────────────────────────────────*/
+  /* ── Tabs ──────────────────────────────────────────────────────────────
+     Text tabs with one underline. Tap targets are 44px tall. */
   .tabstrip {
-    @apply flex items-stretch gap-8 border-b border-carbon-700 overflow-x-auto scrollbar-none;
+    @apply flex items-stretch gap-6 border-b border-rule-300 overflow-x-auto scrollbar-none;
   }
   .tab {
-    @apply relative shrink-0 pb-4 pt-1 font-sans text-[11px] font-bold uppercase tracking-architect
-           text-steel-500 transition-colors duration-200 ease-architect
-           hover:text-chalk-50 focus-visible:outline-none;
+    @apply relative shrink-0 py-3 min-h-[44px] flex items-center font-sans text-[14px] font-medium
+           text-ink-500 transition-colors duration-150 ease-architect
+           hover:text-ink-900 focus-visible:outline-none;
   }
   .tab-active {
-    @apply text-chalk-50;
+    @apply text-ink-900;
   }
   .tab-active::after {
     content: "";
-    @apply absolute left-0 right-0 -bottom-px h-[3px] bg-ember-500;
+    @apply absolute left-0 right-0 -bottom-px h-[2px] bg-bronze-500;
   }
 }
 
 @layer base {
   ::selection {
-    background-color: #F58220;
-    color: #08090A;
+    background-color: rgba(107, 79, 53, 0.18);
+    color: #1A1916;
   }
 
   .no-spin::-webkit-outer-spin-button,
