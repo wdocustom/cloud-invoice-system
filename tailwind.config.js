@@ -25,8 +25,8 @@ module.exports = {
           "system-ui",
           "sans-serif"
         ],
-        // Same commanding grotesque as the UI face; hierarchy comes from
-        // weight, scale and tracking rather than from a second family.
+        // Same grotesque as the UI. There is no display face: hierarchy is
+        // size and weight, so nothing can drift into a wedding suite.
         display: [
           "var(--font-display)",
           "ui-sans-serif",
@@ -57,75 +57,76 @@ module.exports = {
           700: "#3D6B3D",
         },
 
-        /* ── Bold industrial luxury ──────────────────────────────────────────
-           Matte machined blacks. Low numbers are the deepest so a lower step
-           always reads as "further back". */
-        carbon: {
-          950: "#08090A",
-          900: "#0F1112",
-          850: "#16181A",
-          800: "#1E2123",
-          700: "#2A2E31",
-          600: "#3A3F43",
-          500: "#4E5459",
+        /* ── WDO job file ───────────────────────────────────────────────────
+           Warm paper the whole product is printed on. 50 is the sheet that
+           lifts; 100 is the page. */
+        paper: {
+          50: "#FFFCF8",
+          100: "#F6F3EE",
+          200: "#EFEAE2",
+          300: "#E7E1D7",
+          400: "#DDD5C9",
         },
-        /* Titanium greys — secondary type, tick marks, inert data. */
-        steel: {
-          300: "#B7BDC2",
-          400: "#8D949A",
-          500: "#6C7378",
-          600: "#545A5F",
-          700: "#3C4145",
+        /* Graphite, not costume brown. 900 is body copy. */
+        ink: {
+          900: "#1A1916",
+          800: "#2C2A26",
+          700: "#3D3A35",
+          500: "#5C5852",
+          400: "#7C766D",
+          300: "#9E978C",
         },
-        /* Stark white — inverted blocks, primary type, the hardest contrast. */
-        chalk: {
-          50: "#FFFFFF",
-          100: "#F2F4F5",
-          200: "#DDE1E3",
+        /* Warm stone rules. Never #E5E5E5, never gold. */
+        rule: {
+          200: "#E3DCD2",
+          300: "#D9D2C8",
+          400: "#C6BDB0",
         },
-        /* Burnt architectural amber. Low steps are dark tints for chips on
-           black; mid and high steps are the vivid accent and its type. */
-        ember: {
-          50: "#1A1008",
-          100: "#241608",
-          200: "#4A2C10",
-          300: "#B4611F",
-          400: "#E2761F",
-          500: "#F58220",
-          600: "#FF9A45",
-          700: "#FFB776",
+        /* The one accent metal. Oxidized bronze, used for focus, the active
+           tab and primary-button hover — never as a large fill. */
+        bronze: {
+          50: "#F5F0E8",
+          200: "#DCCBB2",
+          400: "#8C6B48",
+          500: "#6B4F35",
+          600: "#57402B",
+          700: "#41301F",
         },
-        /* Approved — signal green, calibrated for black. */
-        signal: {
-          50: "#0C1A10",
-          100: "#102516",
-          200: "#2A5138",
-          500: "#34C05E",
-          600: "#56D97C",
-          700: "#7FE79C",
+        /* Signed / complete — muted forest, not neon. */
+        forest: {
+          50: "#EEF2EC",
+          200: "#C6D2C1",
+          600: "#3F5B3A",
+          700: "#32492E",
         },
-        /* Declined — hazard crimson, distinct from the amber accent. */
-        crimson: {
-          50: "#1F0D0D",
-          100: "#2A1111",
-          200: "#5A2222",
-          500: "#E5484D",
-          600: "#F26D71",
-          700: "#FF9296",
+        /* Awaiting / pending — dust, not candy yellow. */
+        dust: {
+          50: "#F6F1E4",
+          200: "#E1D6B9",
+          600: "#7A6634",
+          700: "#5E4F27",
+        },
+        /* Declined / destructive — dry brick, used rarely. */
+        brick: {
+          50: "#F7EDE9",
+          200: "#E4C6BA",
+          600: "#8C4A32",
+          700: "#6E3925",
         },
       },
       borderRadius: {
         "2xl": "16px",
         "3xl": "24px",
-        /* Machined edges. */
-        edge: "0px",
-        panel: "0px",
-        sheet: "2px",
+        /* Small or none. Nothing app-card sized. */
+        edge: "4px",
+        panel: "6px",
+        sheet: "8px",
       },
       letterSpacing: {
-        /* Blueprint tracking for uppercase micro-labels. */
-        architect: "0.18em",
-        title: "0.28em",
+        /* Slight tracking for sentence-case labels. */
+        architect: "0.01em",
+        /* Reserved for true specs: LICENSE, DRAW #, proposal numbers. */
+        title: "0.08em",
       },
       boxShadow: {
         "soft": "0 4px 30px rgba(0, 0, 0, 0.03)",
@@ -133,19 +134,20 @@ module.exports = {
         "card": "0 1px 3px rgba(0,0,0,0.02), 0 8px 24px rgba(0,0,0,0.04)",
         "premium": "0 2px 4px rgba(0,0,0,0.02), 0 12px 40px rgba(0,0,0,0.05)",
         "glow-gold": "0 0 20px rgba(196, 162, 101, 0.15)",
-        /* Structure comes from edges, not from blur. Only overlays cast. */
-        hairline: "0 0 0 1px #2A2E31",
+        /* One whisper, and a hard edge for overlays. Everything else is a 1px
+           stone rule. */
+        hairline: "0 0 0 1px #D9D2C8",
         riser: "none",
-        lift: "none",
-        bloom: "0 0 0 1px #2A2E31, 0 40px 80px -24px rgba(0,0,0,0.9)",
-        plinth: "0 -1px 0 0 #2A2E31",
+        lift: "0 1px 2px rgba(26,25,22,0.04)",
+        bloom: "0 1px 3px rgba(26,25,22,0.08), 0 24px 48px -16px rgba(26,25,22,0.22)",
+        plinth: "0 -1px 0 0 #D9D2C8",
       },
       animation: {
         "fade-in": "fadeIn 0.4s ease-out",
         "slide-up": "slideUp 0.5s ease-out",
         "shimmer": "shimmer 2s linear infinite",
-        "rise": "rise 0.35s cubic-bezier(0.2, 0, 0, 1) both",
-        "draw-in": "drawIn 0.45s cubic-bezier(0.2, 0, 0, 1) both",
+        "rise": "rise 0.18s ease-out both",
+        "draw-in": "drawIn 0.18s ease-out both",
       },
       keyframes: {
         fadeIn: {
@@ -161,16 +163,16 @@ module.exports = {
           "100%": { backgroundPosition: "200% 0" },
         },
         rise: {
-          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "0%": { opacity: "0", transform: "translateY(3px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         drawIn: {
-          "0%": { opacity: "0", transform: "scaleX(0)" },
-          "100%": { opacity: "1", transform: "scaleX(1)" },
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
       },
       transitionTimingFunction: {
-        architect: "cubic-bezier(0.2, 0, 0, 1)",
+        architect: "cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },

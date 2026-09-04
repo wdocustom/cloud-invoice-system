@@ -16,10 +16,10 @@ export default async function HomeownerPortalPage({ params }: { params: { id: st
 
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-          <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Synchronizing Premium Workspace...</p>
+      <div className="flex min-h-screen items-center justify-center bg-paper-100">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-rule-400 border-t-ink-900" />
+          <p className="text-[14px] text-ink-500">Loading proposal</p>
         </div>
       </div>
     }>
