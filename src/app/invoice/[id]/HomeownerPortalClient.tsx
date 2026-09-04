@@ -363,7 +363,14 @@ export default function HomeownerPortalClient({
     setIsSubmitting(false);
   };
 
-  if (!invoice) return <div className="min-h-screen bg-brand-alabaster flex items-center justify-center font-sans text-brand-muted font-medium text-sm">Proposal data unavailable.</div>;
+  if (!invoice) return (
+    <div className="flex min-h-screen items-center justify-center bg-bone-50 px-6 text-center font-sans">
+      <div>
+        <p className="eyebrow">Portal</p>
+        <p className="display-sm mt-2">Proposal data unavailable</p>
+      </div>
+    </div>
+  );
 
   let dynamicTimelineIndex = 0;
   if (isLocked) {
@@ -386,42 +393,38 @@ export default function HomeownerPortalClient({
   const getSubTasksForMilestone = (parentId: string) => scheduleTasks.filter(t => t.parent_id === parentId);
 
   return (
-    <div className="min-h-screen bg-brand-alabaster text-brand-charcoal font-sans antialiased pb-24 text-left selection:bg-luxury-gold/10 tracking-normal">
+    <div className="min-h-screen bg-bone-50 text-obsidian-900 font-sans antialiased pb-28 text-left selection:bg-brass-200/40">
 
-      {/* Minimal Premium Header */}
-      <div className="border-b border-brand-stone/60 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-charcoal flex items-center justify-center">
-              <span className="text-white text-[10px] font-bold">WDO</span>
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold tracking-tight text-brand-charcoal">WDO Custom</h1>
-              <p className="text-[10px] text-brand-muted font-medium">Client Portal</p>
+      {/* Studio rail */}
+      <div className="sticky top-0 z-20 border-b border-obsidian-900/10 bg-bone-50/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center bg-obsidian-950 text-[8px] font-medium tracking-[0.06em] text-bone-100">
+              W
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-mono text-[10px] font-medium uppercase tracking-title text-obsidian-900">WDO Custom</p>
+              <p className="truncate font-mono text-[9px] uppercase tracking-architect text-graphite-400">Client Portal</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={() => generateProposalPdf(invoice as any)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[11px] font-semibold text-brand-charcoal bg-brand-warm border border-brand-stone/50 hover:border-brand-charcoal/30 hover:shadow-soft transition-all duration-200 outline-none"
+              className="btn-outline px-3 py-2 sm:px-4"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              Download PDF
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <span className="hidden sm:inline">Download PDF</span>
             </button>
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wide border ${
-              isLocked
-                ? 'bg-sage-50 text-sage-700 border-sage-200'
-                : 'bg-luxury-soft text-luxury-ochre border-luxury-champagne'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-sage-500' : 'bg-luxury-gold'}`} />
+            <span className={`badge ${isLocked ? 'badge-approved' : 'badge-pending'}`}>
+              <span className={`badge-dot ${isLocked ? 'bg-patina-500' : 'bg-brass-400'}`} />
               {isLocked ? "Active" : "Review"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Proposal Countdown Timer — sticky below header */}
+      {/* Schedule hold — the pricing window, stated plainly */}
       {hasExpiration && !isLocked && (
         <div
           onClick={() => {
@@ -429,32 +432,34 @@ export default function HomeownerPortalClient({
             const el = document.getElementById('approve-section');
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }}
-          className={`sticky top-[57px] z-10 border-b transition-colors duration-500 group ${
+          className={`group sticky top-[53px] z-10 border-b transition-colors duration-500 ${
             isExpired
-              ? 'bg-red-50 border-red-200'
+              ? 'border-clay-200 bg-clay-50'
               : isUrgent
-                ? 'bg-amber-50/80 border-amber-200/60 cursor-pointer'
-                : 'bg-brand-warm border-brand-stone/40 cursor-pointer'
+                ? 'cursor-pointer border-brass-200 bg-brass-50'
+                : 'cursor-pointer border-obsidian-900/10 bg-bone-100'
           }`}
         >
-          <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <svg className={`w-4 h-4 shrink-0 ${isExpired ? 'text-red-500' : isUrgent ? 'text-amber-600' : 'text-brand-muted'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5 sm:px-8">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <svg className={`h-4 w-4 shrink-0 ${isExpired ? 'text-clay-500' : isUrgent ? 'text-brass-500' : 'text-graphite-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div className="min-w-0">
                 {isExpired ? (
-                  <p className="text-[12px] sm:text-[13px] font-semibold text-red-700">This proposal has expired and your schedule hold has been released. Contact your contractor for availability.</p>
+                  <p className="text-[12px] leading-snug text-clay-700 sm:text-[12.5px]">
+                    This proposal has expired and your schedule hold has been released. Contact your contractor for availability.
+                  </p>
                 ) : (
                   <>
-                    <p className={`text-[12px] sm:text-[13px] font-medium ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`}>
-                      Your pricing and schedule hold expires{' '}
-                      <span className="font-semibold">
+                    <p className={`text-[12px] leading-snug sm:text-[12.5px] ${isUrgent ? 'text-brass-600' : 'text-graphite-600'}`}>
+                      Pricing and schedule hold through{' '}
+                      <span className="font-medium text-obsidian-900">
                         {new Date(expiresAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                       </span>
                     </p>
-                    <p className={`text-[10px] sm:text-[11px] font-medium mt-0.5 transition-opacity duration-200 opacity-60 group-hover:opacity-100 ${isUrgent ? 'text-amber-700' : 'text-brand-muted'}`}>
-                      Approve your proposal to secure your spot ↓
+                    <p className="mt-0.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400 opacity-70 transition-opacity duration-200 group-hover:opacity-100">
+                      Approve below to secure the date
                     </p>
                   </>
                 )}
@@ -463,27 +468,24 @@ export default function HomeownerPortalClient({
             {!isExpired && (() => {
               const cd = formatCountdown();
               return (
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex shrink-0 items-end gap-2.5 sm:gap-3.5">
                   {cd.days > 0 && (
-                    <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
-                      <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{cd.days}</p>
-                      <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>days</p>
+                    <div className="text-center">
+                      <p className="figure text-[16px] leading-none sm:text-[19px]">{cd.days}</p>
+                      <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">days</p>
                     </div>
                   )}
-                  <span className={`text-[13px] font-bold ${isUrgent ? 'text-amber-400' : 'text-brand-stone'}`}>:</span>
-                  <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
-                    <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{String(cd.hours).padStart(2, '0')}</p>
-                    <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>hrs</p>
+                  <div className="text-center">
+                    <p className="figure text-[16px] leading-none sm:text-[19px]">{String(cd.hours).padStart(2, '0')}</p>
+                    <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">hrs</p>
                   </div>
-                  <span className={`text-[13px] font-bold ${isUrgent ? 'text-amber-400' : 'text-brand-stone'}`}>:</span>
-                  <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
-                    <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{String(cd.minutes).padStart(2, '0')}</p>
-                    <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>min</p>
+                  <div className="text-center">
+                    <p className="figure text-[16px] leading-none sm:text-[19px]">{String(cd.minutes).padStart(2, '0')}</p>
+                    <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">min</p>
                   </div>
-                  <span className={`text-[13px] font-bold ${isUrgent ? 'text-amber-400' : 'text-brand-stone'}`}>:</span>
-                  <div className={`text-center px-2 py-1 rounded-lg ${isUrgent ? 'bg-amber-100 border border-amber-200' : 'bg-white border border-brand-stone/40'}`}>
-                    <p className={`text-[15px] sm:text-[17px] font-bold leading-none ${isUrgent ? 'text-amber-800' : 'text-brand-charcoal'}`} style={{fontVariantNumeric:'tabular-nums'}}>{String(cd.seconds).padStart(2, '0')}</p>
-                    <p className={`text-[8px] font-semibold uppercase tracking-wider mt-0.5 ${isUrgent ? 'text-amber-600' : 'text-brand-muted'}`}>sec</p>
+                  <div className="text-center">
+                    <p className={`figure text-[16px] leading-none sm:text-[19px] ${isUrgent ? 'text-brass-600' : ''}`}>{String(cd.seconds).padStart(2, '0')}</p>
+                    <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">sec</p>
                   </div>
                 </div>
               );
@@ -492,59 +494,84 @@ export default function HomeownerPortalClient({
         </div>
       )}
 
-      {/* Contractor & Project Info */}
-      <div className="max-w-6xl mx-auto px-6 pt-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl p-6 shadow-soft border border-brand-stone/30 space-y-2.5">
-            <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Your Contractor</p>
-            <div className="space-y-1">
-              <p className="font-semibold text-brand-charcoal text-[15px] tracking-tight">Skyler Camacho</p>
-              <p className="text-[13px] text-brand-muted font-medium">WDO Custom · LIC-1901422</p>
-              <div className="flex items-center gap-3 pt-1">
-                <span className="text-[12px] text-brand-muted font-medium">402-819-8558</span>
-                <span className="text-brand-stone">·</span>
-                <span className="text-[12px] text-brand-muted font-medium">skyler@wdocustom.com</span>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow-soft border border-brand-stone/30 space-y-2.5">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Project</p>
+      {/* Cover plate — the presentation opens on the project itself */}
+      <div className="border-b border-obsidian-900/10 bg-obsidian-950 text-bone-100">
+        <div className="blueprint-grid-dark">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <p className="eyebrow-invert">Proposal</p>
               {(invoice as any).proposal_number && (
-                <p className="font-mono text-[10px] font-bold text-brand-muted tracking-wider">
-                  {(invoice as any).proposal_number}
-                </p>
+                <>
+                  <span aria-hidden className="h-3 w-px bg-bone-100/20" />
+                  <p className="font-mono text-[10px] uppercase tracking-architect text-bone-100/60">
+                    {(invoice as any).proposal_number}
+                  </p>
+                </>
               )}
             </div>
-            <div className="space-y-1">
-              <p className="font-semibold text-brand-charcoal text-[15px] tracking-tight">{invoice.homeowner_name || "Client"}</p>
-              <p className="text-[13px] text-brand-muted font-medium">{invoice.job_address || "Address Pending"}</p>
-              {(invoice as any).project_title && (
-                <p className="text-[12px] font-semibold text-luxury-gold mt-1">{(invoice as any).project_title}</p>
-              )}
-            </div>
+
+            <h1 className="mt-4 font-display text-[2.1rem] leading-[1.06] tracking-[-0.02em] text-bone-50 sm:text-[3.1rem]">
+              {invoice.homeowner_name || "Client"}
+            </h1>
+
+            <p className="mt-3 max-w-xl text-[13.5px] leading-relaxed text-bone-100/65">
+              {invoice.job_address || "Address Pending"}
+            </p>
+
+            {(invoice as any).project_title && (
+              <p className="mt-4 inline-block border border-brass-400/40 px-2.5 py-1 font-mono text-[10px] uppercase tracking-architect text-brass-300">
+                {(invoice as any).project_title}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Contractor of record */}
+        <div className="border-t border-white/10">
+          <div className="mx-auto max-w-6xl px-4 sm:px-8">
+            <dl className="grid grid-cols-1 divide-y divide-white/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <div className="py-4 sm:pr-6">
+                <dt className="eyebrow-invert">Contractor of Record</dt>
+                <dd className="mt-1.5 font-display text-[1.05rem] leading-snug text-bone-50">Skyler Camacho</dd>
+              </div>
+              <div className="py-4 sm:px-6">
+                <dt className="eyebrow-invert">License</dt>
+                <dd className="mt-1.5 font-mono text-[12px] tracking-[0.04em] text-bone-100/75">LIC-1901422</dd>
+              </div>
+              <div className="py-4 sm:pl-6">
+                <dt className="eyebrow-invert">Direct</dt>
+                <dd className="mt-1.5 space-y-0.5 text-[12.5px] text-bone-100/75">
+                  <p>402-819-8558</p>
+                  <p className="break-all">skyler@wdocustom.com</p>
+                </dd>
+              </div>
+            </dl>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 pt-6">
+      <div className="mx-auto max-w-6xl px-4 pt-7 sm:px-8">
 
         {/* Payment Status Banner */}
         {paymentStatus === "success" && (
-          <div className="bg-sage-50 border border-sage-200 rounded-2xl p-4 mb-6 text-sm text-sage-700 font-medium flex items-center gap-3">
-            <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px]">✓</span>
+          <div className="mb-6 flex items-center gap-3 border border-patina-200 bg-patina-50 px-4 py-3.5 text-[13px] text-patina-700">
+            <svg className="h-4 w-4 shrink-0 text-patina-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
             Payment received. Your account will be updated shortly.
           </div>
         )}
         {paymentStatus === "cancelled" && (
-          <div className="bg-luxury-soft border border-luxury-champagne rounded-2xl p-4 mb-6 text-sm text-luxury-ochre font-medium flex items-center gap-3">
-            <span className="w-5 h-5 rounded-full bg-luxury-gold text-white flex items-center justify-center text-[10px]">!</span>
+          <div className="mb-6 flex items-center gap-3 border border-brass-200 bg-brass-50 px-4 py-3.5 text-[13px] text-brass-600">
+            <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.5h.008M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             Payment cancelled. You can retry using the payment options below.
           </div>
         )}
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-1.5 mb-6 flex gap-1 overflow-x-auto scrollbar-none">
+        <div className="tabstrip mb-7">
           {(isLocked
             ? [
                 { key: "overview", label: "Overview" },
@@ -573,26 +600,20 @@ export default function HomeownerPortalClient({
                 key={tabKey}
                 type="button"
                 onClick={() => setActiveTab(tabKey)}
-                className={`relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-200 whitespace-nowrap shrink-0 outline-none ${
-                  isTabActive
-                    ? "bg-brand-charcoal text-white shadow-soft"
-                    : hasUnread
-                      ? "bg-luxury-soft text-luxury-ochre border border-luxury-champagne font-semibold"
-                      : "text-brand-muted hover:text-brand-charcoal hover:bg-brand-warm"
-                }`}
+                className={`tab flex items-center gap-1.5 ${isTabActive ? "tab-active" : ""} ${hasUnread ? "text-brass-600" : ""}`}
               >
                 {tab.label}
                 {hasUnread && (
                   <span className="flex items-center gap-1">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-luxury-gold opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-luxury-gold" />
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brass-400 opacity-75" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brass-500" />
                     </span>
-                    <span className="text-[9px] font-bold text-luxury-ochre leading-none">{unreadCount}</span>
+                    <span className="text-[9px] leading-none tabular-nums text-brass-600">{unreadCount}</span>
                   </span>
                 )}
                 {tabKey === "messages" && !hasUnread && messages.length > 0 && (
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none ${isTabActive ? 'bg-white/20 text-white' : 'bg-brand-charcoal/10 text-brand-charcoal'}`}>
+                  <span className="text-[9px] leading-none tabular-nums text-graphite-300">
                     {messages.length}
                   </span>
                 )}
@@ -603,28 +624,45 @@ export default function HomeownerPortalClient({
 
         {/* Progress Tracker — always visible post-approval */}
         {isLocked && (
-          <div className="bg-white rounded-2xl p-6 shadow-soft border border-brand-stone/30 space-y-4 mb-6">
-            <div className="text-left flex justify-between items-center">
-              <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Progress</p>
-              <span className={`text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-lg border ${invoice.deposit_cleared ? 'bg-sage-50 text-sage-700 border-sage-200' : 'bg-luxury-soft text-luxury-ochre border-luxury-champagne'}`}>
+          <div className="panel mb-7 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="eyebrow">Progress</p>
+              <span className={`badge ${invoice.deposit_cleared ? 'badge-approved' : 'badge-pending'}`}>
+                <span className={`badge-dot ${invoice.deposit_cleared ? 'bg-patina-500' : 'bg-brass-400'}`} />
                 {invoice.deposit_cleared ? `Active: ${invoice.payment_phases?.[invoice.current_phase_index || 0]?.name || "In Progress"}` : "Awaiting Deposit"}
               </span>
             </div>
-            <div className="relative flex items-center justify-between w-full pt-3 pb-2 overflow-x-auto scrollbar-none">
-              <div className="absolute left-6 right-6 top-[22px] h-[2px] bg-brand-stone/50 z-0 rounded-full">
-                <div className="h-full bg-brand-charcoal transition-all duration-700 rounded-full" style={{ width: `${(dynamicTimelineIndex / (standardMilestones.length - 1)) * 100}%` }} />
+
+            <div className="scrollbar-none relative mt-6 flex w-full items-start justify-between overflow-x-auto pb-1">
+              {/* Datum line */}
+              <div className="absolute left-8 right-8 top-[9px] z-0 h-px bg-obsidian-900/[0.12]">
+                <div
+                  className="h-full bg-obsidian-900 transition-all duration-700 ease-architect"
+                  style={{ width: `${(dynamicTimelineIndex / (standardMilestones.length - 1)) * 100}%` }}
+                />
               </div>
               {standardMilestones.map((step, idx) => {
                 const isCompleted = idx < dynamicTimelineIndex;
                 const isCurrent = idx === dynamicTimelineIndex;
                 return (
-                  <div key={idx} className="flex flex-col items-center relative z-10 text-center shrink-0 w-16 sm:w-20">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold border-2 transition-all duration-300 ${
-                      isCompleted ? 'bg-brand-charcoal border-brand-charcoal text-white' :
-                      isCurrent ? 'bg-white border-luxury-gold text-luxury-gold scale-110 ring-4 ring-luxury-soft shadow-glow-gold' :
-                      'bg-white border-brand-stone/60 text-brand-muted/50'
-                    }`}>{isCompleted ? "✓" : idx + 1}</div>
-                    <p className={`text-[9px] font-semibold mt-2 tracking-wide ${isCurrent ? 'text-luxury-gold font-bold' : isCompleted ? 'text-brand-charcoal' : 'text-brand-muted/50'}`}>{step.title}</p>
+                  <div key={idx} className="relative z-10 flex w-[64px] shrink-0 flex-col items-center text-center sm:w-[92px]">
+                    <div className={`flex h-[18px] w-[18px] items-center justify-center border transition-all duration-300 ease-architect ${
+                      isCompleted ? 'border-obsidian-900 bg-obsidian-900 text-bone-50' :
+                      isCurrent ? 'border-brass-500 bg-brass-50 ring-[3px] ring-brass-500/15' :
+                      'border-obsidian-900/20 bg-white'
+                    }`}>
+                      {isCompleted ? (
+                        <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                      ) : (
+                        <span className={`h-[5px] w-[5px] ${isCurrent ? 'bg-brass-500' : 'bg-obsidian-900/20'}`} />
+                      )}
+                    </div>
+                    <p className={`mt-2.5 font-mono text-[9px] uppercase leading-tight tracking-architect ${
+                      isCurrent ? 'text-brass-600' : isCompleted ? 'text-obsidian-900' : 'text-graphite-300'
+                    }`}>{step.title}</p>
+                    <p className="mt-0.5 hidden font-mono text-[8.5px] uppercase tracking-architect text-graphite-300 sm:block">{step.subtitle}</p>
                   </div>
                 );
               })}
@@ -642,22 +680,22 @@ export default function HomeownerPortalClient({
 
           if (hasAnnouncement) {
             return (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-soft text-[13px] text-amber-900 font-medium leading-relaxed mb-6 flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">!</span>
-                <p>{(invoice as any).announcement}</p>
+              <div className="mb-7 flex items-start gap-3.5 border border-brass-200 border-l-2 border-l-brass-500 bg-brass-50 px-5 py-4">
+                <p className="eyebrow mt-[3px] shrink-0 text-brass-500">Notice</p>
+                <p className="text-[13px] leading-relaxed text-graphite-700">{(invoice as any).announcement}</p>
               </div>
             );
           }
           if (showNewContractBanner) {
             return (
-              <div className="bg-sage-50 border border-sage-200 rounded-2xl p-5 shadow-soft text-[13px] text-sage-700 font-medium leading-relaxed mb-6 flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">✓</span>
-                <p>Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, selections, communicate, and manage payments.</p>
+              <div className="mb-7 flex items-start gap-3.5 border border-patina-200 border-l-2 border-l-patina-500 bg-patina-50 px-5 py-4">
+                <p className="eyebrow mt-[3px] shrink-0 text-patina-600">Signed</p>
+                <p className="text-[13px] leading-relaxed text-graphite-700">Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, selections, communicate, and manage payments.</p>
               </div>
             );
           }
           return (
-            <div className="bg-brand-warm border border-brand-stone/40 rounded-2xl px-5 py-3.5 shadow-soft text-[13px] text-brand-muted font-medium leading-relaxed mb-6">
+            <div className="mb-7 border border-obsidian-900/10 border-l-2 border-l-obsidian-900/25 bg-white px-5 py-3.5 text-[13px] leading-relaxed text-graphite-600">
               Welcome back, {invoice.homeowner_name?.split(" ")[0] || "there"}. Use the tabs above to track progress, selections, communicate, and manage payments.
             </div>
           );
@@ -667,138 +705,188 @@ export default function HomeownerPortalClient({
 
         {/* ── PRE-APPROVAL: PROPOSAL TAB (default) ── */}
         {!isLocked && (activeTab === "proposal" || activeTab === "overview") && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start animate-fade-in">
-            <div className="lg:col-span-2 space-y-4">
+          <div className="grid animate-rise grid-cols-1 items-start gap-8 lg:grid-cols-3 lg:gap-10">
+            <div className="min-w-0 space-y-8 lg:col-span-2">
 
-              {/* Tier Toggle — Premium Pricing Matrix Style */}
+              {/* Specification grade */}
               {(invoice as any).show_luxury_tier && (
-                <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="space-y-0.5 text-left">
-                      <h4 className="text-[13px] font-semibold text-brand-charcoal">Specification Grade</h4>
-                      <p className="text-[12px] text-brand-muted font-medium">Switch between tier options to compare pricing.</p>
+                <div className="panel p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="eyebrow">Specification Grade</p>
+                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-graphite-500">Compare pricing across tiers.</p>
                     </div>
-                    <div className="bg-brand-warm p-1 rounded-xl flex w-full sm:w-auto border border-brand-stone/40 shrink-0">
-                      <button type="button" onClick={() => setTier("mid")} className={`px-5 py-2.5 text-[12px] font-medium rounded-lg transition-all duration-300 ${tier === 'mid' ? 'bg-white text-brand-charcoal shadow-soft font-semibold' : 'text-brand-muted hover:text-brand-charcoal'}`}>
+                    <div className="flex shrink-0 border border-obsidian-900/[0.12]">
+                      <button type="button" onClick={() => setTier("mid")} className={`px-5 py-2.5 font-mono text-[10px] uppercase tracking-architect transition-all duration-300 ease-architect ${tier === 'mid' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>
                         Standard
                       </button>
-                      <button type="button" onClick={() => setTier("high")} className={`px-5 py-2.5 text-[12px] font-medium rounded-lg transition-all duration-300 ${tier === 'high' ? 'bg-brand-charcoal text-white shadow-elevated' : 'text-brand-muted hover:text-brand-charcoal'}`}>
+                      <button type="button" onClick={() => setTier("high")} className={`border-l border-obsidian-900/[0.12] px-5 py-2.5 font-mono text-[10px] uppercase tracking-architect transition-all duration-300 ease-architect ${tier === 'high' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>
                         Luxury
                       </button>
                     </div>
                   </div>
                   {tier === 'high' && (
-                    <div className="mt-3 pt-3 border-t border-luxury-champagne/50">
-                      <p className="text-[11px] font-medium text-luxury-ochre flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-luxury-gold" />
-                        Luxury tier includes premium materials, upgraded finishes, and extended warranties.
-                      </p>
-                    </div>
+                    <p className="mt-4 flex items-start gap-2 border-t border-obsidian-900/[0.07] pt-3.5 text-[12px] leading-relaxed text-graphite-500">
+                      <span className="mt-[6px] h-px w-4 shrink-0 bg-brass-400" />
+                      Luxury tier includes premium materials, upgraded finishes, and extended warranties.
+                    </p>
                   )}
                 </div>
               )}
 
-              {/* Line Items */}
-              <div className="space-y-2">
-                {masterItems.map((item: any, idx: number) => {
-                  const isItemActive = activeIndices.includes(idx);
-                  const isExpanded = expandedIndices.includes(idx);
-                  const category = categoryOf(item);
-                  const startsCategory = idx === 0 || categoryOf(masterItems[idx - 1]) !== category;
-                  return (
-                    <div key={idx}>
-                    {startsCategory && (
-                      <div className="flex items-center gap-3 px-1 pt-3 pb-1.5">
-                        <span className="text-[10px] font-semibold text-brand-muted uppercase tracking-widest shrink-0">{category}</span>
-                        <div className="flex-1 h-px bg-brand-stone/40" />
-                      </div>
-                    )}
-                    <div
-                      className={`px-5 py-4 rounded-2xl border bg-white shadow-soft transition-all duration-200 ${
-                        !isItemActive ? 'opacity-35 border-dashed border-brand-stone/40 bg-brand-warm/30' : 'border-brand-stone/30 hover:shadow-card hover:border-brand-stone/50'
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <button type="button" onClick={() => toggleExpandDescription(idx)} className="flex items-center justify-center w-6 h-6 rounded-lg border border-brand-stone/40 text-brand-muted hover:text-brand-charcoal hover:bg-brand-warm hover:border-brand-stone transition-all duration-150 text-xs shrink-0 outline-none">
-                            {isExpanded ? "−" : "+"}
-                          </button>
-                          <h4 className="font-semibold text-brand-charcoal text-[14px] tracking-tight truncate">
-                            {tier === 'mid' ? item.title : item.high_title}
-                          </h4>
-                        </div>
-                        <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
-                          <span className="font-semibold text-brand-charcoal text-[15px] tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
-                            ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                          {isItemActive ? (
-                            <button type="button" onClick={() => handleRemoveIndex(idx)} title="remove item" className="w-6 h-6 flex items-center justify-center rounded-lg text-brand-muted hover:bg-red-50 hover:text-red-500 border border-brand-stone/40 hover:border-red-200 transition-all duration-150 outline-none text-[11px]">✕</button>
-                          ) : (
-                            <button type="button" onClick={() => handleReinstateIndex(idx)} className="bg-brand-warm border border-brand-stone/40 text-brand-charcoal font-medium text-[11px] px-3 py-1.5 rounded-lg hover:border-brand-charcoal/30 transition-all duration-200 outline-none">Add back</button>
+              {/* Scope of work */}
+              <div>
+                <div className="title-block">
+                  <h2 className="display-sm">Scope of Work</h2>
+                  <span className="eyebrow">{activeIndices.length} of {masterItems.length} included</span>
+                </div>
+
+                <div className="border-t border-obsidian-900/10">
+                  {masterItems.map((item: any, idx: number) => {
+                    const isItemActive = activeIndices.includes(idx);
+                    const isExpanded = expandedIndices.includes(idx);
+                    const category = categoryOf(item);
+                    const startsCategory = idx === 0 || categoryOf(masterItems[idx - 1]) !== category;
+                    return (
+                      <div key={idx}>
+                        {startsCategory && (
+                          <div className="flex items-center gap-3 bg-bone-100/60 px-3 py-2 sm:px-4">
+                            <span className="eyebrow shrink-0">{category}</span>
+                            <span aria-hidden className="h-px flex-1 bg-obsidian-900/10" />
+                          </div>
+                        )}
+                        <div
+                          className={`group relative border-b border-obsidian-900/[0.07] px-3 py-4 transition-colors duration-300 ease-architect sm:px-4 ${
+                            !isItemActive ? 'bg-bone-100/40' : 'bg-white hover:bg-bone-50'
+                          }`}
+                        >
+                          {isItemActive && (
+                            <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                          )}
+
+                          <div className="flex items-start justify-between gap-3 sm:gap-5">
+                            <div className="flex min-w-0 flex-1 items-start gap-3">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandDescription(idx)}
+                                aria-expanded={isExpanded}
+                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-obsidian-900/15 text-graphite-400 transition-all duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900"
+                              >
+                                <svg className={`h-2.5 w-2.5 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+                                </svg>
+                              </button>
+                              <div className="min-w-0">
+                                <h4 className={`text-[13.5px] font-medium leading-snug tracking-[-0.01em] sm:text-[14px] ${isItemActive ? 'text-obsidian-900' : 'text-graphite-400 line-through decoration-graphite-300'}`}>
+                                  {tier === 'mid' ? item.title : item.high_title}
+                                </h4>
+                                {!isItemActive && (
+                                  <p className="mt-1 font-mono text-[9px] uppercase tracking-architect text-graphite-400">Removed from scope</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+                              <span className={`figure text-[14px] sm:text-[15px] ${isItemActive ? '' : 'text-graphite-300 line-through'}`}>
+                                ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              {isItemActive ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveIndex(idx)}
+                                  title="remove item"
+                                  className="flex h-5 w-5 shrink-0 items-center justify-center text-graphite-300 transition-colors duration-200 ease-architect hover:text-clay-600"
+                                >
+                                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleReinstateIndex(idx)}
+                                  className="shrink-0 border border-obsidian-900/15 px-2.5 py-1 font-mono text-[9px] uppercase tracking-architect text-graphite-600 transition-all duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900"
+                                >
+                                  Restore
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="mt-3 max-w-2xl animate-rise border-t border-obsidian-900/[0.06] pl-8 pt-3">
+                              <p className="text-[12.5px] leading-relaxed text-graphite-600">
+                                {tier === 'mid' ? item.mid_description : item.high_description}
+                              </p>
+                            </div>
                           )}
                         </div>
                       </div>
-                      {isExpanded && (
-                        <div className="mt-3 pt-3 border-t border-brand-stone/30 pl-9 max-w-3xl text-left animate-fade-in">
-                          <p className="text-[13px] text-brand-muted font-medium leading-relaxed">
-                            {tier === 'mid' ? item.mid_description : item.high_description}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-4 sticky top-20">
-              <div className="bg-white rounded-2xl p-6 shadow-premium border border-brand-stone/30 space-y-5 text-left">
-                <div>
-                  <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Project Total</p>
-                  <h2 className="text-3xl font-bold text-brand-charcoal mt-1.5 tracking-tight font-editorial" style={{fontVariantNumeric:'tabular-nums'}}>
+            {/* Sidebar — the execution rail */}
+            <div className="space-y-4 lg:sticky lg:top-24">
+              <div className="panel-raised overflow-hidden">
+                <div className="bg-obsidian-950 px-6 py-6 text-bone-100">
+                  <p className="eyebrow-invert">Project Total</p>
+                  <p className="mt-2 font-display text-[2.25rem] leading-none tracking-[-0.02em] text-bone-50 tnum">
                     ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </h2>
+                  </p>
                 </div>
-                <div className="bg-brand-warm rounded-xl border border-brand-stone/40 p-4 text-[13px] text-brand-charcoal space-y-3 font-medium">
-                  <div className="flex justify-between items-center pb-2.5 border-b border-brand-stone/40">
-                    <span className="text-brand-muted">Deposit ({depositPercent}%)</span>
-                    <span className="font-semibold" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                <dl className="divide-y divide-obsidian-900/[0.07]">
+                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                    <dt className="eyebrow">Deposit ({depositPercent}%)</dt>
+                    <dd className="figure text-[13px]">${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-brand-muted">Timeline</span>
-                    <span className="font-semibold">{invoice.project_length || "9 Weeks"}</span>
+                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                    <dt className="eyebrow">Timeline</dt>
+                    <dd className="text-[13px] font-medium text-obsidian-900">{invoice.project_length || "9 Weeks"}</dd>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-brand-muted">Start Date</span>
-                    <span className="font-semibold">
+                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                    <dt className="eyebrow">Start Date</dt>
+                    <dd className="text-[13px] font-medium text-obsidian-900">
                       {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "TBD"}
-                    </span>
+                    </dd>
                   </div>
-                </div>
+                </dl>
               </div>
 
               {/* Signature */}
               <div id="approve-section">
               {isExpired ? (
-                <div className="bg-red-50 rounded-2xl p-6 space-y-3 shadow-soft border border-red-200">
-                  <div className="text-left">
-                    <h3 className="text-[13px] font-semibold text-red-800">Proposal Expired</h3>
-                    <p className="text-[11px] text-red-600 mt-0.5 leading-relaxed">Your reserved schedule slot and pricing have been released. Reach out to discuss availability and an updated proposal.</p>
+                <div className="panel space-y-4 border-clay-200 bg-clay-50 p-6">
+                  <div>
+                    <p className="eyebrow text-clay-600">Expired</p>
+                    <h3 className="display-sm mt-1.5 text-clay-700">Proposal Expired</h3>
+                    <p className="mt-2 text-[12.5px] leading-relaxed text-clay-600">Your reserved schedule slot and pricing have been released. Reach out to discuss availability and an updated proposal.</p>
                   </div>
-                  <a href="tel:4028198558" className="block w-full bg-red-100 text-red-800 font-semibold text-sm py-3 rounded-xl tracking-wide text-center border border-red-200">
+                  <a href="tel:4028198558" className="block w-full border border-clay-300 bg-white py-3 text-center font-mono text-[11px] uppercase tracking-architect text-clay-700 transition-colors duration-200 ease-architect hover:bg-clay-100">
                     Call 402-819-8558
                   </a>
                 </div>
               ) : (
-                <form onSubmit={handleApprove} className="bg-white rounded-2xl p-6 space-y-4 shadow-soft border border-brand-stone/30">
-                  <div className="text-left">
-                    <h3 className="text-[13px] font-semibold text-brand-charcoal">Approve & Sign</h3>
-                    <p className="text-[11px] text-brand-muted mt-0.5">Type your full legal name to authorize this proposal.</p>
+                <form onSubmit={handleApprove} className="panel-raised space-y-4 p-6">
+                  <div>
+                    <p className="eyebrow">Execution</p>
+                    <h3 className="display-sm mt-1.5">Approve &amp; Sign</h3>
+                    <p className="mt-1.5 text-[12px] leading-relaxed text-graphite-500">Type your full legal name to authorize this proposal.</p>
                   </div>
-                  <input type="text" required placeholder="Your full name" value={typedSignature} onChange={(e) => setTypedSignature(e.target.value)} className="w-full px-4 py-3.5 rounded-xl outline-none text-sm text-brand-charcoal bg-brand-alabaster border border-brand-stone/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 font-medium transition-all placeholder:text-brand-muted/50" />
-                  <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:bg-brand-stone disabled:text-brand-muted text-white font-semibold text-sm py-3.5 rounded-xl tracking-wide transition-all duration-300 shadow-soft hover:shadow-elevated outline-none">
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Your full name"
+                      value={typedSignature}
+                      onChange={(e) => setTypedSignature(e.target.value)}
+                      className="w-full border-0 border-b border-obsidian-900/20 bg-transparent px-0 pb-2 pt-1 font-display text-[1.35rem] tracking-[-0.01em] text-obsidian-900 outline-none transition-colors duration-200 ease-architect placeholder:font-sans placeholder:text-[13px] placeholder:tracking-normal placeholder:text-graphite-300 focus:border-obsidian-900"
+                    />
+                    <p className="mt-2 font-mono text-[9px] uppercase tracking-architect text-graphite-300">Signature of Homeowner</p>
+                  </div>
+                  <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="btn-ink w-full py-3.5 text-[12.5px]">
                     {isSubmitting ? "Processing..." : "Accept Proposal"}
                   </button>
                 </form>
@@ -806,18 +894,20 @@ export default function HomeownerPortalClient({
               </div>
 
               {/* Legal Terms */}
-              <div className="bg-white rounded-2xl overflow-hidden shadow-soft border border-brand-stone/30 text-left">
-                <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full px-5 py-3 font-medium text-[12px] flex justify-between items-center text-brand-muted hover:text-brand-charcoal transition-all duration-200 outline-none">
-                  <span>Terms & Conditions</span>
-                  <span className="text-[11px]">{showTerms ? "▲" : "▼"}</span>
+              <div className="panel overflow-hidden">
+                <button type="button" onClick={() => setShowTerms(!showTerms)} aria-expanded={showTerms} className="flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-200 ease-architect hover:bg-bone-50">
+                  <span className="eyebrow">Terms &amp; Conditions</span>
+                  <svg className={`h-3 w-3 shrink-0 text-graphite-400 transition-transform duration-300 ease-architect ${showTerms ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
                 {showTerms && (
-                  <div className="px-5 pb-4 text-[12px] text-brand-muted space-y-4 max-h-[50vh] overflow-y-scroll leading-relaxed font-medium border-t border-brand-stone/30 pt-4">
-                    <p className="text-[11px] font-semibold text-brand-charcoal">WDO Custom — General Contracting Terms & Conditions</p>
+                  <div className="max-h-[50vh] space-y-4 overflow-y-auto border-t border-obsidian-900/[0.07] px-5 pb-5 pt-4">
+                    <p className="font-mono text-[9.5px] uppercase leading-relaxed tracking-architect text-graphite-600">WDO Custom — General Contracting Terms &amp; Conditions</p>
                     {TERMS_AND_CONDITIONS.map((section, i) => (
                       <div key={i} className="space-y-1">
-                        <p className="text-[11px] font-semibold text-brand-charcoal">{section.heading}</p>
-                        <p>{section.text}</p>
+                        <p className="text-[11.5px] font-medium text-obsidian-900">{section.heading}</p>
+                        <p className="text-[11.5px] leading-relaxed text-graphite-500">{section.text}</p>
                       </div>
                     ))}
                   </div>
@@ -829,44 +919,46 @@ export default function HomeownerPortalClient({
 
         {/* ── POST-APPROVAL: OVERVIEW TAB ── */}
         {isLocked && (activeTab === "overview" || activeTab === "proposal") && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2 space-y-4">
+          <div className="grid animate-rise grid-cols-1 items-start gap-8 lg:grid-cols-3 lg:gap-10">
+            <div className="min-w-0 space-y-9 lg:col-span-2">
 
               {scheduleTasks.length > 0 && (
-                <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-3">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">🗓️ Live Construction Timeline Gantt Grid</h3>
-                  <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 text-xs shadow-inner">
+                <div>
+                  <div className="title-block">
+                    <h2 className="display-sm">Construction Timeline</h2>
+                    <span className="eyebrow hidden sm:block">Live</span>
+                  </div>
+                  <div className="panel overflow-hidden">
                     {masterMilestones.map((milestone) => {
                       const subTasks = getSubTasksForMilestone(milestone.id);
                       return (
-                        <div key={milestone.id} className="bg-white">
-                          <div className="p-3 bg-slate-50/40 flex justify-between items-center text-left font-black text-slate-900 text-sm">
-                            <div className="flex items-center gap-2">
-                              <span>🔼</span>
-                              <span>{milestone.task_name}</span>
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-[9px] font-bold text-slate-400 bg-white border px-1.5 py-0.2 rounded-md font-sans">
-                                {new Date(milestone.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} - {new Date(milestone.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
+                        <div key={milestone.id} className="border-b border-obsidian-900/[0.07] last:border-b-0">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5 bg-bone-100/60 px-4 py-3">
+                            <h3 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">
+                              {milestone.task_name}
+                            </h3>
+                            <div className="flex shrink-0 items-baseline gap-3">
+                              <span className="font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                                {new Date(milestone.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(milestone.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
                               </span>
-                              <span className="font-sans font-black text-blue-600 text-[10px]">{milestone.progress_percent}%</span>
+                              <span className="figure text-[12px]">{milestone.progress_percent}%</span>
                             </div>
                           </div>
-                          <div className="divide-y divide-slate-50 pl-6">
+                          <div>
                             {subTasks.map((task) => (
-                              <div key={task.id} className="p-2.5 flex justify-between items-center gap-4 hover:bg-slate-50/30 transition-colors">
-                                <div className="flex items-center gap-2.5 text-left min-w-0 flex-1">
-                                  <span className="text-slate-300 font-bold">↳</span>
-                                  <span className="font-bold text-slate-800 truncate">{task.task_name}</span>
-                                  <div className={`px-2 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-wider shrink-0 ${task.color_theme}`}>
+                              <div key={task.id} className="flex flex-col gap-2 border-t border-obsidian-900/[0.05] px-4 py-3 transition-colors duration-200 ease-architect hover:bg-bone-50 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+                                <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
+                                  <span aria-hidden className="mt-1 h-px w-3 shrink-0 bg-obsidian-900/20" />
+                                  <span className="min-w-0 truncate text-[12.5px] text-graphite-700">{task.task_name}</span>
+                                  <span className={`shrink-0 border px-1.5 py-0.5 font-mono text-[8.5px] uppercase tracking-architect ${task.color_theme}`}>
                                     {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
-                                  </div>
+                                  </span>
                                 </div>
-                                <div className="flex items-center gap-3 shrink-0">
-                                  <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/40 shadow-inner">
-                                    <div className="h-full bg-slate-900 transition-all duration-300" style={{ width: `${task.progress_percent}%` }} />
+                                <div className="flex shrink-0 items-center gap-3 pl-5 sm:pl-0">
+                                  <div className="h-[3px] w-20 overflow-hidden bg-obsidian-900/10">
+                                    <div className="h-full bg-obsidian-900 transition-all duration-500 ease-architect" style={{ width: `${task.progress_percent}%` }} />
                                   </div>
-                                  <span className="font-sans font-bold text-slate-500 text-[10px] min-w-[24px] text-right">{task.progress_percent}%</span>
+                                  <span className="min-w-[28px] text-right font-mono text-[10px] tabular-nums text-graphite-500">{task.progress_percent}%</span>
                                 </div>
                               </div>
                             ))}
@@ -879,21 +971,26 @@ export default function HomeownerPortalClient({
               )}
 
               {dailyLogs.length > 0 && (
-                <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-3">
-                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2 border-slate-100">📸 Field Progress Updates & Logs</h3>
-                  <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto pr-1 text-xs">
+                <div>
+                  <div className="title-block">
+                    <h2 className="display-sm">Field Log</h2>
+                    <span className="eyebrow hidden sm:block">{dailyLogs.length} entries</span>
+                  </div>
+                  <div className="max-h-[420px] overflow-y-auto border-t border-obsidian-900/10">
                     {dailyLogs.map((log) => (
-                      <div key={log.id} className="py-3 space-y-2 first:pt-0">
-                        <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold">
-                          <span className="uppercase text-slate-600">Daily Log Entry Deployed</span>
-                          <span>{new Date(log.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}</span>
+                      <div key={log.id} className="space-y-3 border-b border-obsidian-900/[0.07] px-1 py-5 sm:px-2">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <span className="eyebrow">Site Report</span>
+                          <span className="font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                            {new Date(log.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}
+                          </span>
                         </div>
-                        <p className="text-slate-600 font-medium leading-relaxed whitespace-pre-line text-left">{log.log_text}</p>
+                        <p className="whitespace-pre-line text-[13px] leading-relaxed text-graphite-700">{log.log_text}</p>
                         {log.photo_urls && log.photo_urls.length > 0 && (
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
+                          <div className="grid grid-cols-2 gap-1.5 pt-1 sm:grid-cols-4">
                             {log.photo_urls.map((photoUrl: string, pIdx: number) => (
-                              <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="block relative aspect-video border rounded-lg overflow-hidden bg-slate-50 shadow-sm transition-transform duration-150 hover:scale-102">
-                                <img src={photoUrl} className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                              <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="group relative block aspect-[4/3] overflow-hidden border border-obsidian-900/10 bg-bone-100">
+                                <img src={photoUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 ease-architect group-hover:scale-[1.03]" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                               </a>
                             ))}
                           </div>
@@ -904,107 +1001,133 @@ export default function HomeownerPortalClient({
                 </div>
               )}
 
-              <div className="bg-slate-100/70 border border-slate-200/60 text-slate-600 px-6 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] select-none">
-                <span className="text-blue-500 text-sm">💡</span>
-                <p>Click the <span className="font-black text-slate-800 bg-white border border-slate-200 px-1 py-0.2 rounded">+</span> button on any milestone line item to see the full details and project descriptions.</p>
-              </div>
+              <div>
+                <div className="title-block">
+                  <h2 className="display-sm">Contracted Scope</h2>
+                  <span className="eyebrow hidden sm:block">Expand for detail</span>
+                </div>
 
-              <div className="space-y-2 bg-transparent">
-                {masterItems.map((item: any, idx: number) => {
-                  const isItemActive = activeIndices.includes(idx);
-                  const isExpanded = expandedIndices.includes(idx);
-                  if (!isItemActive) return null;
-                  const category = categoryOf(item);
-                  // Compare against the previous *included* line — declined lines
-                  // are skipped here, so array order alone would misplace a band.
-                  const prevShown = masterItems
-                    .slice(0, idx)
-                    .filter((_: any, i: number) => activeIndices.includes(i))
-                    .pop();
-                  const startsCategory = !prevShown || categoryOf(prevShown) !== category;
-                  return (
-                    <div key={idx}>
-                    {startsCategory && (
-                      <div className="flex items-center gap-3 px-1 pt-3 pb-1.5">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">{category}</span>
-                        <div className="flex-1 h-px bg-slate-200" />
-                      </div>
-                    )}
-                    <div className="px-5 py-3 rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] transition-all duration-200 text-xs hover:border-slate-300">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                          <button type="button" onClick={() => toggleExpandDescription(idx)} className="flex items-center justify-center w-5 h-5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100 hover:border-slate-300 transition-all duration-150 font-sans font-black text-xs bg-slate-50/60 shrink-0 outline-none">
-                            {isExpanded ? "−" : "+"}
-                          </button>
-                          <h4 className="font-extrabold text-slate-900 text-sm tracking-tight truncate">{item.title}</h4>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          {item.actual_cost != null && (
-                            <span className="text-[10px] text-brand-muted font-medium line-through" style={{fontVariantNumeric:'tabular-nums'}}>
-                              ${toNum(item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
+                <div className="border-t border-obsidian-900/10">
+                  {masterItems.map((item: any, idx: number) => {
+                    const isItemActive = activeIndices.includes(idx);
+                    const isExpanded = expandedIndices.includes(idx);
+                    if (!isItemActive) return null;
+                    const category = categoryOf(item);
+                    // Compare against the previous *included* line — declined lines
+                    // are skipped here, so array order alone would misplace a band.
+                    const prevShown = masterItems
+                      .slice(0, idx)
+                      .filter((_: any, i: number) => activeIndices.includes(i))
+                      .pop();
+                    const startsCategory = !prevShown || categoryOf(prevShown) !== category;
+                    return (
+                      <div key={idx}>
+                        {startsCategory && (
+                          <div className="flex items-center gap-3 bg-bone-100/60 px-3 py-2 sm:px-4">
+                            <span className="eyebrow shrink-0">{category}</span>
+                            <span aria-hidden className="h-px flex-1 bg-obsidian-900/10" />
+                          </div>
+                        )}
+                        <div className="group relative border-b border-obsidian-900/[0.07] bg-white px-3 py-3.5 transition-colors duration-300 ease-architect hover:bg-bone-50 sm:px-4">
+                          <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                          <div className="flex items-start justify-between gap-3 sm:gap-5">
+                            <div className="flex min-w-0 flex-1 items-start gap-3">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpandDescription(idx)}
+                                aria-expanded={isExpanded}
+                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-obsidian-900/15 text-graphite-400 transition-all duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900"
+                              >
+                                <svg className={`h-2.5 w-2.5 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+                                </svg>
+                              </button>
+                              <h4 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">{item.title}</h4>
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                              <div className="flex items-baseline gap-2.5">
+                                {item.actual_cost != null && (
+                                  <span className="font-mono text-[10px] tabular-nums text-graphite-300 line-through">
+                                    ${toNum(item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                )}
+                                <span className="figure text-[14px]">
+                                  ${toNum(item.actual_cost ?? item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                              </div>
+                              {item.actual_cost != null && (
+                                <span className={`font-mono text-[9px] uppercase tracking-architect ${toNum(item.actual_cost) > toNum(item.cost) ? 'text-clay-600' : 'text-patina-600'}`}>
+                                  {toNum(item.actual_cost) > toNum(item.cost) ? 'Over' : 'Under'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost)).toLocaleString(undefined, {minimumFractionDigits:2})}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {isExpanded && (
+                            <div className="mt-3 max-w-2xl animate-rise border-t border-obsidian-900/[0.06] pl-8 pt-3">
+                              <p className="text-[12.5px] leading-relaxed text-graphite-600">{item.description}</p>
+                            </div>
                           )}
-                          <span className="font-sans font-extrabold text-slate-950 text-sm tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
-                            ${toNum(item.actual_cost ?? item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                          {item.actual_cost != null && (
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border ${toNum(item.actual_cost) > toNum(item.cost) ? 'bg-red-50 text-red-600 border-red-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
-                              {toNum(item.actual_cost) > toNum(item.cost) ? '▲' : '▼'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost)).toLocaleString(undefined, {minimumFractionDigits:2})}
-                            </span>
-                          )}
                         </div>
                       </div>
-                      {isExpanded && (
-                        <div className="mt-2.5 pt-2.5 border-t border-slate-100 pl-7 max-w-3xl text-left animate-fadeIn">
-                          <p className="text-slate-500 font-medium leading-relaxed">{item.description}</p>
-                        </div>
-                      )}
-                    </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
             {/* Sidebar — signed status + total */}
-            <div className="space-y-4 sticky top-20">
-              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.03)] space-y-5 text-left relative overflow-hidden">
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROJECT TOTAL</p>
-                  <h2 className="text-3xl font-black text-slate-950 mt-1 tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
+            <div className="space-y-4 lg:sticky lg:top-24">
+              <div className="panel-raised overflow-hidden">
+                <div className="bg-obsidian-950 px-6 py-6 text-bone-100">
+                  <p className="eyebrow-invert">Project Total</p>
+                  <p className="mt-2 font-display text-[2.25rem] leading-none tracking-[-0.02em] text-bone-50 tnum">
                     ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </h2>
-                  <div className="mt-3 flex flex-wrap gap-1.5 pt-3 border-t border-slate-100">
-                    <span className="text-[9px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-0.5 rounded-md" style={{fontVariantNumeric:'tabular-nums'}}>
-                      Contract Base: ${toNum(baseTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
-                    </span>
-                    {approvedCoTotal > 0 && (
-                      <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-md shadow-sm" style={{fontVariantNumeric:'tabular-nums'}}>
-                        Appended Variations: +${toNum(approvedCoTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
-                      </span>
-                    )}
-                  </div>
+                  </p>
                 </div>
+                <dl className="divide-y divide-obsidian-900/[0.07]">
+                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                    <dt className="eyebrow">Contract Base</dt>
+                    <dd className="figure text-[13px]">${toNum(baseTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
+                  </div>
+                  {approvedCoTotal > 0 && (
+                    <div className="flex items-baseline justify-between px-6 py-3.5">
+                      <dt className="eyebrow text-brass-500">Approved Variations</dt>
+                      <dd className="figure text-[13px] text-brass-600">+${toNum(approvedCoTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
+                    </div>
+                  )}
+                </dl>
               </div>
 
-              <div className="bg-slate-900 text-white rounded-xl p-4 text-center shadow-md relative overflow-hidden border border-slate-800">
-                <p className="text-emerald-400 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">✓ Contract Execution Bound & Sealed</p>
-                <p className="text-[11px] text-slate-400 mt-1 font-medium">Digital signature verification matching: <span className="font-sans font-extrabold text-white underline tracking-tight">{invoice.signature_name}</span></p>
-                <p className="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5">Timestamp: {new Date(invoice.signed_at || "").toLocaleString()}</p>
+              {/* Execution record */}
+              <div className="panel border-patina-200 bg-patina-50 p-5">
+                <div className="flex items-center gap-2">
+                  <svg className="h-3.5 w-3.5 shrink-0 text-patina-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  <p className="font-mono text-[10px] uppercase tracking-architect text-patina-700">Contract Executed</p>
+                </div>
+                <p className="mt-3 font-display text-[1.5rem] leading-none tracking-[-0.01em] text-obsidian-900">
+                  {invoice.signature_name}
+                </p>
+                <p className="mt-2.5 border-t border-patina-200 pt-2.5 font-mono text-[9.5px] uppercase tracking-architect text-patina-600">
+                  {new Date(invoice.signed_at || "").toLocaleString()}
+                </p>
               </div>
 
-              <div className="border border-slate-200/60 bg-white rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left">
-                <button type="button" onClick={() => setShowTerms(!showTerms)} className="w-full bg-slate-50 px-4 py-2.5 font-bold text-[10px] uppercase tracking-wider flex justify-between items-center text-slate-400 hover:text-slate-700 transition-all duration-200 outline-none border-0">
-                  <span>⚖️ Binding Terms (Omaha Law Standard)</span>
-                  <span className="text-[10px] text-slate-400 font-semibold">{showTerms ? "Hide ▲" : "View ▼"}</span>
+              <div className="panel overflow-hidden">
+                <button type="button" onClick={() => setShowTerms(!showTerms)} aria-expanded={showTerms} className="flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-200 ease-architect hover:bg-bone-50">
+                  <span className="eyebrow">Binding Terms</span>
+                  <svg className={`h-3 w-3 shrink-0 text-graphite-400 transition-transform duration-300 ease-architect ${showTerms ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
                 {showTerms && (
-                  <div className="p-4 text-[11px] text-slate-400 space-y-4 max-h-[50vh] overflow-y-scroll border-t bg-white leading-relaxed font-medium shadow-inner">
-                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">WDO Custom — General Contracting Terms & Conditions</p>
+                  <div className="max-h-[50vh] space-y-4 overflow-y-auto border-t border-obsidian-900/[0.07] px-5 pb-5 pt-4">
+                    <p className="font-mono text-[9.5px] uppercase leading-relaxed tracking-architect text-graphite-600">WDO Custom — General Contracting Terms &amp; Conditions</p>
                     {TERMS_AND_CONDITIONS.map((section, i) => (
                       <div key={i} className="space-y-1">
-                        <p className="text-[10px] font-bold text-slate-600">{section.heading}</p>
-                        <p>{section.text}</p>
+                        <p className="text-[11.5px] font-medium text-obsidian-900">{section.heading}</p>
+                        <p className="text-[11.5px] leading-relaxed text-graphite-500">{section.text}</p>
                       </div>
                     ))}
                   </div>
@@ -1016,41 +1139,40 @@ export default function HomeownerPortalClient({
 
         {/* ── MESSAGES TAB (both pre and post approval) ── */}
         {activeTab === "messages" && (
-          <div className="max-w-3xl mx-auto animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 overflow-hidden">
-              <div className="px-6 py-4 border-b border-brand-stone/30">
-                <h3 className="text-[15px] font-semibold text-brand-charcoal">Messages</h3>
-                <p className="text-[12px] text-brand-muted mt-0.5">Questions about your project? We typically respond within a few hours.</p>
-              </div>
+          <div className="mx-auto max-w-3xl animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Messages</h2>
+              <span className="eyebrow hidden sm:block">Typical reply within hours</span>
+            </div>
 
-              <div className="max-h-[440px] overflow-y-auto p-5 space-y-3 bg-brand-warm/30">
+            <div className="panel overflow-hidden">
+              <div className="max-h-[440px] space-y-4 overflow-y-auto bg-bone-100/40 p-4 sm:p-5">
                 {Array.isArray((invoice as any).questions) && (invoice as any).questions.length > 0 ? (
                   (invoice as any).questions.map((msg: any, i: number) => (
                     <div key={i} className={`flex ${msg.author === "homeowner" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[78%] px-4 py-3 rounded-2xl text-[13px] font-medium leading-relaxed ${
+                      <div className={`max-w-[86%] px-4 py-3 text-[13px] leading-relaxed sm:max-w-[76%] ${
                         msg.author === "homeowner"
-                          ? "bg-brand-charcoal text-white rounded-br-md shadow-soft"
-                          : "bg-white border border-brand-stone/40 text-brand-charcoal rounded-bl-md shadow-soft"
+                          ? "border border-obsidian-900 bg-obsidian-900 text-bone-50"
+                          : "border border-obsidian-900/10 bg-white text-graphite-700"
                       }`}>
                         {msg.image_url && (
-                          <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="block mb-2">
-                            <img src={msg.image_url} alt="Attachment" className="max-w-full max-h-52 rounded-lg border border-brand-stone/20" />
+                          <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="mb-2.5 block">
+                            <img src={msg.image_url} alt="Attachment" className="max-h-52 max-w-full border border-white/10" />
                           </a>
                         )}
                         {msg.text && <p>{msg.text}</p>}
-                        <p className={`text-[10px] mt-2 font-medium ${msg.author === "homeowner" ? "text-white/50" : "text-brand-muted"}`}>
+                        <p className={`mt-2.5 font-mono text-[9px] uppercase tracking-architect ${msg.author === "homeowner" ? "text-bone-100/45" : "text-graphite-400"}`}>
                           {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-12 space-y-3">
-                    <div className="w-12 h-12 rounded-full bg-brand-warm mx-auto flex items-center justify-center border border-brand-stone/40">
-                      <svg className="w-5 h-5 text-brand-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                    </div>
-                    <p className="text-sm font-medium text-brand-charcoal">No messages yet</p>
-                    <p className="text-[12px] text-brand-muted">Ask about materials, timeline, pricing — we're here to help.</p>
+                  <div className="blueprint-grid px-6 py-16 text-center">
+                    <p className="display-sm">No messages yet</p>
+                    <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                      Ask about materials, timeline or pricing — we&rsquo;re here to help.
+                    </p>
                   </div>
                 )}
               </div>
@@ -1085,19 +1207,19 @@ export default function HomeownerPortalClient({
                     setIsSendingQa(false);
                   }
                 }}
-                className="flex gap-2 p-4 border-t border-brand-stone/30 bg-white"
+                className="flex gap-2 border-t border-obsidian-900/10 bg-white p-3 sm:p-4"
               >
                 <input
                   type="text"
                   value={qaMessage}
                   onChange={(e) => setQaMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 p-3.5 bg-brand-alabaster border border-brand-stone/60 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 focus:bg-white transition-all placeholder:text-brand-muted/60"
+                  className="field flex-1"
                 />
                 <button
                   type="submit"
                   disabled={isSendingQa || !qaMessage.trim()}
-                  className="bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-30 text-white font-semibold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 shadow-soft hover:shadow-elevated shrink-0"
+                  className="btn-ink shrink-0 px-5"
                 >
                   {isSendingQa ? "..." : "Send"}
                 </button>
@@ -1108,67 +1230,105 @@ export default function HomeownerPortalClient({
 
         {/* ── PRE-APPROVAL: SCHEDULE TAB ── */}
         {!isLocked && activeTab === "schedule" && (
-          <div className="max-w-3xl mx-auto space-y-4">
-            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left space-y-3">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
-              <div className="space-y-2">
+          <div className="mx-auto max-w-3xl animate-rise space-y-9">
+            <div>
+              <div className="title-block">
+                <h2 className="display-sm">Payment Schedule</h2>
+                <span className="eyebrow hidden sm:block">Schedule of Values</span>
+              </div>
+
+              <div className="panel overflow-hidden">
+                <div className="hidden items-baseline justify-between border-b border-obsidian-900/[0.07] bg-bone-100/60 px-4 py-2.5 sm:flex">
+                  <span className="eyebrow">Draw</span>
+                  <span className="eyebrow">Amount</span>
+                </div>
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
                   const phaseVal = phaseAmountOf(phase, baseTotal);
                   const phasePercent = phasePercentOf(phase, baseTotal);
                   return (
-                    <div key={idx} className="bg-slate-50/50 border border-slate-200/60 p-3 rounded-xl text-xs">
-                      <div className="flex justify-between items-center">
-                        <div className="space-y-0.5">
-                          <p className="font-extrabold text-slate-800 tracking-tight">{phase.name}</p>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {displayPercent(phasePercent)}%</p>
+                    <div key={idx} className="flex items-start justify-between gap-4 border-b border-obsidian-900/[0.06] px-4 py-3.5 transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50">
+                      <div className="flex min-w-0 gap-3.5">
+                        <span className="mt-[3px] shrink-0 font-mono text-[10px] tabular-nums text-graphite-300">
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-medium leading-snug text-obsidian-900">{phase.name}</p>
+                          <p className="mt-1 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                            {displayPercent(phasePercent)}% of contract
+                          </p>
                         </div>
-                        <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
+                      <span className="figure shrink-0 text-[13.5px]">
+                        ${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
                     </div>
                   );
                 })}
               </div>
             </div>
-            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-medium">Construction Deposit ({depositPercent}%):</span>
-                <span className="font-sans font-black text-slate-950 text-sm" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+
+            <div>
+              <div className="title-block">
+                <h2 className="display-sm">Terms</h2>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-medium">Estimated Build Timeline:</span>
-                <span className="font-extrabold text-slate-800 uppercase tracking-wide">{invoice.project_length || "9 Weeks"}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-medium">Start Date*:</span>
-                <span className="font-extrabold text-slate-800">
-                  {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
-                </span>
-              </div>
+              <dl className="panel divide-y divide-obsidian-900/[0.07]">
+                <div className="flex items-baseline justify-between px-4 py-3.5">
+                  <dt className="eyebrow">Construction Deposit ({depositPercent}%)</dt>
+                  <dd className="figure text-[14px]">${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
+                </div>
+                <div className="flex items-baseline justify-between px-4 py-3.5">
+                  <dt className="eyebrow">Estimated Build Timeline</dt>
+                  <dd className="text-[13px] font-medium text-obsidian-900">{invoice.project_length || "9 Weeks"}</dd>
+                </div>
+                <div className="flex items-baseline justify-between px-4 py-3.5">
+                  <dt className="eyebrow">Start Date</dt>
+                  <dd className="text-[13px] font-medium text-obsidian-900">
+                    {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-2.5 font-mono text-[9px] uppercase tracking-architect text-graphite-300">
+                Start date subject to permit issuance and material lead times.
+              </p>
             </div>
           </div>
         )}
 
         {/* ── POST-APPROVAL: SELECTIONS TAB ── */}
         {(isLocked || invoice?.selections_visible) && activeTab === "selections" && (
-          <div className="max-w-3xl mx-auto">
+          <div className="mx-auto max-w-3xl animate-rise">
             {invoice.homeowner_options && invoice.homeowner_options.length > 0 ? (
-              <div className="border border-slate-200/60 bg-white rounded-2xl p-6 text-left space-y-4 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-slate-900" />
-                <div>
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">🎨 Project Materials Selection Board</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Finalize your property finishes below. Tap an entry variant to register allowances logs directly onto the build schedule.</p>
+              <>
+                <div className="title-block">
+                  <h2 className="display-sm">Finish Selections</h2>
+                  <span className="eyebrow hidden sm:block">Specification Board</span>
                 </div>
-                <div className="space-y-3 divide-y divide-slate-100">
+                <p className="-mt-1 mb-7 max-w-lg text-[12.5px] leading-relaxed text-graphite-500">
+                  Choose a finish for each component. Selections are logged against the build schedule once confirmed.
+                </p>
+
+                <div className="space-y-8">
                   {invoice.homeowner_options.map((group: any, gIdx: number) => {
                     const chosen = invoice.homeowner_selections?.[group.category];
                     const isPendingCategory = pendingSelection?.category === group.category;
                     return (
-                      <div key={gIdx} className="space-y-2 pt-3 first:pt-0">
-                        <p className="text-[11px] font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-900" /> Design Component: Specify {group.category}
-                          {chosen && !isPendingCategory && <span className="ml-auto text-[10px] font-medium text-emerald-600 normal-case tracking-normal">Selected: {chosen}</span>}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
+                      <div key={gIdx}>
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-obsidian-900/10 pb-2.5">
+                          <div className="flex items-baseline gap-3">
+                            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">
+                              {String(gIdx + 1).padStart(2, "0")}
+                            </span>
+                            <h3 className="display-sm">{group.category}</h3>
+                          </div>
+                          {chosen && !isPendingCategory && (
+                            <span className="badge badge-approved">
+                              <span className="badge-dot bg-patina-500" />
+                              {chosen}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                           {group.choices.map((choice: any, cIdx: number) => {
                             const choiceLabel = typeof choice === "string" ? choice : choice.label;
                             const imageUrl = typeof choice === "string" ? undefined : choice.image_url;
@@ -1176,37 +1336,74 @@ export default function HomeownerPortalClient({
                             const isChosen = chosen === choiceLabel && !isPendingCategory;
                             const isPending = isPendingCategory && pendingSelection?.value === choiceLabel;
                             return (
-                              <div key={cIdx} className="flex flex-col items-center">
+                              <div key={cIdx} className={`group flex flex-col overflow-hidden border transition-all duration-300 ease-architect ${
+                                isPending
+                                  ? 'border-brass-500 shadow-riser ring-1 ring-brass-500/30'
+                                  : isChosen
+                                    ? 'border-obsidian-900 shadow-riser'
+                                    : 'border-obsidian-900/[0.12] hover:border-obsidian-900/35'
+                              }`}>
                                 {imageUrl && (
-                                  <a href={productUrl || "#"} target={productUrl ? "_blank" : undefined} rel="noopener noreferrer" onClick={(e) => { if (!productUrl) e.preventDefault(); }} className="block mb-1.5">
-                                    <img src={imageUrl} alt={choiceLabel} className="w-28 h-20 object-cover rounded-lg border border-slate-200" />
+                                  <a
+                                    href={productUrl || "#"}
+                                    target={productUrl ? "_blank" : undefined}
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => { if (!productUrl) e.preventDefault(); }}
+                                    className="block aspect-[4/3] overflow-hidden bg-bone-100"
+                                  >
+                                    <img src={imageUrl} alt={choiceLabel} className="h-full w-full object-cover transition-transform duration-500 ease-architect group-hover:scale-[1.04]" />
                                   </a>
                                 )}
-                                <button type="button" onClick={() => handleSelectMaterialChoice(group.category, choiceLabel)} className={`px-4 py-2 rounded-xl text-xs font-bold border shadow-sm transition-all duration-150 ${isPending ? 'bg-amber-500 border-amber-600 text-white ring-2 ring-amber-300 font-black' : isChosen ? 'bg-slate-900 border-transparent text-white font-black' : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}>{choiceLabel} {isChosen && "✓"} {isPending && "←"}</button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelectMaterialChoice(group.category, choiceLabel)}
+                                  aria-pressed={isChosen}
+                                  className={`flex flex-1 items-center justify-between gap-2 px-3 py-2.5 text-left text-[12px] leading-snug transition-colors duration-200 ease-architect ${
+                                    isPending
+                                      ? 'bg-brass-50 text-brass-600'
+                                      : isChosen
+                                        ? 'bg-obsidian-900 text-bone-50'
+                                        : 'bg-white text-graphite-600 hover:bg-bone-50 hover:text-obsidian-900'
+                                  }`}
+                                >
+                                  <span className="min-w-0">{choiceLabel}</span>
+                                  {isChosen && (
+                                    <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                    </svg>
+                                  )}
+                                  {isPending && (
+                                    <span className="shrink-0 font-mono text-[8.5px] uppercase tracking-architect">Pending</span>
+                                  )}
+                                </button>
                                 {productUrl && !imageUrl && (
-                                  <a href={productUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-amber-600 hover:text-amber-800 mt-0.5 underline">View product</a>
+                                  <a href={productUrl} target="_blank" rel="noopener noreferrer" className="border-t border-obsidian-900/[0.07] px-3 py-1.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400 transition-colors duration-200 hover:text-brass-600">
+                                    View product
+                                  </a>
                                 )}
                               </div>
                             );
                           })}
                         </div>
+
                         {isPendingCategory && (
-                          <div className="flex items-center gap-2 pt-1">
-                            <button type="button" onClick={confirmSelection} className="px-4 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wide bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-sm">Confirm Selection</button>
-                            <button type="button" onClick={() => setPendingSelection(null)} className="px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide bg-slate-100 text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-colors">Cancel</button>
-                            <span className="text-[10px] text-amber-600 font-medium">Tap confirm to lock in your choice</span>
+                          <div className="mt-3.5 flex flex-wrap items-center gap-2.5 border border-brass-200 bg-brass-50 px-4 py-3">
+                            <button type="button" onClick={confirmSelection} className="btn-ink px-4 py-2">Confirm Selection</button>
+                            <button type="button" onClick={() => setPendingSelection(null)} className="btn-quiet">Cancel</button>
+                            <span className="font-mono text-[9px] uppercase tracking-architect text-brass-600">Confirm to lock in your choice</span>
                           </div>
                         )}
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              </>
             ) : (
-              <div className="bg-white border border-slate-200/60 rounded-2xl p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)]">
-                <p className="text-3xl mb-3">🎨</p>
-                <p className="text-sm font-bold text-slate-500">No material selections available yet</p>
-                <p className="text-xs text-slate-400 mt-1">Your contractor will add design choices here as the project progresses.</p>
+              <div className="blueprint-grid panel px-8 py-20 text-center">
+                <p className="display-sm">No selections yet</p>
+                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                  Your contractor will add design choices here as the project progresses.
+                </p>
               </div>
             )}
           </div>
@@ -1214,42 +1411,64 @@ export default function HomeownerPortalClient({
 
         {/* ── POST-APPROVAL: PAYMENTS TAB ── */}
         {isLocked && activeTab === "payments" && (
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="mx-auto max-w-3xl animate-rise space-y-9">
 
             {/* Deposit Dock */}
             {!invoice.deposit_cleared && (
-              <div className="border border-slate-200/60 rounded-2xl bg-white p-6 text-left space-y-3 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] animate-fadeIn">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Deposit Remittance Channel</h3>
-                <div className="grid grid-cols-2 gap-2 text-xs font-bold">
-                  <button type="button" onClick={() => setPaymentMethod("stripe")} className={`p-2.5 border rounded-xl text-center transition-all duration-200 ${paymentMethod === 'stripe' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Pay Online</button>
-                  <button type="button" onClick={() => setPaymentMethod("check")} className={`p-2.5 border rounded-xl text-center transition-all duration-200 ${paymentMethod === 'check' ? 'border-slate-950 bg-slate-50' : 'border-slate-200'}`}>Physical Check</button>
+              <div>
+                <div className="title-block">
+                  <h2 className="display-sm">Deposit</h2>
+                  <span className="eyebrow hidden sm:block">Remittance</span>
                 </div>
-                {paymentMethod === 'stripe' ? (
-                  <div className="space-y-2.5">
-                    <p className="text-[11px] text-slate-500 leading-normal font-medium bg-slate-50 border border-slate-200/60 p-2.5 rounded-lg shadow-inner">
-                      🔒 Secure payment via Stripe. Card and ACH bank transfer accepted.
-                    </p>
-                    <button
-                      type="button"
-                      disabled={isPaymentLoading}
-                      onClick={() => initiateStripePayment(depositAmount, `Construction Deposit - ${invoice.homeowner_name}`, 0)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl tracking-widest uppercase transition-all duration-200 shadow-md hover:shadow-lg shadow-blue-900/10 outline-none"
-                    >
-                      {isPaymentLoading ? "Connecting to Stripe..." : `Pay $${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} Deposit`}
-                    </button>
+
+                <div className="panel-raised overflow-hidden">
+                  <div className="flex border-b border-obsidian-900/10">
+                    <button type="button" onClick={() => setPaymentMethod("stripe")} className={`flex-1 py-3 font-mono text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${paymentMethod === 'stripe' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>Pay Online</button>
+                    <button type="button" onClick={() => setPaymentMethod("check")} className={`flex-1 border-l border-obsidian-900/10 py-3 font-mono text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${paymentMethod === 'check' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>Physical Check</button>
                   </div>
-                ) : (
-                  <p className="text-[11px] text-slate-500 leading-normal font-medium bg-slate-50 border border-slate-200/60 p-2.5 rounded-lg shadow-inner">
-                    💵 Make check payable to: <strong className="text-slate-800">WDO Custom</strong>. Field coordinators will confirm receipt upon site staging arrival.
-                  </p>
-                )}
+
+                  <div className="p-5">
+                    {paymentMethod === 'stripe' ? (
+                      <div className="space-y-4">
+                        <div className="flex items-baseline justify-between border-b border-obsidian-900/[0.07] pb-4">
+                          <span className="eyebrow">Amount Due</span>
+                          <span className="figure text-[1.6rem] leading-none">
+                            ${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+                          </span>
+                        </div>
+                        <p className="flex items-start gap-2 text-[12px] leading-relaxed text-graphite-500">
+                          <svg className="mt-[2px] h-3.5 w-3.5 shrink-0 text-graphite-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                          </svg>
+                          Secure payment via Stripe. Card and ACH bank transfer accepted.
+                        </p>
+                        <button
+                          type="button"
+                          disabled={isPaymentLoading}
+                          onClick={() => initiateStripePayment(depositAmount, `Construction Deposit - ${invoice.homeowner_name}`, 0)}
+                          className="btn-ink w-full py-3.5 text-[12.5px]"
+                        >
+                          {isPaymentLoading ? "Connecting to Stripe..." : `Pay $${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} Deposit`}
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-[12.5px] leading-relaxed text-graphite-600">
+                        Make check payable to <span className="font-medium text-obsidian-900">WDO Custom</span>. Field coordinators will confirm receipt upon site staging arrival.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Payment Schedule */}
-            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left space-y-3">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Payment Schedule</h3>
-              <div className="space-y-2">
+            <div>
+              <div className="title-block">
+                <h2 className="display-sm">Payment Schedule</h2>
+                <span className="eyebrow hidden sm:block">Schedule of Values</span>
+              </div>
+
+              <div className="panel overflow-hidden">
                 {invoice.payment_phases?.map((phase: any, idx: number) => {
                   const phaseVal = phaseAmountOf(phase, baseTotal);
                   const phasePercent = phasePercentOf(phase, baseTotal);
@@ -1260,29 +1479,38 @@ export default function HomeownerPortalClient({
                   const canPayPhase = isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) && idx > 0;
 
                   return (
-                    <div key={idx} className="bg-slate-50/50 border border-slate-200/60 p-3 rounded-xl text-xs">
-                      <div className="flex justify-between items-center">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-extrabold text-slate-800 tracking-tight">{phase.name}</p>
-                            {(isPaid || isFirstPhaseDepositPaid) ? (
-                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200/60">PAID</span>
-                            ) : isPhaseActive ? (
-                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-blue-100 text-blue-800 border border-blue-200/60 animate-pulse">ACTIVE</span>
-                            ) : (
-                              <span className="text-[8px] font-black tracking-widest uppercase px-1 py-0.2 rounded-full bg-slate-200 text-slate-400">PEND</span>
-                            )}
+                    <div key={idx} className={`border-b border-obsidian-900/[0.06] px-4 py-4 last:border-b-0 ${isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) ? 'border-l-2 border-l-brass-500 bg-brass-50/40' : ''}`}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex min-w-0 gap-3.5">
+                          <span className="mt-[3px] shrink-0 font-mono text-[10px] tabular-nums text-graphite-300">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-medium leading-snug text-obsidian-900">{phase.name}</p>
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                              {(isPaid || isFirstPhaseDepositPaid) ? (
+                                <span className="badge badge-approved"><span className="badge-dot bg-patina-500" />Paid</span>
+                              ) : isPhaseActive ? (
+                                <span className="badge badge-pending"><span className="badge-dot bg-brass-400" />Active</span>
+                              ) : (
+                                <span className="badge badge-neutral"><span className="badge-dot bg-graphite-300" />Scheduled</span>
+                              )}
+                              <span className="font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                                {displayPercent(phasePercent)}% of contract
+                              </span>
+                            </div>
                           </div>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wide">Draw Allocation: {displayPercent(phasePercent)}%</p>
                         </div>
-                        <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="figure shrink-0 text-[13.5px]">
+                          ${toNum(phaseVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
                       </div>
                       {canPayPhase && (
                         <button
                           type="button"
                           disabled={isPaymentLoading}
                           onClick={() => initiateStripePayment(phaseVal, `${phase.name} - ${invoice.homeowner_name}`, idx)}
-                          className="mt-2 w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-40 text-white font-semibold text-[11px] py-2.5 rounded-xl tracking-wide transition-all duration-200 shadow-soft hover:shadow-elevated outline-none flex items-center justify-center gap-2"
+                          className="btn-ink mt-3.5 w-full py-2.5"
                         >
                           {isPaymentLoading ? "Connecting..." : (
                             <>
@@ -1299,41 +1527,57 @@ export default function HomeownerPortalClient({
 
             {/* Change Orders */}
             {changeOrders.length > 0 && (
-              <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-2.5 text-left">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1.5 border-slate-100">Scope Modifications</h3>
-                <div className="space-y-2">
+              <div>
+                <div className="title-block">
+                  <h2 className="display-sm">Scope Modifications</h2>
+                  <span className="eyebrow hidden sm:block">{changeOrders.length} on record</span>
+                </div>
+
+                <div className="panel overflow-hidden">
                   {changeOrders.map((co: any) => {
                     const isCoApproved = co.status === "approved";
                     const isCoPaid = co.deposit_cleared;
                     const isExpanded = expandedCoId === co.id;
 
                     return (
-                      <div key={co.id} className="border border-slate-200 rounded-lg bg-white overflow-hidden shadow-sm text-xs">
-                        <div onClick={() => setExpandedCoId(isExpanded ? null : co.id)} className="p-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition-colors">
-                          <div className="text-left space-y-0.5">
+                      <div key={co.id} className="border-b border-obsidian-900/[0.06] last:border-b-0">
+                        <div onClick={() => setExpandedCoId(isExpanded ? null : co.id)} className="flex cursor-pointer items-start justify-between gap-4 px-4 py-3.5 transition-colors duration-200 ease-architect hover:bg-bone-50">
+                          <div className="min-w-0">
                             {co.proposal_number && (
-                              <p className="font-mono text-[8px] font-black text-slate-400 tracking-widest">{co.proposal_number}</p>
+                              <p className="font-mono text-[9.5px] tracking-architect text-graphite-300">{co.proposal_number}</p>
                             )}
-                            <p className="font-bold text-slate-900 tracking-tight truncate w-36 sm:w-44">{co.description}</p>
-                            <div className="flex gap-1">
-                              <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoApproved ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700'}`}>{isCoApproved ? "APP" : "PEND"}</span>
-                              {isCoApproved && <span className={`text-[7px] font-black uppercase px-1 rounded ${isCoPaid ? 'bg-blue-50 text-blue-700':'bg-red-50 text-red-700'}`}>{isCoPaid ? "PAID":"UNPD"}</span>}
+                            <p className="mt-0.5 truncate text-[13px] font-medium leading-snug text-obsidian-900">{co.description}</p>
+                            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                              <span className={`badge ${isCoApproved ? 'badge-approved' : 'badge-pending'}`}>
+                                <span className={`badge-dot ${isCoApproved ? 'bg-patina-500' : 'bg-brass-400'}`} />
+                                {isCoApproved ? "Approved" : "Pending"}
+                              </span>
+                              {isCoApproved && (
+                                <span className={`badge ${isCoPaid ? 'badge-approved' : 'badge-declined'}`}>
+                                  {isCoPaid ? "Paid" : "Unpaid"}
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <span className="font-sans font-extrabold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                          <div className="flex shrink-0 items-center gap-3">
+                            <span className="figure text-[13.5px]">${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            <svg className={`h-3 w-3 shrink-0 text-graphite-300 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
                         </div>
                         {isExpanded && (
-                          <div className="p-2.5 bg-slate-50 border-t space-y-2.5 animate-fadeIn">
-                            <div className="divide-y border bg-white rounded-lg overflow-hidden text-[11px] font-medium text-slate-600">
+                          <div className="animate-rise space-y-3 border-t border-obsidian-900/[0.06] bg-bone-100/50 p-4">
+                            <div className="panel overflow-hidden">
                               {co.items?.map((item: any, iIdx: number) => (
-                                <div key={iIdx} className="p-2 flex justify-between bg-white">
-                                  <span className="font-bold text-slate-800 truncate w-32">{item.title}</span>
-                                  <span className="font-sans font-bold text-slate-700">${toNum(item.cost).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                <div key={iIdx} className="flex items-baseline justify-between gap-4 border-b border-obsidian-900/[0.06] px-3.5 py-2.5 last:border-b-0">
+                                  <span className="min-w-0 truncate text-[12.5px] text-graphite-700">{item.title}</span>
+                                  <span className="figure shrink-0 text-[12.5px]">${toNum(item.cost).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                                 </div>
                               ))}
                             </div>
                             {!isCoApproved && (
-                              <button type="button" onClick={() => executeOneClickCoApproval(co.id)} className="w-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black py-2.5 rounded-xl tracking-wider uppercase transition-all duration-200 shadow-sm outline-none">
+                              <button type="button" onClick={() => executeOneClickCoApproval(co.id)} className="btn-ink w-full py-2.5">
                                 Approve Change Order
                               </button>
                             )}
@@ -1342,7 +1586,7 @@ export default function HomeownerPortalClient({
                                 type="button"
                                 disabled={isPaymentLoading}
                                 onClick={() => initiateStripePayment(toNum(co.amount), `Change Order - ${co.description} - ${invoice.homeowner_name}`)}
-                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] py-2.5 rounded-xl tracking-wider uppercase transition-all duration-200 shadow-sm outline-none"
+                                className="btn-ink w-full py-2.5"
                               >
                                 {isPaymentLoading ? "Connecting..." : "Pay Now"}
                               </button>
@@ -1357,122 +1601,127 @@ export default function HomeownerPortalClient({
             )}
 
             {/* Project Total Summary */}
-            <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] text-left space-y-4">
-              <div className="flex justify-between items-center">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">TOTAL PROJECT VALUE</p>
-                <h2 className="text-2xl font-black text-slate-950 tracking-tight" style={{fontVariantNumeric:'tabular-nums'}}>
-                  ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h2>
+            <div>
+              <div className="title-block">
+                <h2 className="display-sm">Account Summary</h2>
               </div>
-              {Array.isArray(invoice.payment_history) && invoice.payment_history.length > 0 && (
-                <div className="border-t border-slate-100 pt-3 space-y-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Payment Receipts</p>
-                  {invoice.payment_history.map((pmt: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center bg-emerald-50/50 border border-emerald-100 p-2.5 rounded-lg text-xs">
-                      <div className="space-y-0.5">
-                        <p className="font-bold text-emerald-800">
-                          {pmt.phase_index === 0 ? "Deposit" : `Phase ${pmt.phase_index} Draw`}
-                        </p>
-                        <p className="text-[9px] text-emerald-600 font-medium">
-                          {new Date(pmt.paid_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                          {pmt.customer_email && ` · ${pmt.customer_email}`}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-black text-emerald-800" style={{fontVariantNumeric:'tabular-nums'}}>
-                          ${toNum(pmt.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </span>
-                        <p className="text-[8px] font-bold text-emerald-600 uppercase">Confirmed</p>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="flex justify-between items-center pt-1 text-xs">
-                    <span className="text-slate-500 font-medium">Total Paid</span>
-                    <span className="font-black text-emerald-700" style={{fontVariantNumeric:'tabular-nums'}}>
-                      ${invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500 font-medium">Remaining Balance</span>
-                    <span className="font-black text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
-                      ${(combinedProjectTotal - invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
+
+              <div className="panel-raised overflow-hidden">
+                <div className="flex items-baseline justify-between bg-obsidian-950 px-5 py-5 text-bone-100">
+                  <span className="eyebrow-invert">Total Project Value</span>
+                  <span className="font-display text-[1.75rem] leading-none tracking-[-0.02em] text-bone-50 tnum">
+                    ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
                 </div>
-              )}
+
+                {Array.isArray(invoice.payment_history) && invoice.payment_history.length > 0 && (
+                  <>
+                    <p className="eyebrow border-b border-obsidian-900/[0.07] bg-bone-100/60 px-5 py-2.5">Payment Receipts</p>
+                    {invoice.payment_history.map((pmt: any, i: number) => (
+                      <div key={i} className="flex items-start justify-between gap-4 border-b border-obsidian-900/[0.06] px-5 py-3.5">
+                        <div className="min-w-0">
+                          <p className="text-[12.5px] font-medium text-obsidian-900">
+                            {pmt.phase_index === 0 ? "Deposit" : `Phase ${pmt.phase_index} Draw`}
+                          </p>
+                          <p className="mt-1 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                            {new Date(pmt.paid_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            {pmt.customer_email && ` · ${pmt.customer_email}`}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <span className="figure text-[13px] text-patina-600">
+                            ${toNum(pmt.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </span>
+                          <p className="mt-0.5 font-mono text-[8.5px] uppercase tracking-architect text-patina-600">Confirmed</p>
+                        </div>
+                      </div>
+                    ))}
+                    <dl className="divide-y divide-obsidian-900/[0.07]">
+                      <div className="flex items-baseline justify-between px-5 py-3.5">
+                        <dt className="eyebrow">Total Paid</dt>
+                        <dd className="figure text-[14px] text-patina-600">
+                          ${invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </dd>
+                      </div>
+                      <div className="flex items-baseline justify-between bg-bone-100/60 px-5 py-4">
+                        <dt className="eyebrow-ink">Remaining Balance</dt>
+                        <dd className="figure text-[17px]">
+                          ${(combinedProjectTotal - invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </dd>
+                      </div>
+                    </dl>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {/* ── NOTES TAB ── */}
         {activeTab === "notes" && (
-          <div className="max-w-3xl mx-auto animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-6 space-y-4">
-              <div className="border-b border-brand-stone/30 pb-3">
-                <h3 className="text-[15px] font-semibold text-brand-charcoal">Project Notes</h3>
-                <p className="text-[12px] text-brand-muted mt-0.5">Notes and updates from your contractor about this project.</p>
-              </div>
-              <div className="space-y-3">
-                {((invoice as any)?.contractor_notes || []).filter((n: any) => n.visible).map((note: any, i: number) => (
-                  <div key={i} className="bg-brand-warm/40 border border-brand-stone/30 rounded-xl p-4">
-                    <p className="text-[13px] font-medium text-brand-charcoal leading-relaxed whitespace-pre-wrap">{note.text}</p>
-                    <p className="text-[10px] font-medium text-brand-muted mt-2">
-                      Skyler · WDO Custom · {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                    </p>
-                  </div>
-                ))}
-              </div>
+          <div className="mx-auto max-w-3xl animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Project Notes</h2>
+              <span className="eyebrow hidden sm:block">From your contractor</span>
+            </div>
+
+            <div className="border-t border-obsidian-900/10">
+              {((invoice as any)?.contractor_notes || []).filter((n: any) => n.visible).map((note: any, i: number) => (
+                <div key={i} className="border-b border-obsidian-900/[0.07] px-1 py-5 sm:px-2">
+                  <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-graphite-700">{note.text}</p>
+                  <p className="mt-2.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                    Skyler · WDO Custom · {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* ── DOCS TAB (both pre and post approval) ── */}
         {activeTab === "docs" && (
-          <div className="max-w-3xl mx-auto animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-6 space-y-4">
-              <div className="border-b border-brand-stone/30 pb-3">
-                <h3 className="text-[15px] font-semibold text-brand-charcoal">Project Documents</h3>
-                <p className="text-[12px] text-brand-muted mt-0.5">Contracts, permits, plans, and other project files shared by your contractor.</p>
-              </div>
-
-              {Array.isArray((invoice as any).documents) && (invoice as any).documents.length > 0 ? (
-                <div className="divide-y divide-brand-stone/30">
-                  {(invoice as any).documents.map((doc: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between py-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 bg-brand-warm border border-brand-stone/40 rounded-xl flex items-center justify-center shrink-0">
-                          <span className="text-[9px] font-bold text-brand-muted uppercase">{doc.name?.split('.').pop()?.slice(0, 4)}</span>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[13px] font-semibold text-brand-charcoal truncate">{doc.name}</p>
-                          <p className="text-[11px] text-brand-muted font-medium">
-                            {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                            {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
-                          </p>
-                        </div>
-                      </div>
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[11px] font-semibold text-brand-charcoal bg-brand-warm border border-brand-stone/50 hover:border-brand-charcoal/30 hover:shadow-soft transition-all duration-200 outline-none shrink-0"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        View
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12 space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-brand-warm mx-auto flex items-center justify-center border border-brand-stone/40">
-                    <svg className="w-5 h-5 text-brand-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                  </div>
-                  <p className="text-sm font-medium text-brand-charcoal">No documents yet</p>
-                  <p className="text-[12px] text-brand-muted">Your contractor will upload project documents here as they become available.</p>
-                </div>
-              )}
+          <div className="mx-auto max-w-3xl animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Documents</h2>
+              <span className="eyebrow hidden sm:block">Contracts, permits, plans</span>
             </div>
+
+            {Array.isArray((invoice as any).documents) && (invoice as any).documents.length > 0 ? (
+              <div className="border-t border-obsidian-900/10">
+                {(invoice as any).documents.map((doc: any, i: number) => (
+                  <div key={i} className="group flex items-center justify-between gap-4 border-b border-obsidian-900/[0.07] px-1 py-4 transition-colors duration-300 ease-architect hover:bg-white sm:px-2">
+                    <div className="flex min-w-0 items-center gap-3.5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-obsidian-900/[0.12] bg-bone-100 font-mono text-[8.5px] uppercase tracking-architect text-graphite-500 transition-colors duration-300 ease-architect group-hover:border-brass-300 group-hover:bg-brass-50 group-hover:text-brass-600">
+                        {doc.name?.split('.').pop()?.slice(0, 4)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-medium text-obsidian-900">{doc.name}</p>
+                        <p className="mt-0.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                          {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline shrink-0 px-3 py-2 sm:px-4"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      <span className="hidden sm:inline">View</span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="blueprint-grid panel px-8 py-20 text-center">
+                <p className="display-sm">No documents yet</p>
+                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                  Your contractor will upload project documents here as they become available.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

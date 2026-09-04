@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Space_Grotesk, Instrument_Serif, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "./providers";
 
@@ -12,6 +12,23 @@ const inter = Inter({
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-editorial",
+  display: "swap",
+});
+
+// Display serif for the admin workspace and client portal. The public
+// marketing pages keep --font-editorial, so their typography is untouched.
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-display",
+  display: "swap",
+});
+
+// Technical face for spec labels, document numbers and drawing-set captions.
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -161,7 +178,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans bg-brand-alabaster text-brand-charcoal antialiased`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} ${plexMono.variable} font-sans bg-brand-alabaster text-brand-charcoal antialiased`}>
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

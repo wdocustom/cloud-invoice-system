@@ -162,153 +162,262 @@ export default function MultiTierEstimatorCreator() {
     }
   };
 
+  const previewTotal = generatedItems.reduce((s, i) => s + toNum(i.mid_cost), 0);
+
   return (
-    <div className="min-h-screen bg-brand-alabaster text-brand-charcoal font-sans antialiased pb-24 text-left flex items-center justify-center p-4">
-      <div className="bg-white border border-brand-stone/40 rounded-3xl p-8 sm:p-10 shadow-premium max-w-4xl w-full space-y-8 animate-fade-in">
+    <div className="pb-28 text-left">
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-stone/40 pb-6">
-          <div>
-            <h1 className="font-editorial text-2xl font-bold tracking-tight text-brand-charcoal">
-              New Estimate
-            </h1>
-            <p className="text-sm text-brand-muted font-medium mt-1">Create a tiered proposal for your client</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push("/admin/projects")}
-            className="bg-brand-charcoal hover:bg-brand-charcoal/90 text-white font-semibold text-[11px] px-5 py-2.5 rounded-xl tracking-wide transition-all duration-200 hover:shadow-elevated outline-none shrink-0"
-          >
-            View Projects →
-          </button>
-        </div>
-
-        {/* Client Info Grid */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Client Information</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input type="text" placeholder="Client Name *" value={clientName} onChange={(e) => setClientName(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
-            <input type="email" placeholder="Client Email (optional)" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
-            <input type="text" placeholder="Street Address" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
-            <input type="text" placeholder="Zip Code" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-full py-3.5 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
+      {/* Sheet header — title block for the document being drafted */}
+      <div className="border-b border-obsidian-900/10 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-7 sm:px-8 sm:py-9">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <p className="eyebrow">Proposal Drafting</p>
+              <h1 className="display-lg mt-2">New Estimate</h1>
+              <p className="mt-2 max-w-md text-[13px] leading-relaxed text-graphite-500">
+                Compose a tiered proposal, then publish it to a private client portal.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/admin/projects")}
+              className="btn-outline group shrink-0 self-start sm:self-auto"
+            >
+              View Projects
+              <span aria-hidden className="transition-transform duration-300 ease-architect group-hover:translate-x-0.5">&rarr;</span>
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Project Parameters */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Project Parameters</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-brand-muted/80 block">Start Date</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full py-3 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-brand-muted/80 block">Duration</label>
-              <input type="text" placeholder="e.g., 9 Weeks" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full py-3 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-brand-muted/80 block">Deposit %</label>
-              <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseInt(e.target.value) || 0)} className="w-full py-3 px-4 bg-brand-alabaster border border-brand-stone/60 rounded-xl outline-none text-sm font-medium text-brand-charcoal focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 transition-all" />
-            </div>
-          </div>
-        </div>
+      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-8 sm:pt-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
 
-        {/* AI Scope Engine */}
-        <div className="border border-brand-stone/40 bg-gradient-to-br from-brand-warm to-white p-6 rounded-2xl space-y-4 relative overflow-hidden">
-          {isGenerating && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-2xl">
-              <div className="w-10 h-10 rounded-full border-2 border-luxury-gold border-t-transparent animate-spin mb-3" />
-              <p className="text-sm font-semibold text-brand-charcoal animate-pulse">{generatingPhase}</p>
-            </div>
-          )}
-          <div>
-            <h4 className="font-semibold text-brand-charcoal text-sm tracking-tight">AI Scope Engine</h4>
-            <p className="text-[12px] text-brand-muted font-medium mt-0.5">Describe the renovation scope in detail — the AI will generate tiered line items with pricing.</p>
-          </div>
+          {/* ── Drafting column ─────────────────────────────────────────── */}
+          <div className="min-w-0 space-y-10">
 
-          <div className="flex flex-col sm:flex-row items-stretch gap-3">
-            <textarea
-              placeholder="Describe your project in detail: rooms, scope of work, material preferences, special requirements..."
-              value={goalsPrompt}
-              onChange={(e) => setGoalsPrompt(e.target.value)}
-              rows={3}
-              className="w-full sm:flex-1 py-3 px-4 bg-white border border-brand-stone/60 focus:ring-2 focus:ring-luxury-gold/20 focus:border-luxury-gold/50 rounded-xl outline-none text-sm font-medium text-brand-charcoal placeholder:text-brand-muted/60 resize-none transition-all"
-            />
-            <div className="flex sm:flex-col gap-2 shrink-0">
-              <label className="flex-1 sm:flex-none bg-white border border-brand-stone/60 hover:border-brand-muted py-3 px-4 rounded-xl text-center font-semibold text-xs text-brand-muted cursor-pointer transition-colors flex items-center justify-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                {attachedFileName ? attachedFileName.slice(0, 12) + "..." : "Attach"}
-                <input type="file" onChange={handleClientSideFileLoad} className="hidden" />
-              </label>
-
-              <button
-                type="button"
-                onClick={runAiEstimatorEngine}
-                disabled={isGenerating}
-                className="flex-1 sm:flex-none bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-40 text-white font-semibold text-xs px-5 py-3 rounded-xl tracking-wide transition-all duration-200 hover:shadow-elevated whitespace-nowrap"
-              >
-                Generate
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Generated Items Preview */}
-        {generatedItems.length > 0 && (
-          <div className="border border-brand-stone/40 rounded-2xl bg-white overflow-hidden shadow-card animate-fade-in">
-            <div className="px-5 py-3 border-b border-brand-stone/30 bg-brand-warm/50">
-              <p className="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Generated Line Items · {generatedItems.length} items</p>
-            </div>
-            <div className="max-h-64 overflow-y-auto divide-y divide-brand-stone/20">
-              {generatedItems.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-start px-5 py-3.5 gap-4 hover:bg-brand-warm/30 transition-colors">
-                  <div className="text-left min-w-0 flex-1">
-                    <span className="font-semibold text-brand-charcoal block text-sm tracking-tight">{item.title}</span>
-                    <span className="text-[12px] text-brand-muted font-medium block mt-0.5 truncate">{item.mid_description || item.description}</span>
-                  </div>
-                  <span className="font-semibold text-brand-charcoal text-sm shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>${toNum(item.mid_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            {/* 01 — Client */}
+            <section className="animate-rise">
+              <div className="title-block">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">01</span>
+                  <h2 className="display-sm">Client</h2>
                 </div>
-              ))}
-            </div>
-            <div className="px-5 py-3 border-t border-brand-stone/30 bg-brand-warm/30 flex justify-between items-center">
-              <span className="text-xs font-medium text-brand-muted">Standard Tier Total</span>
-              <span className="font-bold text-brand-charcoal text-base" style={{fontVariantNumeric:'tabular-nums'}}>
-                ${generatedItems.reduce((s, i) => s + toNum(i.mid_cost), 0).toLocaleString(undefined, {minimumFractionDigits: 2})}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Deploy Action */}
-        <div className="space-y-3 pt-2">
-          <button
-            type="button"
-            onClick={deployLiveProposalRecord}
-            disabled={isDeploying || generatedItems.length === 0}
-            className="w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:bg-brand-stone disabled:text-brand-muted text-white font-semibold text-sm py-4 rounded-xl tracking-wide shadow-soft hover:shadow-elevated transition-all duration-300 outline-none"
-          >
-            {isDeploying ? "Creating proposal..." : "Create & Deploy Proposal"}
-          </button>
-
-          {proposalLink && (
-            <div className="p-5 bg-sage-50 border border-sage-200 rounded-2xl shadow-soft text-center animate-fade-in">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-sage-500" />
-                <p className="text-sage-700 font-semibold text-sm">Proposal Live</p>
+                <span className="eyebrow hidden sm:block">Record</span>
               </div>
-              {proposalNumber && (
-                <p className="font-mono text-[11px] font-bold text-sage-700 tracking-wider mb-2">{proposalNumber}</p>
-              )}
-              <input
-                type="text"
-                readOnly
-                value={proposalLink}
-                className="w-full text-center font-mono text-xs bg-white text-brand-charcoal p-3 rounded-xl border border-sage-200 outline-none select-all"
-              />
-            </div>
-          )}
-        </div>
+              <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
+                <div>
+                  <label className="field-label">Client Name <span className="text-brass-500">*</span></label>
+                  <input type="text" placeholder="Full name" value={clientName} onChange={(e) => setClientName(e.target.value)} className="field" />
+                </div>
+                <div>
+                  <label className="field-label">Client Email</label>
+                  <input type="email" placeholder="name@domain.com" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="field" />
+                </div>
+                <div>
+                  <label className="field-label">Street Address</label>
+                  <input type="text" placeholder="Street address" value={streetAddress} onChange={(e) => setStreetAddress(e.target.value)} className="field" />
+                </div>
+                <div>
+                  <label className="field-label">Zip Code</label>
+                  <input type="text" placeholder="681xx" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="field" />
+                </div>
+              </div>
+            </section>
 
+            {/* 02 — Parameters */}
+            <section className="animate-rise">
+              <div className="title-block">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">02</span>
+                  <h2 className="display-sm">Parameters</h2>
+                </div>
+                <span className="eyebrow hidden sm:block">Terms</span>
+              </div>
+              <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-3">
+                <div>
+                  <label className="field-label">Start Date</label>
+                  <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="field tnum" />
+                </div>
+                <div>
+                  <label className="field-label">Duration</label>
+                  <input type="text" placeholder="e.g., 9 Weeks" value={duration} onChange={(e) => setDuration(e.target.value)} className="field" />
+                </div>
+                <div>
+                  <label className="field-label">Deposit %</label>
+                  <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseInt(e.target.value) || 0)} className="field tnum no-spin" />
+                </div>
+              </div>
+            </section>
+
+            {/* 03 — Scope engine */}
+            <section className="animate-rise">
+              <div className="title-block">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">03</span>
+                  <h2 className="display-sm">Scope</h2>
+                </div>
+                <span className="eyebrow hidden sm:block">AI Assisted</span>
+              </div>
+
+              <div className="panel-sunken relative overflow-hidden p-5 sm:p-6">
+                {isGenerating && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-bone-50/[0.92] backdrop-blur-[2px]">
+                    <div className="h-7 w-7 animate-spin rounded-full border border-obsidian-900/15 border-t-brass-500" />
+                    <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-500">{generatingPhase}</p>
+                  </div>
+                )}
+
+                <p className="text-[13px] leading-relaxed text-graphite-600">
+                  Describe the renovation in detail — rooms, scope of work, material preferences, constraints.
+                  Tiered line items are drafted with pricing for your review.
+                </p>
+
+                <textarea
+                  placeholder="Full gut of a 1990s primary bath: relocate the shower to the north wall, freestanding tub, heated porcelain floor, custom walnut double vanity..."
+                  value={goalsPrompt}
+                  onChange={(e) => setGoalsPrompt(e.target.value)}
+                  rows={5}
+                  className="field mt-4 resize-none leading-relaxed"
+                />
+
+                <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                  <label className="group inline-flex cursor-pointer items-center gap-2 self-start border border-dashed border-obsidian-900/20 px-3 py-2 font-mono text-[10px] uppercase tracking-architect text-graphite-500 transition-colors duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900">
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                    <span className="max-w-[180px] truncate">{attachedFileName ? attachedFileName : "Attach design package"}</span>
+                    <input type="file" onChange={handleClientSideFileLoad} className="hidden" />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={runAiEstimatorEngine}
+                    disabled={isGenerating}
+                    className="btn-ink self-start sm:self-auto"
+                  >
+                    Generate Scope
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Generated ledger */}
+            {generatedItems.length > 0 && (
+              <section className="animate-rise">
+                <div className="title-block">
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">04</span>
+                    <h2 className="display-sm">Line Items</h2>
+                  </div>
+                  <span className="eyebrow">{generatedItems.length} entries</span>
+                </div>
+
+                <div className="panel overflow-hidden">
+                  <div className="hidden items-baseline justify-between border-b border-obsidian-900/[0.07] bg-bone-100/60 px-5 py-2.5 sm:flex">
+                    <span className="eyebrow">Description</span>
+                    <span className="eyebrow">Standard Tier</span>
+                  </div>
+                  <div className="max-h-[26rem] overflow-y-auto">
+                    {generatedItems.map((item, idx) => (
+                      <div key={idx} className="group relative flex items-start justify-between gap-5 border-b border-obsidian-900/[0.06] px-5 py-4 transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50">
+                        <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                        <div className="flex min-w-0 flex-1 gap-4">
+                          <span className="mt-[3px] shrink-0 font-mono text-[10px] tabular-nums text-graphite-300">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">{item.title}</p>
+                            <p className="mt-1 text-[12px] leading-relaxed text-graphite-500">{item.mid_description || item.description}</p>
+                          </div>
+                        </div>
+                        <span className="figure shrink-0 text-[13.5px]">
+                          ${toNum(item.mid_cost).toLocaleString(undefined, {minimumFractionDigits: 2})}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-baseline justify-between border-t border-obsidian-900/[0.12] bg-bone-100/60 px-5 py-3.5">
+                    <span className="eyebrow-ink">Standard Tier Total</span>
+                    <span className="figure text-[17px]">
+                      ${previewTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                    </span>
+                  </div>
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* ── Issue rail ──────────────────────────────────────────────── */}
+          <aside className="lg:sticky lg:top-6 lg:self-start">
+            <div className="panel-raised overflow-hidden">
+              <div className="border-b border-obsidian-900/10 bg-obsidian-950 px-5 py-4 text-bone-100">
+                <p className="eyebrow-invert">Issue</p>
+                <p className="mt-1.5 font-display text-[1.35rem] leading-none tracking-[-0.01em]">
+                  {clientName.trim() || "Untitled Proposal"}
+                </p>
+              </div>
+
+              <dl className="divide-y divide-obsidian-900/[0.07]">
+                <div className="flex items-baseline justify-between px-5 py-3">
+                  <dt className="eyebrow">Line Items</dt>
+                  <dd className="figure text-[13px]">{generatedItems.length}</dd>
+                </div>
+                <div className="flex items-baseline justify-between px-5 py-3">
+                  <dt className="eyebrow">Deposit</dt>
+                  <dd className="figure text-[13px]">{depositPercent}%</dd>
+                </div>
+                <div className="flex items-baseline justify-between px-5 py-3">
+                  <dt className="eyebrow">Duration</dt>
+                  <dd className="text-[13px] font-medium text-obsidian-900">{duration || "—"}</dd>
+                </div>
+                <div className="flex items-baseline justify-between bg-bone-100/50 px-5 py-4">
+                  <dt className="eyebrow-ink">Contract Value</dt>
+                  <dd className="figure text-[19px]">
+                    ${previewTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="border-t border-obsidian-900/10 p-5">
+                <button
+                  type="button"
+                  onClick={deployLiveProposalRecord}
+                  disabled={isDeploying || generatedItems.length === 0}
+                  className="btn-ink w-full py-3.5 text-[12.5px]"
+                >
+                  {isDeploying ? "Publishing..." : "Publish Proposal"}
+                </button>
+                {generatedItems.length === 0 && (
+                  <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-architect text-graphite-300">
+                    Generate scope to enable
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {proposalLink && (
+              <div className="panel mt-4 animate-rise overflow-hidden border-patina-200">
+                <div className="flex items-center gap-2 border-b border-patina-200 bg-patina-50 px-5 py-3">
+                  <span className="badge-dot bg-patina-500" />
+                  <p className="font-mono text-[10px] font-medium uppercase tracking-architect text-patina-700">Proposal Live</p>
+                </div>
+                <div className="space-y-3 p-5">
+                  {proposalNumber && (
+                    <div className="flex items-baseline justify-between">
+                      <span className="eyebrow">Document No.</span>
+                      <span className="font-mono text-[11px] font-medium tracking-architect text-obsidian-900">{proposalNumber}</span>
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    readOnly
+                    value={proposalLink}
+                    className="field-sunken select-all font-mono text-[11px]"
+                  />
+                </div>
+              </div>
+            )}
+          </aside>
+        </div>
       </div>
     </div>
   );

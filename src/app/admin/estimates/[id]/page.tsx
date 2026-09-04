@@ -156,10 +156,10 @@ export default function EstimateDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-brand-alabaster flex items-center justify-center font-sans">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-6 h-6 border-2 border-brand-charcoal/20 border-t-brand-charcoal rounded-full animate-spin" />
-          <p className="text-xs font-medium text-brand-muted">Loading estimate...</p>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-6 w-6 animate-spin rounded-full border border-obsidian-900/15 border-t-obsidian-900" />
+          <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-400">Loading estimate</p>
         </div>
       </div>
     );
@@ -184,10 +184,10 @@ export default function EstimateDetailPage() {
   });
 
   const statusColors: Record<string, string> = {
-    new: "bg-blue-50 text-blue-700 border-blue-200",
-    contacted: "bg-luxury-soft text-luxury-ochre border-luxury-champagne",
-    consultation_scheduled: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    converted: "bg-sage-50 text-sage-700 border-sage-200",
+    new: "badge-ink",
+    contacted: "badge-pending",
+    consultation_scheduled: "badge-neutral",
+    converted: "badge-approved",
   };
   const statusLabels: Record<string, string> = {
     new: "New Lead",
@@ -197,310 +197,374 @@ export default function EstimateDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-alabaster text-brand-charcoal font-sans antialiased pb-24">
+    <div className="pb-28 text-left">
 
-      {/* Header */}
-      <div className="border-b border-brand-stone/60 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <button type="button" onClick={() => router.push("/admin/projects")} className="text-brand-muted hover:text-brand-charcoal transition-colors shrink-0">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="min-w-0">
-              {estimate.estimate_number && (
-                <p className="font-mono text-[10px] font-bold text-brand-muted tracking-widest">{estimate.estimate_number}</p>
-              )}
-              <h1 className="font-editorial text-lg sm:text-xl font-bold tracking-tight text-brand-charcoal truncate">
-                {estimate.name || "Anonymous Lead"}
-              </h1>
-              <p className="text-[11px] font-medium tracking-wide text-brand-muted">{estimate.project_type}</p>
-            </div>
+      {/* ── Sheet header ──────────────────────────────────────────────── */}
+      <div className="border-b border-obsidian-900/10 bg-white">
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-8 sm:py-8">
+          <button
+            type="button"
+            onClick={() => router.push("/admin/projects")}
+            className="btn-quiet -ml-3 mb-5 font-mono text-[10px] uppercase tracking-architect"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Portfolio
+          </button>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            {estimate.estimate_number && (
+              <span className="font-mono text-[10px] tracking-architect text-graphite-400">{estimate.estimate_number}</span>
+            )}
+            <span className={`badge ${statusColors[estimate.status] || statusColors.new}`}>
+              <span aria-hidden className="badge-dot bg-current opacity-60" />
+              {statusLabels[estimate.status] || "New Lead"}
+            </span>
           </div>
-          <span className={`inline-flex items-center gap-1 font-semibold text-[9px] px-2.5 py-1 rounded-full tracking-wide uppercase border shrink-0 ${
-            statusColors[estimate.status] || statusColors.new
-          }`}>
-            {statusLabels[estimate.status] || "New Lead"}
-          </span>
+
+          <h1 className="display-lg mt-2.5 truncate">
+            {estimate.name || "Anonymous Lead"}
+          </h1>
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-architect text-graphite-400">{estimate.project_type}</p>
+
+          {/* Actions */}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {!isConverted && (
+              <button
+                type="button"
+                onClick={handleConvert}
+                disabled={converting}
+                className="btn-ink"
+              >
+                {converting ? "Converting..." : "Convert to Proposal"}
+              </button>
+            )}
+            {isConverted && (
+              <button
+                type="button"
+                onClick={() => router.push(`/admin/projects/${estimate.converted_to_invoice_id}`)}
+                className="btn-ink"
+              >
+                View Proposal
+              </button>
+            )}
+            {estimate.email && !isConverted && (
+              <button
+                type="button"
+                onClick={handleSendReminder}
+                disabled={sendingReminder}
+                className="btn-outline"
+              >
+                {sendingReminder ? "Sending..." : `Send Reminder${reminderCount > 0 ? ` (${reminderCount} sent)` : ""}`}
+              </button>
+            )}
+            <a
+              href={`/estimate/${estimate.token}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline"
+            >
+              View Public Link
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H18v4.5M17.25 6.75L10.5 13.5M18 14.25v3.75A1.5 1.5 0 0116.5 19.5h-10.5A1.5 1.5 0 014.5 18V7.5A1.5 1.5 0 016 6h3.75" />
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 space-y-6">
+      <div className="mx-auto max-w-4xl space-y-10 px-4 pt-8 sm:px-8 sm:pt-10">
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-3">
-          {!isConverted && (
-            <button
-              type="button"
-              onClick={handleConvert}
-              disabled={converting}
-              className="bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-50 text-white font-bold text-xs tracking-wide uppercase px-6 py-3 rounded-xl transition-all shadow-sm"
-            >
-              {converting ? "Converting..." : "Convert to Proposal"}
-            </button>
-          )}
-          {isConverted && (
-            <button
-              type="button"
-              onClick={() => router.push(`/admin/projects/${estimate.converted_to_invoice_id}`)}
-              className="bg-sage-600 hover:bg-sage-700 text-white font-bold text-xs tracking-wide uppercase px-6 py-3 rounded-xl transition-all shadow-sm"
-            >
-              View Proposal
-            </button>
-          )}
-          {estimate.email && !isConverted && (
-            <button
-              type="button"
-              onClick={handleSendReminder}
-              disabled={sendingReminder}
-              className="border border-brand-stone/50 hover:border-brand-charcoal/30 text-brand-charcoal disabled:opacity-50 font-bold text-xs tracking-wide uppercase px-6 py-3 rounded-xl transition-all"
-            >
-              {sendingReminder ? "Sending..." : `Send Reminder${reminderCount > 0 ? ` (${reminderCount} sent)` : ""}`}
-            </button>
-          )}
-          <a
-            href={`/estimate/${estimate.token}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-brand-stone/50 hover:border-brand-charcoal/30 text-brand-charcoal font-bold text-xs tracking-wide uppercase px-6 py-3 rounded-xl transition-all"
-          >
-            View Public Link
-          </a>
-        </div>
-
-        {/* Document Numbering — issued here at the lead, inherited by the proposal */}
+        {/* Document numbering — issued at the lead, inherited by the proposal */}
         {estimate.estimate_number && (
-          <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
-            <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-3">Document Number</p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-mono text-sm font-bold text-brand-charcoal bg-brand-warm border border-brand-stone/40 rounded-lg px-3 py-1.5 tracking-wider">
+          <section className="animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Document Number</h2>
+              <span className="eyebrow hidden sm:block">Sequence</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="rounded-edge border border-obsidian-900/[0.12] bg-bone-100 px-3 py-1.5 font-mono text-[11.5px] tracking-architect text-obsidian-900">
                 {estimate.estimate_number}
               </span>
-              <span className="text-brand-muted text-sm">→</span>
+              <svg aria-hidden className="h-3.5 w-3.5 shrink-0 text-graphite-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
               {proposalNumber ? (
-                <span className="font-mono text-sm font-bold text-sage-700 bg-sage-50 border border-sage-200 rounded-lg px-3 py-1.5 tracking-wider">
+                <span className="rounded-edge border border-patina-200 bg-patina-50 px-3 py-1.5 font-mono text-[11.5px] tracking-architect text-patina-700">
                   {proposalNumber}
                 </span>
               ) : (
-                <span className="text-[11px] font-medium text-brand-muted">
-                  becomes {estimate.estimate_number.replace(/^EST-/, "PRO-")} when you convert this lead
+                <span className="text-[12.5px] leading-relaxed text-graphite-500">
+                  Becomes{" "}
+                  <span className="font-mono text-[11.5px] tracking-architect text-obsidian-900">
+                    {estimate.estimate_number.replace(/^EST-/, "PRO-")}
+                  </span>{" "}
+                  on conversion
                 </span>
               )}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Status Changer */}
+        {/* Status */}
         {!isConverted && (
-          <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
-            <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-3">Update Status</p>
-            <div className="flex flex-wrap gap-2">
+          <section className="animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Status</h2>
+              <span className="eyebrow hidden sm:block">Pipeline</span>
+            </div>
+            <div className="grid grid-cols-1 gap-px border border-obsidian-900/[0.12] bg-obsidian-900/[0.12] sm:inline-grid sm:grid-cols-3">
               {(["new", "contacted", "consultation_scheduled"] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => updateStatus(s)}
-                  className={`text-[11px] font-bold px-4 py-2 rounded-lg border transition-all ${
+                  className={`px-5 py-2.5 text-center font-mono text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${
                     estimate.status === s
-                      ? "bg-brand-charcoal text-white border-brand-charcoal"
-                      : "bg-white text-brand-muted border-brand-stone/40 hover:border-brand-charcoal/30"
+                      ? "bg-obsidian-900 text-bone-50"
+                      : "bg-white text-graphite-500 hover:bg-bone-50 hover:text-obsidian-900"
                   }`}
                 >
                   {statusLabels[s]}
                 </button>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Contact Info Card */}
-        <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest">Contact Information</p>
+        {/* Contact */}
+        <section className="animate-rise">
+          <div className="title-block">
+            <h2 className="display-sm">Contact</h2>
             <button
               type="button"
               onClick={openEditor}
-              className="bg-brand-warm hover:bg-brand-stone/40 text-brand-charcoal font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+              className="btn-outline shrink-0 px-3 py-1.5 font-mono text-[10px] uppercase tracking-architect"
             >
-              Edit Customer
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+              </svg>
+              Edit
             </button>
           </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Name</p>
-              <p className="text-sm font-bold text-brand-charcoal mt-0.5">{estimate.name || "Not provided"}</p>
+
+          <dl className="border-t border-obsidian-900/10">
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Name</dt>
+              <dd className="min-w-0 text-[13.5px] text-obsidian-900">{estimate.name || "Not provided"}</dd>
             </div>
-            <div>
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Email</p>
-              {estimate.email ? (
-                <a href={`mailto:${estimate.email}`} className="text-sm font-bold text-brand-charcoal mt-0.5 underline underline-offset-2">{estimate.email}</a>
-              ) : (
-                <p className="text-sm font-bold text-brand-muted mt-0.5">Not provided</p>
-              )}
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Email</dt>
+              <dd className="min-w-0 break-words text-[13.5px] text-obsidian-900">
+                {estimate.email ? (
+                  <a href={`mailto:${estimate.email}`} className="underline decoration-obsidian-900/20 underline-offset-4 transition-colors duration-200 ease-architect hover:decoration-obsidian-900">{estimate.email}</a>
+                ) : (
+                  <span className="text-graphite-400">Not provided</span>
+                )}
+              </dd>
             </div>
-            <div>
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Phone</p>
-              {estimate.phone ? (
-                <a href={`tel:${estimate.phone}`} className="text-sm font-bold text-brand-charcoal mt-0.5 underline underline-offset-2">{estimate.phone}</a>
-              ) : (
-                <p className="text-sm font-bold text-brand-muted mt-0.5">Not provided</p>
-              )}
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Phone</dt>
+              <dd className="min-w-0 text-[13.5px] text-obsidian-900">
+                {estimate.phone ? (
+                  <a href={`tel:${estimate.phone}`} className="tnum underline decoration-obsidian-900/20 underline-offset-4 transition-colors duration-200 ease-architect hover:decoration-obsidian-900">{estimate.phone}</a>
+                ) : (
+                  <span className="text-graphite-400">Not provided</span>
+                )}
+              </dd>
             </div>
-            <div>
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Submitted</p>
-              <p className="text-sm font-bold text-brand-charcoal mt-0.5">{createdDate}</p>
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Submitted</dt>
+              <dd className="min-w-0 text-[13.5px] tabular-nums text-obsidian-900">{createdDate}</dd>
             </div>
-            <div className="sm:col-span-2">
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Project Address</p>
-              <p className={`text-sm font-bold mt-0.5 ${fullAddress ? "text-brand-charcoal" : "text-brand-muted"}`}>
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Project Address</dt>
+              <dd className={`min-w-0 text-[13.5px] ${fullAddress ? "text-obsidian-900" : "text-graphite-400"}`}>
                 {fullAddress || "Not provided"}
-              </p>
+              </dd>
             </div>
-          </div>
+          </dl>
 
           {estimate.notes && (
-            <div className="mt-4 pt-4 border-t border-brand-stone/20">
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide mb-1">
-                Internal Notes <span className="normal-case font-medium">(never shown to the customer)</span>
+            <div className="panel-sunken mt-5 p-4 sm:p-5">
+              <p className="eyebrow">
+                Internal Notes <span className="normal-case tracking-normal text-graphite-300">(never shown to the customer)</span>
               </p>
-              <p className="text-sm text-brand-charcoal leading-relaxed whitespace-pre-wrap">{estimate.notes}</p>
+              <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-graphite-700">{estimate.notes}</p>
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Project Details */}
-        <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
-          <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-4">Project Details</p>
-          <div className="grid sm:grid-cols-3 gap-4 mb-4">
-            <div>
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Type</p>
-              <p className="text-sm font-bold text-brand-charcoal mt-0.5">{estimate.project_type}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Finish Level</p>
-              <p className="text-sm font-bold text-brand-charcoal mt-0.5 capitalize">{estimate.scope_level}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide">Size / ZIP</p>
-              <p className="text-sm font-bold text-brand-charcoal mt-0.5">
-                {[estimate.size, estimate.zip].filter(Boolean).join(" · ") || "Not provided"}
-              </p>
-            </div>
+        {/* Project details */}
+        <section className="animate-rise">
+          <div className="title-block">
+            <h2 className="display-sm">Project</h2>
+            <span className="eyebrow hidden sm:block">Brief</span>
           </div>
-          <div>
-            <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide mb-1">Description</p>
-            <p className="text-sm text-brand-charcoal leading-relaxed bg-brand-alabaster rounded-xl p-4 border border-brand-stone/20">
+
+          <dl className="border-t border-obsidian-900/10">
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Type</dt>
+              <dd className="min-w-0 text-[13.5px] text-obsidian-900">{estimate.project_type}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Finish Level</dt>
+              <dd className="min-w-0 text-[13.5px] capitalize text-obsidian-900">{estimate.scope_level}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="eyebrow sm:w-44 sm:shrink-0">Size / ZIP</dt>
+              <dd className="min-w-0 text-[13.5px] tabular-nums text-obsidian-900">
+                {[estimate.size, estimate.zip].filter(Boolean).join(" · ") || "Not provided"}
+              </dd>
+            </div>
+          </dl>
+
+          <div className="mt-5">
+            <p className="eyebrow">Description</p>
+            <p className="panel-sunken mt-2 p-4 text-[13px] leading-relaxed text-graphite-700 sm:p-5">
               {estimate.description}
             </p>
           </div>
-        </div>
+        </section>
 
-        {/* Estimate Breakdown */}
-        <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 overflow-hidden">
-          <div className="bg-brand-charcoal px-5 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-luxury-gold uppercase tracking-widest">AI Estimate</p>
-                <p className="text-base font-black text-white mt-0.5">{ed.project_title}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-black text-luxury-gold" style={{fontVariantNumeric:"tabular-nums"}}>
-                  ${fmt(ed.total_projected_low || 0)} — ${fmt(ed.total_projected_high || 0)}
-                </p>
-                {ed.timeline_weeks && (
-                  <p className="text-[10px] text-white/40 mt-0.5">{ed.timeline_weeks} weeks</p>
-                )}
-              </div>
-            </div>
+        {/* Schedule of values */}
+        <section className="animate-rise">
+          <div className="title-block">
+            <h2 className="display-sm">Estimate</h2>
+            <span className="eyebrow hidden sm:block">Schedule of Values</span>
           </div>
 
-          <div className="divide-y divide-brand-stone/15">
-            {(ed.line_items || []).map((item: any, i: number) => (
-              <div key={i} className="px-5 py-3 flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0 flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-md bg-brand-warm flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-[9px] font-black text-brand-muted">{i + 1}</span>
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-brand-charcoal">{item.item}</p>
-                    {item.notes && <p className="text-[11px] text-brand-muted mt-0.5">{item.notes}</p>}
-                  </div>
+          <div className="panel overflow-hidden">
+            <div className="border-b border-obsidian-900/10 bg-obsidian-950 px-5 py-4 text-bone-100">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                  <p className="eyebrow-invert">Projected Range</p>
+                  <p className="mt-1.5 font-display text-[1.25rem] leading-tight tracking-[-0.01em] sm:text-[1.4rem]">{ed.project_title}</p>
                 </div>
-                <p className="text-sm font-bold text-brand-charcoal flex-shrink-0" style={{fontVariantNumeric:"tabular-nums"}}>
-                  ${fmt(item.low)} — ${fmt(item.high)}
-                </p>
+                <div className="shrink-0 sm:text-right">
+                  <p className="figure text-[15px] text-bone-50 sm:text-[16.5px]">
+                    ${fmt(ed.total_projected_low || 0)} — ${fmt(ed.total_projected_high || 0)}
+                  </p>
+                  {ed.timeline_weeks && (
+                    <p className="eyebrow-invert mt-1.5">{ed.timeline_weeks} weeks</p>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="bg-brand-warm/40 border-t border-brand-stone/20 px-5 py-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-black text-brand-charcoal uppercase tracking-wide">Total Estimate</span>
-              <span className="text-base font-black text-brand-charcoal" style={{fontVariantNumeric:"tabular-nums"}}>
-                ${fmt(ed.total_projected_low || 0)} — ${fmt(ed.total_projected_high || 0)}
-              </span>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[420px] text-left">
+                <thead>
+                  <tr className="border-b border-obsidian-900/[0.07] bg-bone-100/60">
+                    <th scope="col" className="eyebrow w-12 px-4 py-2.5 font-medium">No.</th>
+                    <th scope="col" className="eyebrow px-2 py-2.5 font-medium">Description</th>
+                    <th scope="col" className="eyebrow whitespace-nowrap px-4 py-2.5 text-right font-medium">Range</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(ed.line_items || []).map((item: any, i: number) => (
+                    <tr key={i} className="border-b border-obsidian-900/[0.06] transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50">
+                      <td className="px-4 py-3.5 align-top font-mono text-[10px] tabular-nums text-graphite-300">
+                        {i + 1}
+                      </td>
+                      <td className="px-2 py-3.5 align-top">
+                        <p className="text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">{item.item}</p>
+                        {item.notes && <p className="mt-1 text-[12px] leading-relaxed text-graphite-500">{item.notes}</p>}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3.5 text-right align-top">
+                        <span className="figure text-[13px]">
+                          ${fmt(item.low)} — ${fmt(item.high)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-obsidian-900/[0.12] bg-bone-100/60">
+                    <td className="px-4 py-3.5" />
+                    <td className="px-2 py-3.5">
+                      <span className="eyebrow-ink">Total Estimate</span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                      <span className="figure text-[15px]">
+                        ${fmt(ed.total_projected_low || 0)} — ${fmt(ed.total_projected_high || 0)}
+                      </span>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Reminder History */}
+        {/* Reminder history */}
         {reminderCount > 0 && (
-          <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-5">
-            <p className="text-[10px] font-bold text-brand-muted uppercase tracking-widest mb-3">Reminder History</p>
-            <div className="space-y-2">
+          <section className="animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Reminders</h2>
+              <span className="eyebrow hidden sm:block">History</span>
+            </div>
+            <ol className="border-t border-obsidian-900/10">
               {(estimate.reminder_emails as any[]).map((r: any, i: number) => (
-                <div key={i} className="flex items-center gap-3 text-xs">
-                  <span className="w-5 h-5 rounded-full bg-brand-warm flex items-center justify-center flex-shrink-0">
-                    <svg className="w-3 h-3 text-brand-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                    </svg>
+                <li key={i} className="relative flex flex-col gap-1 border-b border-obsidian-900/[0.07] py-3 pl-6 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+                  <span aria-hidden className="absolute left-0 top-[19px] h-px w-3.5 bg-obsidian-900/20" />
+                  <span aria-hidden className="absolute left-[13px] top-[16px] h-[7px] w-[7px] rounded-full border border-obsidian-900/25 bg-white" />
+                  <span className="min-w-0 truncate text-[13px] text-obsidian-900">
+                    Sent to <span className="text-graphite-600">{r.to}</span>
                   </span>
-                  <span className="text-brand-muted">Sent to {r.to}</span>
-                  <span className="text-brand-muted/50">·</span>
-                  <span className="text-brand-muted">
+                  <span className="shrink-0 font-mono text-[10px] uppercase tracking-architect tabular-nums text-graphite-400">
                     {new Date(r.sent_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
-          </div>
+            </ol>
+          </section>
         )}
 
-        {/* Public Estimate Link */}
-        <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-5 flex items-center gap-3">
-          <svg className="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.364-3.314a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-          </svg>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-blue-800">Customer&apos;s Estimate Link</p>
-            <p className="text-[11px] text-blue-600 font-mono truncate">wdocustom.com/estimate/{estimate.token}</p>
+        {/* Public estimate link */}
+        <section className="animate-rise">
+          <div className="title-block">
+            <h2 className="display-sm">Client Link</h2>
+            <span className="eyebrow hidden sm:block">Published</span>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(`https://www.wdocustom.com/estimate/${estimate.token}`);
-              toast("Link copied!", "success");
-            }}
-            className="text-[10px] font-bold text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-          >
-            Copy
-          </button>
-        </div>
+          <div className="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div className="flex min-w-0 items-center gap-3">
+              <svg aria-hidden className="h-4 w-4 shrink-0 text-graphite-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.364-3.314a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+              </svg>
+              <div className="min-w-0">
+                <p className="eyebrow">Estimate Link</p>
+                <p className="mt-1 truncate font-mono text-[11.5px] text-obsidian-900">wdocustom.com/estimate/{estimate.token}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(`https://www.wdocustom.com/estimate/${estimate.token}`);
+                toast("Link copied!", "success");
+              }}
+              className="btn-outline shrink-0 self-start px-4 py-2 font-mono text-[10px] uppercase tracking-architect sm:self-auto"
+            >
+              Copy
+            </button>
+          </div>
+        </section>
       </div>
 
-      {/* Edit Customer Modal */}
+      {/* ── Edit customer sheet ───────────────────────────────────────── */}
       {isEditOpen && (
-        <div className="fixed inset-0 bg-brand-charcoal/40 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border border-brand-stone/40 rounded-2xl w-full max-w-lg my-8 shadow-elevated">
-            <div className="px-5 pt-5 pb-3 border-b border-brand-stone/20">
-              <h3 className="font-editorial text-base font-bold text-brand-charcoal">Edit Customer</h3>
-              <p className="text-[11px] text-brand-muted font-medium mt-0.5">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-obsidian-950/55 p-4 backdrop-blur-sm sm:items-center">
+          <div className="my-8 w-full max-w-lg animate-rise rounded-sheet border border-obsidian-900/[0.12] bg-white shadow-lift">
+            <div className="border-b border-obsidian-900/10 px-5 py-4 sm:px-6">
+              <p className="eyebrow">Lead Record</p>
+              <h3 className="display-sm mt-1.5">Edit Customer</h3>
+              <p className="mt-2 text-[12.5px] leading-relaxed text-graphite-500">
                 These details travel with the lead onto the proposal when you convert it.
               </p>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="space-y-4 px-5 py-5 sm:px-6">
               <Field label="Name">
                 <input
                   type="text"
@@ -510,7 +574,7 @@ export default function EstimateDetailPage() {
                 />
               </Field>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Email">
                   <input
                     type="email"
@@ -542,7 +606,7 @@ export default function EstimateDetailPage() {
                 />
               </Field>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div className="col-span-2">
                   <Field label="City">
                     <input
@@ -569,12 +633,12 @@ export default function EstimateDetailPage() {
                     inputMode="numeric"
                     value={form.zip}
                     onChange={(e) => setForm({ ...form, zip: e.target.value })}
-                    className={inputClass}
+                    className={`${inputClass} tnum`}
                   />
                 </Field>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Project Type">
                   <input
                     type="text"
@@ -600,19 +664,19 @@ export default function EstimateDetailPage() {
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={3}
                   placeholder="Gate code, best time to call, site conditions…"
-                  className={`${inputClass} resize-y`}
+                  className={`${inputClass} resize-y leading-relaxed`}
                 />
-                <p className="text-[10px] text-brand-muted mt-1">
+                <p className="mt-1.5 text-[11.5px] leading-relaxed text-graphite-400">
                   Carried onto the proposal as a private contractor note — hidden from the homeowner.
                 </p>
               </Field>
             </div>
 
-            <div className="flex items-center justify-end gap-2 px-5 pb-5">
+            <div className="flex items-center justify-end gap-2 border-t border-obsidian-900/10 px-5 py-4 sm:px-6">
               <button
                 type="button"
                 onClick={() => setIsEditOpen(false)}
-                className="bg-brand-warm hover:bg-brand-stone/40 text-brand-muted font-bold text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-colors"
+                className="btn-outline"
               >
                 Cancel
               </button>
@@ -620,7 +684,7 @@ export default function EstimateDetailPage() {
                 type="button"
                 onClick={saveLead}
                 disabled={savingLead}
-                className="bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-50 text-white font-bold text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all shadow-sm"
+                className="btn-ink"
               >
                 {savingLead ? "Saving..." : "Save Changes"}
               </button>
@@ -632,13 +696,12 @@ export default function EstimateDetailPage() {
   );
 }
 
-const inputClass =
-  "w-full py-2.5 px-3.5 bg-brand-alabaster border border-brand-stone/40 rounded-xl text-sm font-semibold text-brand-charcoal outline-none focus:bg-white focus:border-brand-charcoal/30 transition-all";
+const inputClass = "field";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <label className="text-[10px] font-bold text-brand-muted uppercase tracking-wide block mb-1">{label}</label>
+      <label className="field-label">{label}</label>
       {children}
     </div>
   );

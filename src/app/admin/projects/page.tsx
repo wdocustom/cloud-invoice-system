@@ -65,73 +65,68 @@ export default function ProjectsIndexLedger() {
   const unconvertedEstimates = estimates.filter(e => !e.converted_to_invoice_id);
 
   if (loading) return (
-    <div className="min-h-screen bg-brand-alabaster flex items-center justify-center font-sans">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-6 h-6 border-2 border-brand-charcoal/20 border-t-brand-charcoal rounded-full animate-spin" />
-        <p className="text-xs font-medium text-brand-muted tracking-wide">Loading portfolio...</p>
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-6 w-6 animate-spin rounded-full border border-obsidian-900/15 border-t-obsidian-900" />
+        <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-400">Loading portfolio</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-brand-alabaster text-brand-charcoal font-sans antialiased pb-24 text-left">
+    <div className="pb-28 text-left">
 
-      {/* Header */}
-      <div className="border-b border-brand-stone/60 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3">
+      {/* Sticky title block */}
+      <div className="sticky top-0 z-20 border-b border-obsidian-900/10 bg-bone-50/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-8 sm:py-5">
           <div className="min-w-0">
-            <h1 className="font-editorial text-lg sm:text-xl font-bold tracking-tight text-brand-charcoal">Project Portfolio</h1>
-            <p className="text-[11px] font-medium tracking-wide text-brand-muted">Active workspaces & proposals</p>
+            <p className="eyebrow">Portfolio</p>
+            <h1 className="display-md mt-1 truncate">Project Portfolio</h1>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={() => router.push("/admin/analytics")}
-              className="flex items-center gap-1.5 bg-white hover:bg-brand-warm text-brand-charcoal font-semibold text-[11px] px-4 py-2.5 rounded-xl tracking-wide transition-all duration-200 border border-brand-stone/40 hover:border-brand-stone/60 outline-none"
+              className="btn-outline px-3 sm:px-5"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
               </svg>
-              Analytics
+              <span className="hidden sm:inline">Analytics</span>
             </button>
             <button
               type="button"
               onClick={() => router.push("/admin")}
-              className="bg-brand-charcoal hover:bg-brand-charcoal/90 text-white font-semibold text-[11px] px-4 sm:px-5 py-2.5 rounded-xl tracking-wide transition-all duration-200 hover:shadow-elevated outline-none"
+              className="btn-ink px-3 sm:px-5"
             >
-              + New Estimate
+              <span className="sm:hidden">+</span>
+              <span className="hidden sm:inline">New Estimate</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+      <div className="mx-auto max-w-6xl px-4 pt-7 sm:px-8 sm:pt-9">
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-brand-warm rounded-xl p-1 mb-6">
+        {/* Index tabs */}
+        <div className="tabstrip mb-8">
           <button
             type="button"
             onClick={() => setTab("projects")}
-            className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold tracking-wide uppercase transition-all ${
-              tab === "projects"
-                ? "bg-white text-brand-charcoal shadow-sm"
-                : "text-brand-muted hover:text-brand-charcoal"
-            }`}
+            className={`tab ${tab === "projects" ? "tab-active" : ""}`}
           >
-            Projects ({projects.length})
+            Projects
+            <span className="ml-2 font-normal tabular-nums text-graphite-300">{projects.length}</span>
           </button>
           <button
             type="button"
             onClick={() => setTab("leads")}
-            className={`flex-1 text-center py-2.5 rounded-lg text-xs font-bold tracking-wide uppercase transition-all relative ${
-              tab === "leads"
-                ? "bg-white text-brand-charcoal shadow-sm"
-                : "text-brand-muted hover:text-brand-charcoal"
-            }`}
+            className={`tab ${tab === "leads" ? "tab-active" : ""}`}
           >
-            Leads ({estimates.length})
+            Leads
+            <span className="ml-2 font-normal tabular-nums text-graphite-300">{estimates.length}</span>
             {newLeads > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+              <span className="ml-1.5 inline-flex h-[15px] min-w-[15px] items-center justify-center rounded-edge bg-brass-500 px-1 text-[9px] font-medium tabular-nums text-white">
                 {newLeads}
               </span>
             )}
@@ -140,101 +135,103 @@ export default function ProjectsIndexLedger() {
 
         {tab === "projects" && (
           <>
-            {/* Stats Row */}
-            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-4 sm:p-5 mb-6 sm:mb-8">
-              <div className="grid grid-cols-3 divide-x divide-brand-stone/30">
-                <div className="px-3 sm:px-5 first:pl-0">
-                  <p className="text-[9px] sm:text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Projects</p>
-                  <p className="text-xl sm:text-2xl font-bold text-brand-charcoal mt-0.5" style={{fontVariantNumeric:"tabular-nums"}}>{projects.length}</p>
-                </div>
-                <div className="px-3 sm:px-5">
-                  <p className="text-[9px] sm:text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Total Value</p>
-                  <p className="text-xl sm:text-2xl font-bold text-brand-charcoal mt-0.5 truncate" style={{fontVariantNumeric:"tabular-nums"}}>
-                    ${totalValue >= 1000 ? `${(totalValue / 1000).toFixed(1)}k` : totalValue.toLocaleString()}
-                  </p>
-                </div>
-                <div className="px-3 sm:px-5">
-                  <p className="text-[9px] sm:text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Approved</p>
-                  <p className="text-xl sm:text-2xl font-bold text-sage-600 mt-0.5" style={{fontVariantNumeric:"tabular-nums"}}>{approvedCount}</p>
-                </div>
+            {/* Metrics ledger */}
+            <div className="mb-9 grid grid-cols-2 gap-px border border-obsidian-900/10 bg-obsidian-900/10 sm:grid-cols-3">
+              <div className="bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50">
+                <p className="eyebrow">Projects</p>
+                <p className="figure mt-2 text-[1.75rem] leading-none sm:text-[2rem]">{projects.length}</p>
+              </div>
+              <div className="bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50">
+                <p className="eyebrow">Total Value</p>
+                <p className="figure mt-2 truncate text-[1.75rem] leading-none sm:text-[2rem]">
+                  <span className="text-graphite-300">$</span>{totalValue >= 1000 ? `${(totalValue / 1000).toFixed(1)}k` : totalValue.toLocaleString()}
+                </p>
+              </div>
+              <div className="col-span-2 bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50 sm:col-span-1">
+                <p className="eyebrow">Approved</p>
+                <p className="figure mt-2 text-[1.75rem] leading-none text-patina-600 sm:text-[2rem]">{approvedCount}</p>
               </div>
             </div>
 
-            {/* Project Cards */}
-            <div className="space-y-2.5">
+            {/* Project ledger */}
+            <div className="border-t border-obsidian-900/10">
               {projects.map((proj) => {
                 const isApproved = proj.status === "approved";
                 return (
                   <div
                     key={proj.id}
                     onClick={() => router.push(`/admin/projects/${proj.id}`)}
-                    className="group bg-white rounded-2xl border border-brand-stone/30 shadow-soft hover:shadow-elevated cursor-pointer transition-all duration-300 hover:border-brand-stone/60 overflow-hidden"
+                    className="group relative cursor-pointer border-b border-obsidian-900/[0.07] bg-transparent px-1 py-4 transition-colors duration-300 ease-architect hover:bg-white sm:px-4 sm:py-5"
                   >
-                    <div className="p-4 sm:p-5">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-brand-warm flex items-center justify-center shrink-0 border border-brand-stone/40 group-hover:border-luxury-gold/30 transition-colors">
-                          <span className="text-base sm:text-lg font-editorial font-bold text-brand-muted group-hover:text-luxury-gold transition-colors">
-                            {(proj.homeowner_name || "?")[0].toUpperCase()}
+                    <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+
+                    <div className="flex items-start gap-4">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-obsidian-900/[0.12] bg-bone-100 font-display text-[15px] text-graphite-500 transition-colors duration-300 ease-architect group-hover:border-brass-300 group-hover:bg-brass-50 group-hover:text-brass-600">
+                        {(proj.homeowner_name || "?")[0].toUpperCase()}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                          {proj.proposal_number && (
+                            <span className="font-mono text-[10px] tracking-architect text-graphite-300">{proj.proposal_number}</span>
+                          )}
+                          <span className={`badge ${isApproved ? "badge-approved" : proj.status === "declined" ? "badge-declined" : "badge-pending"}`}>
+                            <span className={`badge-dot ${isApproved ? "bg-patina-500" : proj.status === "declined" ? "bg-clay-500" : "bg-brass-400"}`} />
+                            {isApproved ? "Approved" : proj.status === "declined" ? "Declined" : "Pending"}
                           </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          {proj.proposal_number && (
-                            <p className="font-mono text-[10px] font-bold text-brand-muted tracking-widest">{proj.proposal_number}</p>
-                          )}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-brand-charcoal text-[14px] sm:text-[15px] tracking-tight truncate">
-                              {proj.homeowner_name || "Unassigned Client"}
-                            </p>
-                            <span className={`inline-flex items-center gap-1 font-semibold text-[9px] px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0 ${
-                              isApproved
-                                ? "bg-sage-50 text-sage-700 border border-sage-200"
-                                : proj.status === "declined"
-                                ? "bg-red-50 text-red-700 border border-red-200"
-                                : "bg-luxury-soft text-luxury-ochre border border-luxury-champagne"
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${isApproved ? "bg-sage-500" : proj.status === "declined" ? "bg-red-500" : "bg-luxury-gold"}`} />
-                              {isApproved ? "Approved" : proj.status === "declined" ? "Declined" : "Pending"}
+                        <p className="mt-1 truncate font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-obsidian-900 sm:text-[1.1875rem]">
+                          {proj.homeowner_name || "Unassigned Client"}
+                        </p>
+                        <p className="mt-0.5 truncate text-[12.5px] text-graphite-500">
+                          {proj.job_address || "Address pending"}
+                        </p>
+
+                        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 sm:hidden">
+                          <span className="figure text-[15px]">
+                            ${toNum(proj.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </span>
+                          {toNum(proj.view_count) > 0 && (
+                            <span className="font-mono text-[10px] uppercase tracking-architect text-graphite-400 tabular-nums">
+                              {proj.view_count} views
                             </span>
-                          </div>
-                          <p className="text-[12px] sm:text-[13px] text-brand-muted font-medium truncate mt-0.5">
-                            {proj.job_address || "Address pending"}
-                          </p>
+                          )}
+                          {proj.project_title && (
+                            <span className="truncate font-mono text-[10px] uppercase tracking-architect text-brass-500">{proj.project_title}</span>
+                          )}
                         </div>
-                        <svg className="w-4 h-4 text-brand-muted/40 group-hover:text-brand-charcoal group-hover:translate-x-0.5 transition-all shrink-0 hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
                       </div>
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-brand-stone/20">
-                        <span className="font-semibold text-brand-charcoal text-[15px] sm:text-base tracking-tight" style={{fontVariantNumeric:"tabular-nums"}}>
+
+                      <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
+                        <span className="figure text-[16px]">
                           ${toNum(proj.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
                         <div className="flex items-center gap-3">
                           {toNum(proj.view_count) > 0 && (
-                            <div className="flex items-center gap-1.5 text-brand-muted">
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              <span className="text-[11px] font-semibold" style={{fontVariantNumeric:"tabular-nums"}}>{proj.view_count} views</span>
-                            </div>
+                            <span className="font-mono text-[10px] uppercase tracking-architect text-graphite-400 tabular-nums">
+                              {proj.view_count} views
+                            </span>
                           )}
                           {proj.project_title && (
-                            <span className="text-[10px] font-semibold text-luxury-gold truncate max-w-[120px]">{proj.project_title}</span>
+                            <span className="max-w-[140px] truncate font-mono text-[10px] uppercase tracking-architect text-brass-500">{proj.project_title}</span>
                           )}
                         </div>
                       </div>
+
+                      <svg className="mt-1 hidden h-3.5 w-3.5 shrink-0 text-graphite-300 transition-all duration-300 ease-architect group-hover:translate-x-0.5 group-hover:text-obsidian-900 sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </div>
                 );
               })}
 
               {projects.length === 0 && (
-                <div className="bg-white rounded-3xl border border-brand-stone/30 shadow-soft p-16 text-center">
-                  <div className="w-16 h-16 rounded-full bg-brand-warm mx-auto flex items-center justify-center mb-4">
-                    <span className="text-2xl">📋</span>
-                  </div>
-                  <p className="font-editorial text-lg text-brand-charcoal font-medium">No projects yet</p>
-                  <p className="text-sm text-brand-muted mt-1">Create your first estimate to get started.</p>
+                <div className="blueprint-grid border-b border-obsidian-900/[0.07] px-8 py-20 text-center">
+                  <p className="display-sm">No projects yet</p>
+                  <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-graphite-500">
+                    Create your first estimate to open a project record.
+                  </p>
                 </div>
               )}
             </div>
@@ -243,40 +240,38 @@ export default function ProjectsIndexLedger() {
 
         {tab === "leads" && (
           <>
-            {/* Leads Stats */}
-            <div className="bg-white rounded-2xl shadow-soft border border-brand-stone/30 p-4 sm:p-5 mb-6 sm:mb-8">
-              <div className="grid grid-cols-3 divide-x divide-brand-stone/30">
-                <div className="px-3 sm:px-5 first:pl-0">
-                  <p className="text-[9px] sm:text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Total Leads</p>
-                  <p className="text-xl sm:text-2xl font-bold text-brand-charcoal mt-0.5" style={{fontVariantNumeric:"tabular-nums"}}>{estimates.length}</p>
-                </div>
-                <div className="px-3 sm:px-5">
-                  <p className="text-[9px] sm:text-[10px] font-semibold text-brand-muted uppercase tracking-wider">New</p>
-                  <p className="text-xl sm:text-2xl font-bold text-luxury-ochre mt-0.5" style={{fontVariantNumeric:"tabular-nums"}}>{newLeads}</p>
-                </div>
-                <div className="px-3 sm:px-5">
-                  <p className="text-[9px] sm:text-[10px] font-semibold text-brand-muted uppercase tracking-wider">Unconverted</p>
-                  <p className="text-xl sm:text-2xl font-bold text-brand-charcoal mt-0.5" style={{fontVariantNumeric:"tabular-nums"}}>{unconvertedEstimates.length}</p>
-                </div>
+            {/* Lead metrics */}
+            <div className="mb-9 grid grid-cols-2 gap-px border border-obsidian-900/10 bg-obsidian-900/10 sm:grid-cols-3">
+              <div className="bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50">
+                <p className="eyebrow">Total Leads</p>
+                <p className="figure mt-2 text-[1.75rem] leading-none sm:text-[2rem]">{estimates.length}</p>
+              </div>
+              <div className="bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50">
+                <p className="eyebrow">New</p>
+                <p className="figure mt-2 text-[1.75rem] leading-none text-brass-500 sm:text-[2rem]">{newLeads}</p>
+              </div>
+              <div className="col-span-2 bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50 sm:col-span-1">
+                <p className="eyebrow">Unconverted</p>
+                <p className="figure mt-2 text-[1.75rem] leading-none sm:text-[2rem]">{unconvertedEstimates.length}</p>
               </div>
             </div>
 
-            {/* Lead Cards */}
-            <div className="space-y-2.5">
+            {/* Lead ledger */}
+            <div className="border-t border-obsidian-900/10">
               {estimates.map((est) => {
                 const ed = est.estimate_data || {};
                 const isConverted = !!est.converted_to_invoice_id;
-                const statusColors: Record<string, string> = {
-                  new: "bg-blue-50 text-blue-700 border-blue-200",
-                  contacted: "bg-luxury-soft text-luxury-ochre border-luxury-champagne",
-                  consultation_scheduled: "bg-emerald-50 text-emerald-700 border-emerald-200",
-                  converted: "bg-sage-50 text-sage-700 border-sage-200",
+                const statusClasses: Record<string, string> = {
+                  new: "badge-ink",
+                  contacted: "badge-pending",
+                  consultation_scheduled: "badge-neutral",
+                  converted: "badge-approved",
                 };
                 const statusDots: Record<string, string> = {
-                  new: "bg-blue-500",
-                  contacted: "bg-luxury-gold",
-                  consultation_scheduled: "bg-emerald-500",
-                  converted: "bg-sage-500",
+                  new: "bg-bone-100",
+                  contacted: "bg-brass-400",
+                  consultation_scheduled: "bg-graphite-400",
+                  converted: "bg-patina-500",
                 };
                 const statusLabels: Record<string, string> = {
                   new: "New Lead",
@@ -291,79 +286,81 @@ export default function ProjectsIndexLedger() {
                   <div
                     key={est.id}
                     onClick={() => router.push(`/admin/estimates/${est.id}`)}
-                    className="group bg-white rounded-2xl border border-brand-stone/30 shadow-soft hover:shadow-elevated cursor-pointer transition-all duration-300 hover:border-brand-stone/60 overflow-hidden"
+                    className="group relative cursor-pointer border-b border-obsidian-900/[0.07] px-1 py-4 transition-colors duration-300 ease-architect hover:bg-white sm:px-4 sm:py-5"
                   >
-                    <div className="p-4 sm:p-5">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
-                          isConverted
-                            ? "bg-sage-50 border-sage-200"
-                            : "bg-luxury-soft border-luxury-champagne group-hover:border-luxury-gold/50"
-                        }`}>
-                          <span className={`text-base sm:text-lg font-editorial font-bold transition-colors ${
-                            isConverted ? "text-sage-600" : "text-luxury-ochre"
-                          }`}>
-                            {(est.name || est.project_type || "?")[0].toUpperCase()}
+                    <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+
+                    <div className="flex items-start gap-4">
+                      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border font-display text-[15px] transition-colors duration-300 ease-architect ${
+                        isConverted
+                          ? "border-patina-200 bg-patina-50 text-patina-600"
+                          : "border-obsidian-900/[0.12] bg-bone-100 text-graphite-500 group-hover:border-brass-300 group-hover:bg-brass-50 group-hover:text-brass-600"
+                      }`}>
+                        {(est.name || est.project_type || "?")[0].toUpperCase()}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                          {est.estimate_number && (
+                            <span className="font-mono text-[10px] tracking-architect text-graphite-300">{est.estimate_number}</span>
+                          )}
+                          <span className={`badge ${statusClasses[est.status] || statusClasses.new}`}>
+                            <span className={`badge-dot ${statusDots[est.status] || statusDots.new}`} />
+                            {statusLabels[est.status] || "New Lead"}
                           </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          {est.estimate_number && (
-                            <p className="font-mono text-[10px] font-bold text-brand-muted tracking-widest">{est.estimate_number}</p>
+                        <p className="mt-1 truncate font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-obsidian-900 sm:text-[1.1875rem]">
+                          {est.name || "Anonymous"}
+                        </p>
+                        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 text-[12.5px] text-graphite-500">
+                          <span className="truncate">{est.project_type}</span>
+                          {est.email && (
+                            <>
+                              <span aria-hidden className="text-graphite-300">·</span>
+                              <span className="truncate text-[12px] text-graphite-400">{est.email}</span>
+                            </>
                           )}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-brand-charcoal text-[14px] sm:text-[15px] tracking-tight truncate">
-                              {est.name || "Anonymous"}
-                            </p>
-                            <span className={`inline-flex items-center gap-1 font-semibold text-[9px] px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0 border ${
-                              statusColors[est.status] || statusColors.new
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${statusDots[est.status] || statusDots.new}`} />
-                              {statusLabels[est.status] || "New Lead"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <p className="text-[12px] sm:text-[13px] text-brand-muted font-medium truncate">
-                              {est.project_type}
-                            </p>
-                            {est.email && (
-                              <>
-                                <span className="text-brand-stone/40">·</span>
-                                <p className="text-[11px] text-brand-muted truncate">{est.email}</p>
-                              </>
-                            )}
-                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); deleteLead(est.id); }}
-                            disabled={deletingId === est.id}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-brand-muted/40 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                            title="Delete lead"
-                          >
-                            {deletingId === est.id ? (
-                              <div className="w-3.5 h-3.5 border-2 border-red-300 border-t-red-500 rounded-full animate-spin" />
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                              </svg>
-                            )}
-                          </button>
-                          <svg className="w-4 h-4 text-brand-muted/40 group-hover:text-brand-charcoal group-hover:translate-x-0.5 transition-all hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
+
+                        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 sm:hidden">
+                          <span className="figure text-[14px]">
+                            ${(ed.total_projected_low || 0).toLocaleString()} — ${(ed.total_projected_high || 0).toLocaleString()}
+                          </span>
+                          <span className="font-mono text-[10px] uppercase tracking-architect text-graphite-400">{createdAgo}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-brand-stone/20">
-                        <span className="font-semibold text-brand-charcoal text-[14px] tracking-tight" style={{fontVariantNumeric:"tabular-nums"}}>
+
+                      <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
+                        <span className="figure text-[14.5px]">
                           ${(ed.total_projected_low || 0).toLocaleString()} — ${(ed.total_projected_high || 0).toLocaleString()}
                         </span>
-                        <div className="flex items-center gap-3 text-[11px] text-brand-muted">
+                        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-architect text-graphite-400">
                           {reminderCount > 0 && (
-                            <span className="font-semibold">{reminderCount} reminder{reminderCount !== 1 ? "s" : ""}</span>
+                            <span>{reminderCount} reminder{reminderCount !== 1 ? "s" : ""}</span>
                           )}
-                          <span className="font-medium">{createdAgo}</span>
+                          <span>{createdAgo}</span>
                         </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); deleteLead(est.id); }}
+                          disabled={deletingId === est.id}
+                          className="flex h-7 w-7 items-center justify-center rounded-edge text-graphite-300 transition-all duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                          title="Delete lead"
+                        >
+                          {deletingId === est.id ? (
+                            <div className="h-3.5 w-3.5 animate-spin rounded-full border border-clay-200 border-t-clay-500" />
+                          ) : (
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                          )}
+                        </button>
+                        <svg className="mt-0.5 hidden h-3.5 w-3.5 text-graphite-300 transition-all duration-300 ease-architect group-hover:translate-x-0.5 group-hover:text-obsidian-900 sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                     </div>
                   </div>
@@ -371,12 +368,11 @@ export default function ProjectsIndexLedger() {
               })}
 
               {estimates.length === 0 && (
-                <div className="bg-white rounded-3xl border border-brand-stone/30 shadow-soft p-16 text-center">
-                  <div className="w-16 h-16 rounded-full bg-luxury-soft mx-auto flex items-center justify-center mb-4">
-                    <span className="text-2xl">✦</span>
-                  </div>
-                  <p className="font-editorial text-lg text-brand-charcoal font-medium">No leads yet</p>
-                  <p className="text-sm text-brand-muted mt-1">Leads appear here when homeowners use the instant estimate tool on your website.</p>
+                <div className="blueprint-grid border-b border-obsidian-900/[0.07] px-8 py-20 text-center">
+                  <p className="display-sm">No leads yet</p>
+                  <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-graphite-500">
+                    Leads appear here when homeowners use the instant estimate tool on your website.
+                  </p>
                 </div>
               )}
             </div>
