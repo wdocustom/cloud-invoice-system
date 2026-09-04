@@ -67,8 +67,8 @@ export default function ProjectsIndexLedger() {
   if (loading) return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-6 w-6 animate-spin rounded-full border border-taupe-300/70 border-t-espresso-900" />
-        <p className="font-sans text-[10px] uppercase tracking-architect text-taupe-400">Loading portfolio</p>
+        <div className="h-6 w-6 animate-spin rounded-full border border-carbon-700/70 border-t-chalk-50" />
+        <p className="font-sans text-[10px] uppercase tracking-architect text-steel-400">Loading portfolio</p>
       </div>
     </div>
   );
@@ -77,7 +77,7 @@ export default function ProjectsIndexLedger() {
     <div className="pb-28 text-left">
 
       {/* Sticky title block */}
-      <div className="sticky top-0 z-20 border-b border-taupe-200/70 bg-alabaster-50/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-carbon-700/70 bg-carbon-950/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-8 sm:py-5">
           <div className="min-w-0">
             <p className="eyebrow">Portfolio</p>
@@ -116,7 +116,7 @@ export default function ProjectsIndexLedger() {
             className={`tab ${tab === "projects" ? "tab-active" : ""}`}
           >
             Projects
-            <span className="ml-2 font-normal tabular-nums text-taupe-300">{projects.length}</span>
+            <span className="ml-2 font-normal tabular-nums text-steel-500">{projects.length}</span>
           </button>
           <button
             type="button"
@@ -124,9 +124,9 @@ export default function ProjectsIndexLedger() {
             className={`tab ${tab === "leads" ? "tab-active" : ""}`}
           >
             Leads
-            <span className="ml-2 font-normal tabular-nums text-taupe-300">{estimates.length}</span>
+            <span className="ml-2 font-normal tabular-nums text-steel-500">{estimates.length}</span>
             {newLeads > 0 && (
-              <span className="ml-1.5 inline-flex h-[15px] min-w-[15px] items-center justify-center rounded-edge bg-brass-500 px-1 text-[9px] font-medium tabular-nums text-white">
+              <span className="ml-1.5 inline-flex h-[15px] min-w-[15px] items-center justify-center rounded-edge bg-ember-500 px-1 text-[9px] font-medium tabular-nums text-white">
                 {newLeads}
               </span>
             )}
@@ -136,54 +136,54 @@ export default function ProjectsIndexLedger() {
         {tab === "projects" && (
           <>
             {/* Metrics ledger */}
-            <div className="mb-9 grid grid-cols-2 gap-px overflow-hidden rounded-panel bg-taupe-200/60 shadow-riser ring-1 ring-taupe-200/50 sm:grid-cols-3">
-              <div className="bg-white px-6 py-7 transition-colors duration-300 ease-architect hover:bg-alabaster-50">
+            <div className="mb-9 grid grid-cols-2 gap-px overflow-hidden rounded-panel bg-carbon-800/60 shadow-riser ring-1 ring-carbon-700/50 sm:grid-cols-3">
+              <div className="bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950">
                 <p className="eyebrow">Projects</p>
-                <p className="figure mt-2 text-[1.75rem] leading-none sm:text-[2rem]">{projects.length}</p>
+                <p className="figure-hero mt-4 text-[1.625rem] sm:text-[2.25rem] lg:text-[2.75rem]">{projects.length}</p>
               </div>
-              <div className="bg-white px-6 py-7 transition-colors duration-300 ease-architect hover:bg-alabaster-50">
+              <div className="bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950">
                 <p className="eyebrow">Total Value</p>
-                <p className="figure mt-2 truncate text-[1.75rem] leading-none sm:text-[2rem]">
-                  <span className="text-taupe-300">$</span>{totalValue >= 1000 ? `${(totalValue / 1000).toFixed(1)}k` : totalValue.toLocaleString()}
+                <p className="figure-hero mt-4 truncate text-[1.625rem] sm:text-[2.25rem] lg:text-[2.75rem]">
+                  <span className="text-steel-500">$</span>{totalValue >= 1000 ? `${(totalValue / 1000).toFixed(1)}k` : totalValue.toLocaleString()}
                 </p>
               </div>
-              <div className="col-span-2 bg-white px-6 py-7 transition-colors duration-300 ease-architect hover:bg-alabaster-50 sm:col-span-1">
+              <div className="col-span-2 bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950 sm:col-span-1">
                 <p className="eyebrow">Approved</p>
-                <p className="figure mt-2 text-[1.75rem] leading-none text-patina-600 sm:text-[2rem]">{approvedCount}</p>
+                <p className="figure-hero mt-4 text-[1.625rem] text-signal-600 sm:text-[2.25rem] lg:text-[2.75rem]">{approvedCount}</p>
               </div>
             </div>
 
             {/* Project ledger */}
-            <div className="border-t border-taupe-200/70">
+            <div className="border-t border-carbon-700/70">
               {projects.map((proj) => {
                 const isApproved = proj.status === "approved";
                 return (
                   <div
                     key={proj.id}
                     onClick={() => router.push(`/admin/projects/${proj.id}`)}
-                    className="group relative cursor-pointer border-b border-taupe-200/55 bg-transparent px-2 py-5 transition-colors duration-300 ease-architect hover:bg-white sm:px-5 sm:py-7"
+                    className="group relative cursor-pointer border-b border-carbon-700/55 bg-transparent px-2 py-5 transition-colors duration-300 ease-architect hover:bg-carbon-900 sm:px-5 sm:py-7"
                   >
-                    <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                    <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-ember-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
 
                     <div className="flex items-start gap-4">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-taupe-200 bg-alabaster-100 font-display text-[15px] text-taupe-500 transition-colors duration-300 ease-architect group-hover:border-brass-300 group-hover:bg-brass-50 group-hover:text-brass-600">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-carbon-700 bg-carbon-900 font-sans text-[15px] font-black text-steel-400 transition-colors duration-300 ease-architect group-hover:border-ember-300 group-hover:bg-ember-50 group-hover:text-ember-600">
                         {(proj.homeowner_name || "?")[0].toUpperCase()}
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                           {proj.proposal_number && (
-                            <span className="font-sans text-[10px] tracking-architect text-taupe-300">{proj.proposal_number}</span>
+                            <span className="font-sans text-[10px] tracking-architect text-steel-500">{proj.proposal_number}</span>
                           )}
                           <span className={`badge ${isApproved ? "badge-approved" : proj.status === "declined" ? "badge-declined" : "badge-pending"}`}>
-                            <span className={`badge-dot ${isApproved ? "bg-patina-500" : proj.status === "declined" ? "bg-clay-500" : "bg-brass-400"}`} />
+                            <span className={`badge-dot ${isApproved ? "bg-signal-500" : proj.status === "declined" ? "bg-crimson-500" : "bg-ember-400"}`} />
                             {isApproved ? "Approved" : proj.status === "declined" ? "Declined" : "Pending"}
                           </span>
                         </div>
-                        <p className="mt-1 truncate font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-espresso-900 sm:text-[1.1875rem]">
+                        <p className="mt-1 truncate display-sm">
                           {proj.homeowner_name || "Unassigned Client"}
                         </p>
-                        <p className="mt-0.5 truncate text-[12.5px] text-taupe-500">
+                        <p className="mt-0.5 truncate text-[12.5px] text-steel-400">
                           {proj.job_address || "Address pending"}
                         </p>
 
@@ -192,12 +192,12 @@ export default function ProjectsIndexLedger() {
                             ${toNum(proj.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
                           {toNum(proj.view_count) > 0 && (
-                            <span className="font-sans text-[10px] uppercase tracking-architect text-taupe-400 tabular-nums">
+                            <span className="font-sans text-[10px] uppercase tracking-architect text-steel-400 tabular-nums">
                               {proj.view_count} views
                             </span>
                           )}
                           {proj.project_title && (
-                            <span className="truncate font-sans text-[10px] uppercase tracking-architect text-brass-500">{proj.project_title}</span>
+                            <span className="truncate font-sans text-[10px] uppercase tracking-architect text-ember-500">{proj.project_title}</span>
                           )}
                         </div>
                       </div>
@@ -208,17 +208,17 @@ export default function ProjectsIndexLedger() {
                         </span>
                         <div className="flex items-center gap-3">
                           {toNum(proj.view_count) > 0 && (
-                            <span className="font-sans text-[10px] uppercase tracking-architect text-taupe-400 tabular-nums">
+                            <span className="font-sans text-[10px] uppercase tracking-architect text-steel-400 tabular-nums">
                               {proj.view_count} views
                             </span>
                           )}
                           {proj.project_title && (
-                            <span className="max-w-[140px] truncate font-sans text-[10px] uppercase tracking-architect text-brass-500">{proj.project_title}</span>
+                            <span className="max-w-[140px] truncate font-sans text-[10px] uppercase tracking-architect text-ember-500">{proj.project_title}</span>
                           )}
                         </div>
                       </div>
 
-                      <svg className="mt-1 hidden h-3.5 w-3.5 shrink-0 text-taupe-300 transition-all duration-300 ease-architect group-hover:translate-x-0.5 group-hover:text-espresso-900 sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="mt-1 hidden h-3.5 w-3.5 shrink-0 text-steel-500 transition-all duration-300 ease-architect group-hover:translate-x-0.5 group-hover:text-chalk-50 sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -227,9 +227,9 @@ export default function ProjectsIndexLedger() {
               })}
 
               {projects.length === 0 && (
-                <div className="blueprint-grid border-b border-taupe-200/55 px-8 py-20 text-center">
+                <div className="blueprint-grid border-b border-carbon-700/55 px-8 py-20 text-center">
                   <p className="display-sm">No projects yet</p>
-                  <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-taupe-500">
+                  <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-steel-400">
                     Create your first estimate to open a project record.
                   </p>
                 </div>
@@ -241,23 +241,23 @@ export default function ProjectsIndexLedger() {
         {tab === "leads" && (
           <>
             {/* Lead metrics */}
-            <div className="mb-9 grid grid-cols-2 gap-px overflow-hidden rounded-panel bg-taupe-200/60 shadow-riser ring-1 ring-taupe-200/50 sm:grid-cols-3">
-              <div className="bg-white px-6 py-7 transition-colors duration-300 ease-architect hover:bg-alabaster-50">
+            <div className="mb-9 grid grid-cols-2 gap-px overflow-hidden rounded-panel bg-carbon-800/60 shadow-riser ring-1 ring-carbon-700/50 sm:grid-cols-3">
+              <div className="bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950">
                 <p className="eyebrow">Total Leads</p>
-                <p className="figure mt-2 text-[1.75rem] leading-none sm:text-[2rem]">{estimates.length}</p>
+                <p className="figure-hero mt-4 text-[1.625rem] sm:text-[2.25rem] lg:text-[2.75rem]">{estimates.length}</p>
               </div>
-              <div className="bg-white px-6 py-7 transition-colors duration-300 ease-architect hover:bg-alabaster-50">
+              <div className="bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950">
                 <p className="eyebrow">New</p>
-                <p className="figure mt-2 text-[1.75rem] leading-none text-brass-500 sm:text-[2rem]">{newLeads}</p>
+                <p className="figure-hero mt-4 text-[1.625rem] text-ember-500 sm:text-[2.25rem] lg:text-[2.75rem]">{newLeads}</p>
               </div>
-              <div className="col-span-2 bg-white px-6 py-7 transition-colors duration-300 ease-architect hover:bg-alabaster-50 sm:col-span-1">
+              <div className="col-span-2 bg-carbon-900 px-6 py-7 transition-colors duration-300 ease-architect hover:bg-carbon-950 sm:col-span-1">
                 <p className="eyebrow">Unconverted</p>
-                <p className="figure mt-2 text-[1.75rem] leading-none sm:text-[2rem]">{unconvertedEstimates.length}</p>
+                <p className="figure-hero mt-4 text-[1.625rem] sm:text-[2.25rem] lg:text-[2.75rem]">{unconvertedEstimates.length}</p>
               </div>
             </div>
 
             {/* Lead ledger */}
-            <div className="border-t border-taupe-200/70">
+            <div className="border-t border-carbon-700/70">
               {estimates.map((est) => {
                 const ed = est.estimate_data || {};
                 const isConverted = !!est.converted_to_invoice_id;
@@ -268,10 +268,10 @@ export default function ProjectsIndexLedger() {
                   converted: "badge-approved",
                 };
                 const statusDots: Record<string, string> = {
-                  new: "bg-alabaster-100",
-                  contacted: "bg-brass-400",
-                  consultation_scheduled: "bg-taupe-400",
-                  converted: "bg-patina-500",
+                  new: "bg-carbon-900",
+                  contacted: "bg-ember-400",
+                  consultation_scheduled: "bg-steel-500",
+                  converted: "bg-signal-500",
                 };
                 const statusLabels: Record<string, string> = {
                   new: "New Lead",
@@ -286,15 +286,15 @@ export default function ProjectsIndexLedger() {
                   <div
                     key={est.id}
                     onClick={() => router.push(`/admin/estimates/${est.id}`)}
-                    className="group relative cursor-pointer border-b border-taupe-200/55 px-2 py-5 transition-colors duration-300 ease-architect hover:bg-white sm:px-5 sm:py-7"
+                    className="group relative cursor-pointer border-b border-carbon-700/55 px-2 py-5 transition-colors duration-300 ease-architect hover:bg-carbon-900 sm:px-5 sm:py-7"
                   >
-                    <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                    <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-ember-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
 
                     <div className="flex items-start gap-4">
-                      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border font-display text-[15px] transition-colors duration-300 ease-architect ${
+                      <div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border font-sans text-[15px] font-black transition-colors duration-300 ease-architect ${
                         isConverted
-                          ? "border-patina-200 bg-patina-50 text-patina-600"
-                          : "border-taupe-200 bg-alabaster-100 text-taupe-500 group-hover:border-brass-300 group-hover:bg-brass-50 group-hover:text-brass-600"
+                          ? "border-signal-200 bg-signal-50 text-signal-600"
+                          : "border-carbon-700 bg-carbon-900 text-steel-400 group-hover:border-ember-300 group-hover:bg-ember-50 group-hover:text-ember-600"
                       }`}>
                         {(est.name || est.project_type || "?")[0].toUpperCase()}
                       </div>
@@ -302,22 +302,22 @@ export default function ProjectsIndexLedger() {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                           {est.estimate_number && (
-                            <span className="font-sans text-[10px] tracking-architect text-taupe-300">{est.estimate_number}</span>
+                            <span className="font-sans text-[10px] tracking-architect text-steel-500">{est.estimate_number}</span>
                           )}
                           <span className={`badge ${statusClasses[est.status] || statusClasses.new}`}>
                             <span className={`badge-dot ${statusDots[est.status] || statusDots.new}`} />
                             {statusLabels[est.status] || "New Lead"}
                           </span>
                         </div>
-                        <p className="mt-1 truncate font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-espresso-900 sm:text-[1.1875rem]">
+                        <p className="mt-1 truncate display-sm">
                           {est.name || "Anonymous"}
                         </p>
-                        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 text-[12.5px] text-taupe-500">
+                        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 text-[12.5px] text-steel-400">
                           <span className="truncate">{est.project_type}</span>
                           {est.email && (
                             <>
-                              <span aria-hidden className="text-taupe-300">·</span>
-                              <span className="truncate text-[12px] text-taupe-400">{est.email}</span>
+                              <span aria-hidden className="text-steel-500">·</span>
+                              <span className="truncate text-[12px] text-steel-400">{est.email}</span>
                             </>
                           )}
                         </div>
@@ -326,7 +326,7 @@ export default function ProjectsIndexLedger() {
                           <span className="figure text-[14px]">
                             ${(ed.total_projected_low || 0).toLocaleString()} — ${(ed.total_projected_high || 0).toLocaleString()}
                           </span>
-                          <span className="font-sans text-[10px] uppercase tracking-architect text-taupe-400">{createdAgo}</span>
+                          <span className="font-sans text-[10px] uppercase tracking-architect text-steel-400">{createdAgo}</span>
                         </div>
                       </div>
 
@@ -334,7 +334,7 @@ export default function ProjectsIndexLedger() {
                         <span className="figure text-[14.5px]">
                           ${(ed.total_projected_low || 0).toLocaleString()} — ${(ed.total_projected_high || 0).toLocaleString()}
                         </span>
-                        <div className="flex items-center gap-3 font-sans text-[10px] uppercase tracking-architect text-taupe-400">
+                        <div className="flex items-center gap-3 font-sans text-[10px] uppercase tracking-architect text-steel-400">
                           {reminderCount > 0 && (
                             <span>{reminderCount} reminder{reminderCount !== 1 ? "s" : ""}</span>
                           )}
@@ -347,18 +347,18 @@ export default function ProjectsIndexLedger() {
                           type="button"
                           onClick={(e) => { e.stopPropagation(); deleteLead(est.id); }}
                           disabled={deletingId === est.id}
-                          className="flex h-7 w-7 items-center justify-center rounded-edge text-taupe-300 transition-all duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                          className="flex h-7 w-7 items-center justify-center rounded-edge text-steel-500 transition-all duration-200 ease-architect hover:bg-crimson-50 hover:text-crimson-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                           title="Delete lead"
                         >
                           {deletingId === est.id ? (
-                            <div className="h-3.5 w-3.5 animate-spin rounded-full border border-clay-200 border-t-clay-500" />
+                            <div className="h-3.5 w-3.5 animate-spin rounded-full border border-crimson-200 border-t-crimson-500" />
                           ) : (
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                             </svg>
                           )}
                         </button>
-                        <svg className="mt-0.5 hidden h-3.5 w-3.5 text-taupe-300 transition-all duration-300 ease-architect group-hover:translate-x-0.5 group-hover:text-espresso-900 sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <svg className="mt-0.5 hidden h-3.5 w-3.5 text-steel-500 transition-all duration-300 ease-architect group-hover:translate-x-0.5 group-hover:text-chalk-50 sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -368,9 +368,9 @@ export default function ProjectsIndexLedger() {
               })}
 
               {estimates.length === 0 && (
-                <div className="blueprint-grid border-b border-taupe-200/55 px-8 py-20 text-center">
+                <div className="blueprint-grid border-b border-carbon-700/55 px-8 py-20 text-center">
                   <p className="display-sm">No leads yet</p>
-                  <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-taupe-500">
+                  <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-steel-400">
                     Leads appear here when homeowners use the instant estimate tool on your website.
                   </p>
                 </div>

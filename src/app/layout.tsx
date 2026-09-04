@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { DM_Sans, Space_Grotesk, Fraunces } from "next/font/google";
+import { Archivo, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "./providers";
 
-// Geometric sans for UI, data, pricing and functional labels.
-const dmSans = DM_Sans({
+// Commanding geometric grotesque. One family carries the whole admin and
+// portal; hierarchy comes from weight, scale and tracking.
+const archivo = Archivo({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -17,11 +18,12 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-// Warm editorial serif for the admin workspace and client portal headers.
-// The public marketing pages keep --font-editorial, so they are untouched.
-const fraunces = Fraunces({
+// The display variable points at the same grotesque, so headline weight is a
+// weight choice rather than a second typeface. The public marketing pages keep
+// --font-editorial and are untouched.
+const archivoDisplay = Archivo({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["700", "800", "900"],
   variable: "--font-display",
   display: "swap",
 });
@@ -172,7 +174,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${dmSans.variable} ${spaceGrotesk.variable} ${fraunces.variable} font-sans bg-brand-alabaster text-brand-charcoal antialiased`}>
+      <body className={`${archivo.variable} ${spaceGrotesk.variable} ${archivoDisplay.variable} font-sans bg-brand-alabaster text-brand-charcoal antialiased`}>
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
