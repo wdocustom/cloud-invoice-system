@@ -168,13 +168,13 @@ export default function MultiTierEstimatorCreator() {
     <div className="pb-28 text-left">
 
       {/* Sheet header — title block for the document being drafted */}
-      <div className="border-b border-obsidian-900/10 bg-white">
+      <div className="border-b border-taupe-200/70 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-7 sm:px-8 sm:py-9">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <p className="eyebrow">Proposal Drafting</p>
               <h1 className="display-lg mt-2">New Estimate</h1>
-              <p className="mt-2 max-w-md text-[13px] leading-relaxed text-graphite-500">
+              <p className="mt-2 max-w-md text-[13px] leading-relaxed text-taupe-500">
                 Compose a tiered proposal, then publish it to a private client portal.
               </p>
             </div>
@@ -190,17 +190,17 @@ export default function MultiTierEstimatorCreator() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-8 sm:pt-10">
+      <div className="mx-auto max-w-6xl px-5 pt-12 sm:px-8 sm:pt-16">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-10">
 
           {/* ── Drafting column ─────────────────────────────────────────── */}
-          <div className="min-w-0 space-y-10">
+          <div className="min-w-0 space-y-14">
 
             {/* 01 — Client */}
             <section className="animate-rise">
               <div className="title-block">
                 <div className="flex items-baseline gap-3">
-                  <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">01</span>
+                  <span className="font-sans text-[10px] font-medium tracking-architect text-brass-500">01</span>
                   <h2 className="display-sm">Client</h2>
                 </div>
                 <span className="eyebrow hidden sm:block">Record</span>
@@ -229,7 +229,7 @@ export default function MultiTierEstimatorCreator() {
             <section className="animate-rise">
               <div className="title-block">
                 <div className="flex items-baseline gap-3">
-                  <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">02</span>
+                  <span className="font-sans text-[10px] font-medium tracking-architect text-brass-500">02</span>
                   <h2 className="display-sm">Parameters</h2>
                 </div>
                 <span className="eyebrow hidden sm:block">Terms</span>
@@ -254,21 +254,21 @@ export default function MultiTierEstimatorCreator() {
             <section className="animate-rise">
               <div className="title-block">
                 <div className="flex items-baseline gap-3">
-                  <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">03</span>
+                  <span className="font-sans text-[10px] font-medium tracking-architect text-brass-500">03</span>
                   <h2 className="display-sm">Scope</h2>
                 </div>
                 <span className="eyebrow hidden sm:block">AI Assisted</span>
               </div>
 
-              <div className="panel-sunken relative overflow-hidden p-5 sm:p-6">
+              <div className="panel-sunken relative overflow-hidden p-6 sm:p-8">
                 {isGenerating && (
-                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-bone-50/[0.92] backdrop-blur-[2px]">
-                    <div className="h-7 w-7 animate-spin rounded-full border border-obsidian-900/15 border-t-brass-500" />
-                    <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-500">{generatingPhase}</p>
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-alabaster-50/[0.92] backdrop-blur-[2px]">
+                    <div className="h-7 w-7 animate-spin rounded-full border border-taupe-300/70 border-t-brass-500" />
+                    <p className="font-sans text-[10px] uppercase tracking-architect text-taupe-500">{generatingPhase}</p>
                   </div>
                 )}
 
-                <p className="text-[13px] leading-relaxed text-graphite-600">
+                <p className="text-[13px] leading-relaxed text-taupe-600">
                   Describe the renovation in detail — rooms, scope of work, material preferences, constraints.
                   Tiered line items are drafted with pricing for your review.
                 </p>
@@ -282,7 +282,7 @@ export default function MultiTierEstimatorCreator() {
                 />
 
                 <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-                  <label className="group inline-flex cursor-pointer items-center gap-2 self-start border border-dashed border-obsidian-900/20 px-3 py-2 font-mono text-[10px] uppercase tracking-architect text-graphite-500 transition-colors duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900">
+                  <label className="group inline-flex cursor-pointer items-center gap-2 self-start border border-dashed border-taupe-300 px-3 py-2 font-sans text-[10px] uppercase tracking-architect text-taupe-500 transition-colors duration-200 ease-architect hover:border-taupe-400 hover:text-espresso-900">
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
                     <span className="max-w-[180px] truncate">{attachedFileName ? attachedFileName : "Attach design package"}</span>
                     <input type="file" onChange={handleClientSideFileLoad} className="hidden" />
@@ -305,28 +305,28 @@ export default function MultiTierEstimatorCreator() {
               <section className="animate-rise">
                 <div className="title-block">
                   <div className="flex items-baseline gap-3">
-                    <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">04</span>
+                    <span className="font-sans text-[10px] font-medium tracking-architect text-brass-500">04</span>
                     <h2 className="display-sm">Line Items</h2>
                   </div>
                   <span className="eyebrow">{generatedItems.length} entries</span>
                 </div>
 
                 <div className="panel overflow-hidden">
-                  <div className="hidden items-baseline justify-between border-b border-obsidian-900/[0.07] bg-bone-100/60 px-5 py-2.5 sm:flex">
+                  <div className="hidden items-baseline justify-between border-b border-taupe-200/55 bg-alabaster-100/60 px-6 py-3 sm:flex">
                     <span className="eyebrow">Description</span>
                     <span className="eyebrow">Standard Tier</span>
                   </div>
                   <div className="max-h-[26rem] overflow-y-auto">
                     {generatedItems.map((item, idx) => (
-                      <div key={idx} className="group relative flex items-start justify-between gap-5 border-b border-obsidian-900/[0.06] px-5 py-4 transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50">
+                      <div key={idx} className="group relative flex items-start justify-between gap-5 border-b border-taupe-200/50 px-6 py-5 transition-colors duration-200 ease-architect last:border-b-0 hover:bg-alabaster-50">
                         <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
                         <div className="flex min-w-0 flex-1 gap-4">
-                          <span className="mt-[3px] shrink-0 font-mono text-[10px] tabular-nums text-graphite-300">
+                          <span className="mt-[3px] shrink-0 font-sans text-[10px] tabular-nums text-taupe-300">
                             {String(idx + 1).padStart(2, "0")}
                           </span>
                           <div className="min-w-0">
-                            <p className="text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">{item.title}</p>
-                            <p className="mt-1 text-[12px] leading-relaxed text-graphite-500">{item.mid_description || item.description}</p>
+                            <p className="text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-espresso-900">{item.title}</p>
+                            <p className="mt-1 text-[12px] leading-relaxed text-taupe-500">{item.mid_description || item.description}</p>
                           </div>
                         </div>
                         <span className="figure shrink-0 text-[13.5px]">
@@ -335,7 +335,7 @@ export default function MultiTierEstimatorCreator() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex items-baseline justify-between border-t border-obsidian-900/[0.12] bg-bone-100/60 px-5 py-3.5">
+                  <div className="flex items-baseline justify-between border-t border-taupe-200 bg-alabaster-100/60 px-6 py-5">
                     <span className="eyebrow-ink">Standard Tier Total</span>
                     <span className="figure text-[17px]">
                       ${previewTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}
@@ -349,14 +349,14 @@ export default function MultiTierEstimatorCreator() {
           {/* ── Issue rail ──────────────────────────────────────────────── */}
           <aside className="lg:sticky lg:top-6 lg:self-start">
             <div className="panel-raised overflow-hidden">
-              <div className="border-b border-obsidian-900/10 bg-obsidian-950 px-5 py-4 text-bone-100">
+              <div className="border-b border-taupe-200/70 bg-espresso-900 px-6 py-5 text-alabaster-100">
                 <p className="eyebrow-invert">Issue</p>
                 <p className="mt-1.5 font-display text-[1.35rem] leading-none tracking-[-0.01em]">
                   {clientName.trim() || "Untitled Proposal"}
                 </p>
               </div>
 
-              <dl className="divide-y divide-obsidian-900/[0.07]">
+              <dl className="divide-y divide-taupe-200/60">
                 <div className="flex items-baseline justify-between px-5 py-3">
                   <dt className="eyebrow">Line Items</dt>
                   <dd className="figure text-[13px]">{generatedItems.length}</dd>
@@ -367,9 +367,9 @@ export default function MultiTierEstimatorCreator() {
                 </div>
                 <div className="flex items-baseline justify-between px-5 py-3">
                   <dt className="eyebrow">Duration</dt>
-                  <dd className="text-[13px] font-medium text-obsidian-900">{duration || "—"}</dd>
+                  <dd className="text-[13px] font-medium text-espresso-900">{duration || "—"}</dd>
                 </div>
-                <div className="flex items-baseline justify-between bg-bone-100/50 px-5 py-4">
+                <div className="flex items-baseline justify-between bg-alabaster-100/50 px-6 py-5">
                   <dt className="eyebrow-ink">Contract Value</dt>
                   <dd className="figure text-[19px]">
                     ${previewTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}
@@ -377,7 +377,7 @@ export default function MultiTierEstimatorCreator() {
                 </div>
               </dl>
 
-              <div className="border-t border-obsidian-900/10 p-5">
+              <div className="border-t border-taupe-200/70 p-5">
                 <button
                   type="button"
                   onClick={deployLiveProposalRecord}
@@ -387,7 +387,7 @@ export default function MultiTierEstimatorCreator() {
                   {isDeploying ? "Publishing..." : "Publish Proposal"}
                 </button>
                 {generatedItems.length === 0 && (
-                  <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-architect text-graphite-300">
+                  <p className="mt-3 text-center font-sans text-[10px] uppercase tracking-architect text-taupe-300">
                     Generate scope to enable
                   </p>
                 )}
@@ -398,20 +398,20 @@ export default function MultiTierEstimatorCreator() {
               <div className="panel mt-4 animate-rise overflow-hidden border-patina-200">
                 <div className="flex items-center gap-2 border-b border-patina-200 bg-patina-50 px-5 py-3">
                   <span className="badge-dot bg-patina-500" />
-                  <p className="font-mono text-[10px] font-medium uppercase tracking-architect text-patina-700">Proposal Live</p>
+                  <p className="font-sans text-[10px] font-medium uppercase tracking-architect text-patina-700">Proposal Live</p>
                 </div>
                 <div className="space-y-3 p-5">
                   {proposalNumber && (
                     <div className="flex items-baseline justify-between">
                       <span className="eyebrow">Document No.</span>
-                      <span className="font-mono text-[11px] font-medium tracking-architect text-obsidian-900">{proposalNumber}</span>
+                      <span className="font-sans text-[11px] font-medium tracking-architect text-espresso-900">{proposalNumber}</span>
                     </div>
                   )}
                   <input
                     type="text"
                     readOnly
                     value={proposalLink}
-                    className="field-sunken select-all font-mono text-[11px]"
+                    className="field-sunken select-all font-sans text-[11px]"
                   />
                 </div>
               </div>

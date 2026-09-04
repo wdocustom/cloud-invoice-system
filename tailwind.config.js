@@ -25,7 +25,7 @@ module.exports = {
           "system-ui",
           "sans-serif"
         ],
-        // Display serif reserved for the admin + client portal surfaces.
+        // Warm editorial serif — headers, client names, figures of consequence.
         display: [
           "var(--font-display)",
           "ui-serif",
@@ -33,15 +33,6 @@ module.exports = {
           "Cambria",
           '"Times New Roman"',
           "serif"
-        ],
-        // Technical face for drawing-set style labels, doc numbers and figures.
-        mono: [
-          "var(--font-mono)",
-          "ui-monospace",
-          "SFMono-Regular",
-          "Menlo",
-          "Consolas",
-          "monospace"
         ],
       },
       colors: {
@@ -67,72 +58,75 @@ module.exports = {
           700: "#3D6B3D",
         },
 
-        /* ── Architectural system ───────────────────────────────────────────
-           Deep obsidian slate for ink, rails and high-contrast actions. */
-        obsidian: {
-          950: "#0A0B0C",
-          900: "#111315",
-          800: "#191C1F",
-          700: "#23272B",
-          600: "#31363B",
-          500: "#454B51",
+        /* ── Warm architectural luxury ───────────────────────────────────────
+           Deep espresso replaces black entirely — the darkest value still
+           carries red and yellow, so it reads as roasted wood, not ink. */
+        espresso: {
+          950: "#1F1A15",
+          900: "#2A231C",
+          800: "#392F26",
+          700: "#4B3E33",
+          600: "#63533F",
+          500: "#7D6B55",
         },
-        /* Warm bone grounds — the paper of the drawing set. */
-        bone: {
-          50: "#FCFBF9",
-          100: "#F7F4EF",
-          200: "#EFEBE4",
-          300: "#E3DDD3",
-          400: "#D2CABD",
+        /* Alabaster grounds — warm off-whites, never a clinical #FFF plane. */
+        alabaster: {
+          50: "#FDFBF8",
+          100: "#FAF6F0",
+          200: "#F4EEE4",
+          300: "#EDE4D6",
+          400: "#E1D5C3",
         },
-        /* Warm-leaning greys for secondary and tertiary type. */
-        graphite: {
-          300: "#B3ADA4",
-          400: "#948E85",
-          500: "#78736B",
-          600: "#575249",
-          700: "#3B3833",
+        /* Taupe — soft rules, secondary and tertiary type. */
+        taupe: {
+          200: "#E8DFD2",
+          300: "#D9CDBB",
+          400: "#BCAC96",
+          500: "#9C8B75",
+          600: "#7C6B57",
+          700: "#5E4F3E",
         },
-        /* Restrained metallic accent — brass, not yellow gold. */
+        /* Antique brass accent — burnished, never a bright gold. */
         brass: {
-          50: "#FAF6EE",
-          100: "#F2EADA",
-          200: "#E4D5B9",
-          300: "#D3BE94",
-          400: "#C0A374",
-          500: "#A98A5B",
-          600: "#8A6E45",
+          50: "#FBF5EA",
+          100: "#F4E9D4",
+          200: "#E8D6B4",
+          300: "#D8BF92",
+          400: "#C6A672",
+          500: "#B08D58",
+          600: "#8F7044",
         },
-        /* Approved / positive — aged patina green. */
+        /* Approved — soft olive, the green of weathered patina. */
         patina: {
-          50: "#F1F5F1",
-          100: "#DEE8E0",
-          200: "#C2D4C6",
-          500: "#4A7355",
-          600: "#3B5D45",
-          700: "#2E4936",
+          50: "#F3F5EE",
+          100: "#E5EBDA",
+          200: "#CCD8BB",
+          500: "#6E8158",
+          600: "#586A45",
+          700: "#445236",
         },
-        /* Declined / destructive — oxidised clay, never a siren red. */
+        /* Declined — terracotta, warm rather than alarming. */
         clay: {
-          50: "#FBF3F0",
-          100: "#F3E1D9",
-          200: "#E5C6BA",
-          500: "#A55340",
-          600: "#8A4232",
-          700: "#6D3327",
+          50: "#FCF3EE",
+          100: "#F6E2D6",
+          200: "#E9C8B4",
+          500: "#B26B4C",
+          600: "#95553A",
+          700: "#77422C",
         },
       },
       borderRadius: {
         "2xl": "16px",
         "3xl": "24px",
-        /* Sharp architectural radii. */
-        edge: "2px",
-        panel: "3px",
-        sheet: "5px",
+        /* Softened, elegant radii. */
+        edge: "6px",
+        panel: "10px",
+        sheet: "14px",
       },
       letterSpacing: {
-        architect: "0.16em",
-        title: "0.24em",
+        /* Gentle editorial tracking — legible, not technical. */
+        architect: "0.08em",
+        title: "0.12em",
       },
       boxShadow: {
         "soft": "0 4px 30px rgba(0, 0, 0, 0.03)",
@@ -140,18 +134,19 @@ module.exports = {
         "card": "0 1px 3px rgba(0,0,0,0.02), 0 8px 24px rgba(0,0,0,0.04)",
         "premium": "0 2px 4px rgba(0,0,0,0.02), 0 12px 40px rgba(0,0,0,0.05)",
         "glow-gold": "0 0 20px rgba(196, 162, 101, 0.15)",
-        /* Architectural elevation — shallow, wide, almost colourless. */
-        hairline: "0 0 0 1px rgba(17,19,21,0.06)",
-        riser: "0 1px 2px rgba(17,19,21,0.03), 0 10px 24px -14px rgba(17,19,21,0.14)",
-        lift: "0 2px 4px rgba(17,19,21,0.04), 0 24px 44px -22px rgba(17,19,21,0.20)",
-        plinth: "0 -1px 0 0 rgba(17,19,21,0.06)",
+        /* Warm ambient elevation — the shadow is brown, so nothing greys out. */
+        hairline: "0 0 0 1px rgba(94, 79, 62, 0.07)",
+        riser: "0 1px 2px rgba(58, 46, 34, 0.03), 0 6px 20px -6px rgba(58, 46, 34, 0.07)",
+        lift: "0 2px 6px rgba(58, 46, 34, 0.04), 0 18px 40px -16px rgba(58, 46, 34, 0.13)",
+        bloom: "0 4px 12px rgba(58, 46, 34, 0.05), 0 28px 60px -24px rgba(58, 46, 34, 0.16)",
+        plinth: "0 -1px 0 0 rgba(94, 79, 62, 0.06)",
       },
       animation: {
         "fade-in": "fadeIn 0.4s ease-out",
         "slide-up": "slideUp 0.5s ease-out",
         "shimmer": "shimmer 2s linear infinite",
-        "rise": "rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both",
-        "draw-in": "drawIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "rise": "rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "draw-in": "drawIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
       keyframes: {
         fadeIn: {
@@ -167,7 +162,7 @@ module.exports = {
           "100%": { backgroundPosition: "200% 0" },
         },
         rise: {
-          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         drawIn: {
@@ -176,7 +171,7 @@ module.exports = {
         },
       },
       transitionTimingFunction: {
-        architect: "cubic-bezier(0.16, 1, 0.3, 1)",
+        architect: "cubic-bezier(0.22, 1, 0.36, 1)",
       },
     },
   },

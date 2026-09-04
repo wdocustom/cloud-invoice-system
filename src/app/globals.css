@@ -6,14 +6,14 @@
   --background: #FBFBFA;
   --foreground: #1A1A1A;
 
-  /* Architectural surface system — consumed by the admin and client portal. */
-  --ink: #111315;
-  --ink-soft: #23272B;
-  --paper: #FCFBF9;
-  --paper-warm: #F7F4EF;
-  --rule: rgba(17, 19, 21, 0.10);
-  --rule-soft: rgba(17, 19, 21, 0.06);
-  --brass: #A98A5B;
+  /* Warm architectural luxury — consumed by the admin and client portal. */
+  --ink: #2A231C;
+  --ink-soft: #4B3E33;
+  --paper: #FDFBF8;
+  --paper-warm: #FAF6F0;
+  --rule: rgba(94, 79, 62, 0.14);
+  --rule-soft: rgba(94, 79, 62, 0.08);
+  --brass: #B08D58;
 }
 
 body {
@@ -36,26 +36,13 @@ body {
     font-feature-settings: "tnum" 1, "lnum" 1;
   }
 
-  /* Hairline rules that stay crisp on retina rather than smearing to 2px. */
-  .rule-x {
-    background-image: linear-gradient(to right, var(--rule) 0, var(--rule) 100%);
-    background-size: 100% 1px;
-    background-repeat: no-repeat;
-    background-position: bottom left;
-  }
-
-  /* Faint drafting grid for empty states and hero plates. */
+  /* A soft warm wash where the old drafting grid used to sit. Kept under the
+     original names so every existing usage warms up rather than disappearing. */
   .blueprint-grid {
-    background-image:
-      linear-gradient(to right, rgba(17, 19, 21, 0.045) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(17, 19, 21, 0.045) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-image: radial-gradient(120% 100% at 50% 0%, rgba(176, 141, 88, 0.06) 0%, rgba(176, 141, 88, 0) 62%);
   }
   .blueprint-grid-dark {
-    background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-image: radial-gradient(120% 100% at 50% 0%, rgba(214, 184, 132, 0.12) 0%, rgba(214, 184, 132, 0) 68%);
   }
 
   /* Long ledgers get an edge fade instead of a hard clip. */
@@ -67,154 +54,153 @@ body {
 
 @layer components {
   /* ── Surfaces ──────────────────────────────────────────────────────────
-     Panels are sheets of paper: hairline edge, near-square corners, and
-     elevation only where the eye needs a plane break. */
+     Cards are defined by warm ambient shadow and a generous interior, not
+     by an outline. Any border that remains is a whisper of taupe. */
   .panel {
-    @apply bg-white border border-obsidian-900/10 rounded-panel;
+    @apply bg-white rounded-panel shadow-riser ring-1 ring-taupe-200/45;
   }
   .panel-raised {
-    @apply bg-white border border-obsidian-900/10 rounded-panel shadow-riser;
+    @apply bg-white rounded-panel shadow-lift ring-1 ring-taupe-200/40;
   }
   .panel-sunken {
-    @apply bg-bone-100 border border-obsidian-900/[0.07] rounded-panel;
+    @apply bg-alabaster-200/70 rounded-panel;
   }
   .panel-ink {
-    @apply bg-obsidian-900 text-bone-100 border border-white/10 rounded-panel;
+    @apply bg-espresso-900 text-alabaster-100 rounded-panel shadow-lift;
   }
 
-  /* Section head used above every panel group — the drawing title block. */
+  /* Section head — the space below it does the separating, not a rule. */
   .title-block {
-    @apply flex items-baseline justify-between gap-4 pb-3 mb-4 border-b border-obsidian-900/10;
+    @apply flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2 pb-4 mb-6 border-b border-taupe-200/70;
   }
 
   /* ── Type ──────────────────────────────────────────────────────────────
-     Eyebrows are the spec-sheet labels: tiny, wide-tracked, never shouty. */
+     Labels are set in the geometric sans, lightly tracked and never shouty. */
   .eyebrow {
-    @apply font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-400;
+    @apply font-sans text-[10.5px] font-medium uppercase tracking-architect text-taupe-500;
   }
   .eyebrow-ink {
-    @apply font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-600;
+    @apply font-sans text-[10.5px] font-medium uppercase tracking-architect text-taupe-600;
   }
   .eyebrow-invert {
-    @apply font-mono text-[10px] font-medium uppercase tracking-architect text-bone-100/50;
+    @apply font-sans text-[10.5px] font-medium uppercase tracking-architect text-alabaster-100/60;
   }
   .display-xl {
-    @apply font-display font-normal tracking-[-0.02em] text-obsidian-900 text-[2rem] leading-[1.08] sm:text-[2.75rem];
+    @apply font-display font-normal tracking-[-0.015em] text-espresso-900 text-[2.25rem] leading-[1.1] sm:text-[3rem];
   }
   .display-lg {
-    @apply font-display font-normal tracking-[-0.015em] text-obsidian-900 text-[1.625rem] leading-[1.12] sm:text-[2rem];
+    @apply font-display font-normal tracking-[-0.012em] text-espresso-900 text-[1.75rem] leading-[1.15] sm:text-[2.25rem];
   }
   .display-md {
-    @apply font-display font-normal tracking-[-0.01em] text-obsidian-900 text-[1.25rem] leading-[1.2] sm:text-[1.5rem];
+    @apply font-display font-normal tracking-[-0.01em] text-espresso-900 text-[1.375rem] leading-[1.22] sm:text-[1.625rem];
   }
   .display-sm {
-    @apply font-display font-normal tracking-[-0.01em] text-obsidian-900 text-[1.0625rem] leading-[1.25] sm:text-[1.1875rem];
+    @apply font-display font-normal tracking-[-0.005em] text-espresso-900 text-[1.125rem] leading-[1.3] sm:text-[1.3125rem];
   }
   /* Figures — metrics, currency, schedule values. */
   .figure {
-    @apply font-sans font-medium tracking-[-0.03em] text-obsidian-900 tnum;
+    @apply font-sans font-medium tracking-[-0.015em] text-espresso-900 tnum;
   }
 
   /* ── Rules ─────────────────────────────────────────────────────────────*/
   .hairline {
-    @apply border-obsidian-900/10;
+    @apply border-taupe-200/70;
   }
   .hairline-soft {
-    @apply border-obsidian-900/[0.06];
+    @apply border-taupe-200/45;
   }
   .divide-hairline > * + * {
-    @apply border-t border-obsidian-900/[0.07];
+    @apply border-t border-taupe-200/55;
   }
 
-  /* ── Controls ──────────────────────────────────────────────────────────*/
+  /* ── Controls ──────────────────────────────────────────────────────────
+     Rounded, generously padded, lifted by warm shadow rather than outline. */
   .btn-ink {
-    @apply inline-flex items-center justify-center gap-2 bg-obsidian-900 text-bone-50 font-medium text-[12px] tracking-[0.02em]
-           px-5 py-2.5 rounded-edge border border-obsidian-900
+    @apply inline-flex items-center justify-center gap-2 bg-espresso-900 text-alabaster-50 font-medium text-[12.5px] tracking-[0.01em]
+           px-6 py-3 rounded-edge border border-espresso-900 shadow-riser
            transition-all duration-300 ease-architect
-           hover:bg-obsidian-800 hover:shadow-lift
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-900/25 focus-visible:ring-offset-2
-           disabled:opacity-35 disabled:pointer-events-none;
+           hover:bg-espresso-800 hover:shadow-lift
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-espresso-700/30 focus-visible:ring-offset-2
+           disabled:opacity-40 disabled:shadow-none disabled:pointer-events-none;
   }
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 bg-white text-obsidian-800 font-medium text-[12px] tracking-[0.02em]
-           px-5 py-2.5 rounded-edge border border-obsidian-900/15
+    @apply inline-flex items-center justify-center gap-2 bg-white text-espresso-800 font-medium text-[12.5px] tracking-[0.01em]
+           px-6 py-3 rounded-edge border border-taupe-300/70 shadow-riser
            transition-all duration-300 ease-architect
-           hover:border-obsidian-900/40 hover:bg-bone-50
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-900/20 focus-visible:ring-offset-2
-           disabled:opacity-35 disabled:pointer-events-none;
+           hover:border-taupe-400 hover:bg-alabaster-100 hover:shadow-lift
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-taupe-400/35 focus-visible:ring-offset-2
+           disabled:opacity-40 disabled:shadow-none disabled:pointer-events-none;
   }
   .btn-brass {
-    @apply inline-flex items-center justify-center gap-2 bg-brass-500 text-white font-medium text-[12px] tracking-[0.02em]
-           px-5 py-2.5 rounded-edge border border-brass-600
+    @apply inline-flex items-center justify-center gap-2 bg-brass-500 text-white font-medium text-[12.5px] tracking-[0.01em]
+           px-6 py-3 rounded-edge border border-brass-600 shadow-riser
            transition-all duration-300 ease-architect
            hover:bg-brass-600 hover:shadow-lift
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/30 focus-visible:ring-offset-2
-           disabled:opacity-35 disabled:pointer-events-none;
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-400/40 focus-visible:ring-offset-2
+           disabled:opacity-40 disabled:shadow-none disabled:pointer-events-none;
   }
   .btn-quiet {
-    @apply inline-flex items-center justify-center gap-1.5 text-graphite-500 font-medium text-[12px]
-           px-3 py-2 rounded-edge border border-transparent
+    @apply inline-flex items-center justify-center gap-1.5 text-taupe-600 font-medium text-[12.5px]
+           px-3.5 py-2.5 rounded-edge border border-transparent
            transition-all duration-200 ease-architect
-           hover:text-obsidian-900 hover:bg-bone-100
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-obsidian-900/15;
+           hover:text-espresso-900 hover:bg-alabaster-200/70
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-taupe-400/30;
   }
 
-  /* Inputs read as ruled lines on paper, not as chunky pills. */
+  /* Inputs sit on warm paper with a soft taupe edge. */
   .field {
-    @apply w-full bg-white border border-obsidian-900/[0.12] rounded-edge
-           px-3.5 py-2.5 text-[13px] text-obsidian-900 font-normal
-           placeholder:text-graphite-300
+    @apply w-full bg-white rounded-edge border border-taupe-200
+           px-4 py-3 text-[13.5px] text-espresso-900 font-normal
+           placeholder:text-taupe-400
            transition-all duration-200 ease-architect
-           focus:outline-none focus:border-obsidian-900/45 focus:ring-[3px] focus:ring-obsidian-900/[0.06];
+           focus:outline-none focus:border-taupe-400 focus:ring-[3px] focus:ring-brass-300/20;
   }
   .field-sunken {
-    @apply w-full bg-bone-50 border border-obsidian-900/10 rounded-edge
-           px-3.5 py-2.5 text-[13px] text-obsidian-900 font-normal
-           placeholder:text-graphite-300
+    @apply w-full bg-alabaster-100 rounded-edge border border-taupe-200/80
+           px-4 py-3 text-[13.5px] text-espresso-900 font-normal
+           placeholder:text-taupe-400
            transition-all duration-200 ease-architect
-           focus:outline-none focus:bg-white focus:border-obsidian-900/45 focus:ring-[3px] focus:ring-obsidian-900/[0.06];
+           focus:outline-none focus:bg-white focus:border-taupe-400 focus:ring-[3px] focus:ring-brass-300/20;
   }
   .field-label {
-    @apply block font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-400 mb-1.5;
+    @apply block font-sans text-[10.5px] font-medium uppercase tracking-architect text-taupe-500 mb-2;
   }
 
   /* ── Status ────────────────────────────────────────────────────────────
-     One badge shape, four temperatures. Square-ish, hairline, never a pill
-     of pastel. */
+     One badge shape, four temperatures — softly rounded, warmly tinted. */
   .badge {
-    @apply inline-flex items-center gap-1.5 font-mono text-[9.5px] font-medium uppercase tracking-architect
-           px-2 py-[3px] rounded-edge border whitespace-nowrap;
+    @apply inline-flex items-center gap-1.5 font-sans text-[10px] font-medium uppercase tracking-architect
+           px-2.5 py-1 rounded-edge border whitespace-nowrap;
   }
   .badge-pending {
-    @apply bg-brass-50 text-brass-600 border-brass-200;
+    @apply bg-brass-50 text-brass-600 border-brass-200/70;
   }
   .badge-approved {
-    @apply bg-patina-50 text-patina-700 border-patina-200;
+    @apply bg-patina-50 text-patina-700 border-patina-200/70;
   }
   .badge-declined {
-    @apply bg-clay-50 text-clay-700 border-clay-200;
+    @apply bg-clay-50 text-clay-700 border-clay-200/70;
   }
   .badge-neutral {
-    @apply bg-bone-100 text-graphite-600 border-obsidian-900/10;
+    @apply bg-alabaster-200 text-taupe-600 border-taupe-200;
   }
   .badge-ink {
-    @apply bg-obsidian-900 text-bone-100 border-obsidian-900;
+    @apply bg-espresso-800 text-alabaster-100 border-espresso-800;
   }
   .badge-dot {
     @apply w-[5px] h-[5px] rounded-full shrink-0;
   }
 
   /* ── Interactive rows ──────────────────────────────────────────────────
-     Ledger rows lift on a hairline, not on a shadow bloom. */
+     Rows lift onto warm paper on hover; the marker is a soft brass rule. */
   .row-interactive {
-    @apply relative bg-white border border-obsidian-900/10 rounded-panel
+    @apply relative bg-white rounded-panel ring-1 ring-taupe-200/45
            transition-all duration-300 ease-architect
-           hover:border-obsidian-900/25 hover:shadow-riser;
+           hover:ring-taupe-300/70 hover:shadow-riser;
   }
-  /* A brass rule that draws in from the leading edge on hover. */
   .row-marker::before {
     content: "";
-    @apply absolute left-0 top-0 bottom-0 w-px bg-brass-400 origin-top
+    @apply absolute left-0 top-0 bottom-0 w-[2px] rounded-full bg-brass-400 origin-top
            scale-y-0 opacity-0 transition-all duration-300 ease-architect;
   }
   .row-interactive:hover .row-marker::before,
@@ -222,29 +208,28 @@ body {
     @apply scale-y-100 opacity-100;
   }
 
-  /* ── Tabs ──────────────────────────────────────────────────────────────
-     Underscored, not segmented — closer to an index than a toggle group. */
+  /* ── Tabs ──────────────────────────────────────────────────────────────*/
   .tabstrip {
-    @apply flex items-stretch gap-6 border-b border-obsidian-900/10 overflow-x-auto scrollbar-none;
+    @apply flex items-stretch gap-7 border-b border-taupe-200/70 overflow-x-auto scrollbar-none;
   }
   .tab {
-    @apply relative shrink-0 pb-3 pt-1 font-mono text-[11px] font-medium uppercase tracking-architect
-           text-graphite-400 transition-colors duration-200 ease-architect
-           hover:text-obsidian-900 focus-visible:outline-none;
+    @apply relative shrink-0 pb-3.5 pt-1 font-sans text-[12px] font-medium uppercase tracking-architect
+           text-taupe-500 transition-colors duration-200 ease-architect
+           hover:text-espresso-900 focus-visible:outline-none;
   }
   .tab-active {
-    @apply text-obsidian-900;
+    @apply text-espresso-900;
   }
   .tab-active::after {
     content: "";
-    @apply absolute left-0 right-0 -bottom-px h-px bg-obsidian-900;
+    @apply absolute left-0 right-0 -bottom-px h-[2px] rounded-full bg-brass-500;
   }
 }
 
 @layer base {
   ::selection {
-    background-color: rgba(196, 162, 101, 0.15);
-    color: #1A1A1A;
+    background-color: rgba(176, 141, 88, 0.18);
+    color: #2A231C;
   }
 
   /* Numeric inputs in the schedule of values keep their spinners off so the

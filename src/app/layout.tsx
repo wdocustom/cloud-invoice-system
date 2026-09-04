@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Instrument_Serif, IBM_Plex_Mono } from "next/font/google";
+import { DM_Sans, Space_Grotesk, Fraunces } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "./providers";
 
-const inter = Inter({
+// Geometric sans for UI, data, pricing and functional labels.
+const dmSans = DM_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -15,20 +17,12 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-// Display serif for the admin workspace and client portal. The public
-// marketing pages keep --font-editorial, so their typography is untouched.
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-display",
-  display: "swap",
-});
-
-// Technical face for spec labels, document numbers and drawing-set captions.
-const plexMono = IBM_Plex_Mono({
+// Warm editorial serif for the admin workspace and client portal headers.
+// The public marketing pages keep --font-editorial, so they are untouched.
+const fraunces = Fraunces({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-mono",
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -178,7 +172,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.variable} ${spaceGrotesk.variable} ${instrumentSerif.variable} ${plexMono.variable} font-sans bg-brand-alabaster text-brand-charcoal antialiased`}>
+      <body className={`${dmSans.variable} ${spaceGrotesk.variable} ${fraunces.variable} font-sans bg-brand-alabaster text-brand-charcoal antialiased`}>
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

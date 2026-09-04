@@ -158,8 +158,8 @@ export default function EstimateDetailPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-6 w-6 animate-spin rounded-full border border-obsidian-900/15 border-t-obsidian-900" />
-          <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-400">Loading estimate</p>
+          <div className="h-6 w-6 animate-spin rounded-full border border-taupe-300/70 border-t-espresso-900" />
+          <p className="font-sans text-[10px] uppercase tracking-architect text-taupe-400">Loading estimate</p>
         </div>
       </div>
     );
@@ -200,12 +200,12 @@ export default function EstimateDetailPage() {
     <div className="pb-28 text-left">
 
       {/* ── Sheet header ──────────────────────────────────────────────── */}
-      <div className="border-b border-obsidian-900/10 bg-white">
+      <div className="border-b border-taupe-200/70 bg-white">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-8 sm:py-8">
           <button
             type="button"
             onClick={() => router.push("/admin/projects")}
-            className="btn-quiet -ml-3 mb-5 font-mono text-[10px] uppercase tracking-architect"
+            className="btn-quiet -ml-3 mb-5 font-sans text-[10px] uppercase tracking-architect"
           >
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -215,7 +215,7 @@ export default function EstimateDetailPage() {
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             {estimate.estimate_number && (
-              <span className="font-mono text-[10px] tracking-architect text-graphite-400">{estimate.estimate_number}</span>
+              <span className="font-sans text-[10px] tracking-architect text-taupe-400">{estimate.estimate_number}</span>
             )}
             <span className={`badge ${statusColors[estimate.status] || statusColors.new}`}>
               <span aria-hidden className="badge-dot bg-current opacity-60" />
@@ -226,7 +226,7 @@ export default function EstimateDetailPage() {
           <h1 className="display-lg mt-2.5 truncate">
             {estimate.name || "Anonymous Lead"}
           </h1>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-architect text-graphite-400">{estimate.project_type}</p>
+          <p className="mt-2 font-sans text-[10px] uppercase tracking-architect text-taupe-400">{estimate.project_type}</p>
 
           {/* Actions */}
           <div className="mt-6 flex flex-wrap gap-2">
@@ -274,7 +274,7 @@ export default function EstimateDetailPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-4xl space-y-10 px-4 pt-8 sm:px-8 sm:pt-10">
+      <div className="mx-auto max-w-4xl space-y-14 px-5 pt-12 sm:px-8 sm:pt-16">
 
         {/* Document numbering — issued at the lead, inherited by the proposal */}
         {estimate.estimate_number && (
@@ -284,20 +284,20 @@ export default function EstimateDetailPage() {
               <span className="eyebrow hidden sm:block">Sequence</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className="rounded-edge border border-obsidian-900/[0.12] bg-bone-100 px-3 py-1.5 font-mono text-[11.5px] tracking-architect text-obsidian-900">
+              <span className="rounded-edge border border-taupe-200 bg-alabaster-100 px-3 py-1.5 font-sans text-[11.5px] tracking-architect text-espresso-900">
                 {estimate.estimate_number}
               </span>
-              <svg aria-hidden className="h-3.5 w-3.5 shrink-0 text-graphite-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg aria-hidden className="h-3.5 w-3.5 shrink-0 text-taupe-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
               {proposalNumber ? (
-                <span className="rounded-edge border border-patina-200 bg-patina-50 px-3 py-1.5 font-mono text-[11.5px] tracking-architect text-patina-700">
+                <span className="rounded-edge border border-patina-200 bg-patina-50 px-3 py-1.5 font-sans text-[11.5px] tracking-architect text-patina-700">
                   {proposalNumber}
                 </span>
               ) : (
-                <span className="text-[12.5px] leading-relaxed text-graphite-500">
+                <span className="text-[12.5px] leading-relaxed text-taupe-500">
                   Becomes{" "}
-                  <span className="font-mono text-[11.5px] tracking-architect text-obsidian-900">
+                  <span className="font-sans text-[11.5px] tracking-architect text-espresso-900">
                     {estimate.estimate_number.replace(/^EST-/, "PRO-")}
                   </span>{" "}
                   on conversion
@@ -314,16 +314,16 @@ export default function EstimateDetailPage() {
               <h2 className="display-sm">Status</h2>
               <span className="eyebrow hidden sm:block">Pipeline</span>
             </div>
-            <div className="grid grid-cols-1 gap-px border border-obsidian-900/[0.12] bg-obsidian-900/[0.12] sm:inline-grid sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-px overflow-hidden rounded-edge bg-taupe-200 shadow-riser ring-1 ring-taupe-200/60 sm:inline-grid sm:grid-cols-3">
               {(["new", "contacted", "consultation_scheduled"] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => updateStatus(s)}
-                  className={`px-5 py-2.5 text-center font-mono text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${
+                  className={`px-6 py-3 text-center font-sans text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${
                     estimate.status === s
-                      ? "bg-obsidian-900 text-bone-50"
-                      : "bg-white text-graphite-500 hover:bg-bone-50 hover:text-obsidian-900"
+                      ? "bg-espresso-900 text-alabaster-50"
+                      : "bg-white text-taupe-500 hover:bg-alabaster-50 hover:text-espresso-900"
                   }`}
                 >
                   {statusLabels[s]}
@@ -340,7 +340,7 @@ export default function EstimateDetailPage() {
             <button
               type="button"
               onClick={openEditor}
-              className="btn-outline shrink-0 px-3 py-1.5 font-mono text-[10px] uppercase tracking-architect"
+              className="btn-outline shrink-0 px-3 py-1.5 font-sans text-[10px] uppercase tracking-architect"
             >
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
@@ -349,49 +349,49 @@ export default function EstimateDetailPage() {
             </button>
           </div>
 
-          <dl className="border-t border-obsidian-900/10">
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+          <dl className="border-t border-taupe-200/70">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Name</dt>
-              <dd className="min-w-0 text-[13.5px] text-obsidian-900">{estimate.name || "Not provided"}</dd>
+              <dd className="min-w-0 text-[13.5px] text-espresso-900">{estimate.name || "Not provided"}</dd>
             </div>
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Email</dt>
-              <dd className="min-w-0 break-words text-[13.5px] text-obsidian-900">
+              <dd className="min-w-0 break-words text-[13.5px] text-espresso-900">
                 {estimate.email ? (
-                  <a href={`mailto:${estimate.email}`} className="underline decoration-obsidian-900/20 underline-offset-4 transition-colors duration-200 ease-architect hover:decoration-obsidian-900">{estimate.email}</a>
+                  <a href={`mailto:${estimate.email}`} className="underline decoration-espresso-900/20 underline-offset-4 transition-colors duration-200 ease-architect hover:decoration-espresso-900">{estimate.email}</a>
                 ) : (
-                  <span className="text-graphite-400">Not provided</span>
+                  <span className="text-taupe-400">Not provided</span>
                 )}
               </dd>
             </div>
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Phone</dt>
-              <dd className="min-w-0 text-[13.5px] text-obsidian-900">
+              <dd className="min-w-0 text-[13.5px] text-espresso-900">
                 {estimate.phone ? (
-                  <a href={`tel:${estimate.phone}`} className="tnum underline decoration-obsidian-900/20 underline-offset-4 transition-colors duration-200 ease-architect hover:decoration-obsidian-900">{estimate.phone}</a>
+                  <a href={`tel:${estimate.phone}`} className="tnum underline decoration-espresso-900/20 underline-offset-4 transition-colors duration-200 ease-architect hover:decoration-espresso-900">{estimate.phone}</a>
                 ) : (
-                  <span className="text-graphite-400">Not provided</span>
+                  <span className="text-taupe-400">Not provided</span>
                 )}
               </dd>
             </div>
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Submitted</dt>
-              <dd className="min-w-0 text-[13.5px] tabular-nums text-obsidian-900">{createdDate}</dd>
+              <dd className="min-w-0 text-[13.5px] tabular-nums text-espresso-900">{createdDate}</dd>
             </div>
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Project Address</dt>
-              <dd className={`min-w-0 text-[13.5px] ${fullAddress ? "text-obsidian-900" : "text-graphite-400"}`}>
+              <dd className={`min-w-0 text-[13.5px] ${fullAddress ? "text-espresso-900" : "text-taupe-400"}`}>
                 {fullAddress || "Not provided"}
               </dd>
             </div>
           </dl>
 
           {estimate.notes && (
-            <div className="panel-sunken mt-5 p-4 sm:p-5">
+            <div className="panel-sunken mt-5 p-5 sm:p-7">
               <p className="eyebrow">
-                Internal Notes <span className="normal-case tracking-normal text-graphite-300">(never shown to the customer)</span>
+                Internal Notes <span className="normal-case tracking-normal text-taupe-300">(never shown to the customer)</span>
               </p>
-              <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-graphite-700">{estimate.notes}</p>
+              <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-taupe-700">{estimate.notes}</p>
             </div>
           )}
         </section>
@@ -403,18 +403,18 @@ export default function EstimateDetailPage() {
             <span className="eyebrow hidden sm:block">Brief</span>
           </div>
 
-          <dl className="border-t border-obsidian-900/10">
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+          <dl className="border-t border-taupe-200/70">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Type</dt>
-              <dd className="min-w-0 text-[13.5px] text-obsidian-900">{estimate.project_type}</dd>
+              <dd className="min-w-0 text-[13.5px] text-espresso-900">{estimate.project_type}</dd>
             </div>
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Finish Level</dt>
-              <dd className="min-w-0 text-[13.5px] capitalize text-obsidian-900">{estimate.scope_level}</dd>
+              <dd className="min-w-0 text-[13.5px] capitalize text-espresso-900">{estimate.scope_level}</dd>
             </div>
-            <div className="flex flex-col gap-0.5 border-b border-obsidian-900/[0.07] py-3 sm:flex-row sm:items-baseline sm:gap-6">
+            <div className="flex flex-col gap-0.5 border-b border-taupe-200/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="eyebrow sm:w-44 sm:shrink-0">Size / ZIP</dt>
-              <dd className="min-w-0 text-[13.5px] tabular-nums text-obsidian-900">
+              <dd className="min-w-0 text-[13.5px] tabular-nums text-espresso-900">
                 {[estimate.size, estimate.zip].filter(Boolean).join(" · ") || "Not provided"}
               </dd>
             </div>
@@ -422,7 +422,7 @@ export default function EstimateDetailPage() {
 
           <div className="mt-5">
             <p className="eyebrow">Description</p>
-            <p className="panel-sunken mt-2 p-4 text-[13px] leading-relaxed text-graphite-700 sm:p-5">
+            <p className="panel-sunken mt-2 p-4 text-[13px] leading-relaxed text-taupe-700 sm:p-5">
               {estimate.description}
             </p>
           </div>
@@ -436,14 +436,14 @@ export default function EstimateDetailPage() {
           </div>
 
           <div className="panel overflow-hidden">
-            <div className="border-b border-obsidian-900/10 bg-obsidian-950 px-5 py-4 text-bone-100">
+            <div className="border-b border-taupe-200/70 bg-espresso-900 px-6 py-5 text-alabaster-100">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div className="min-w-0">
                   <p className="eyebrow-invert">Projected Range</p>
                   <p className="mt-1.5 font-display text-[1.25rem] leading-tight tracking-[-0.01em] sm:text-[1.4rem]">{ed.project_title}</p>
                 </div>
                 <div className="shrink-0 sm:text-right">
-                  <p className="figure text-[15px] text-bone-50 sm:text-[16.5px]">
+                  <p className="figure text-[15px] text-alabaster-50 sm:text-[16.5px]">
                     ${fmt(ed.total_projected_low || 0)} — ${fmt(ed.total_projected_high || 0)}
                   </p>
                   {ed.timeline_weeks && (
@@ -456,23 +456,23 @@ export default function EstimateDetailPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[420px] text-left">
                 <thead>
-                  <tr className="border-b border-obsidian-900/[0.07] bg-bone-100/60">
-                    <th scope="col" className="eyebrow w-12 px-4 py-2.5 font-medium">No.</th>
+                  <tr className="border-b border-taupe-200/55 bg-alabaster-100/60">
+                    <th scope="col" className="eyebrow w-12 px-5 py-3 font-medium">No.</th>
                     <th scope="col" className="eyebrow px-2 py-2.5 font-medium">Description</th>
-                    <th scope="col" className="eyebrow whitespace-nowrap px-4 py-2.5 text-right font-medium">Range</th>
+                    <th scope="col" className="eyebrow whitespace-nowrap px-5 py-3 text-right font-medium">Range</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(ed.line_items || []).map((item: any, i: number) => (
-                    <tr key={i} className="border-b border-obsidian-900/[0.06] transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50">
-                      <td className="px-4 py-3.5 align-top font-mono text-[10px] tabular-nums text-graphite-300">
+                    <tr key={i} className="border-b border-taupe-200/50 transition-colors duration-200 ease-architect last:border-b-0 hover:bg-alabaster-50">
+                      <td className="px-5 py-5 align-top font-sans text-[10px] tabular-nums text-taupe-300">
                         {i + 1}
                       </td>
                       <td className="px-2 py-3.5 align-top">
-                        <p className="text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">{item.item}</p>
-                        {item.notes && <p className="mt-1 text-[12px] leading-relaxed text-graphite-500">{item.notes}</p>}
+                        <p className="text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-espresso-900">{item.item}</p>
+                        {item.notes && <p className="mt-1 text-[12px] leading-relaxed text-taupe-500">{item.notes}</p>}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3.5 text-right align-top">
+                      <td className="whitespace-nowrap px-5 py-5 text-right align-top">
                         <span className="figure text-[13px]">
                           ${fmt(item.low)} — ${fmt(item.high)}
                         </span>
@@ -481,12 +481,12 @@ export default function EstimateDetailPage() {
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t border-obsidian-900/[0.12] bg-bone-100/60">
-                    <td className="px-4 py-3.5" />
+                  <tr className="border-t border-taupe-200 bg-alabaster-100/60">
+                    <td className="px-5 py-5" />
                     <td className="px-2 py-3.5">
                       <span className="eyebrow-ink">Total Estimate</span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                    <td className="whitespace-nowrap px-5 py-5 text-right">
                       <span className="figure text-[15px]">
                         ${fmt(ed.total_projected_low || 0)} — ${fmt(ed.total_projected_high || 0)}
                       </span>
@@ -505,15 +505,15 @@ export default function EstimateDetailPage() {
               <h2 className="display-sm">Reminders</h2>
               <span className="eyebrow hidden sm:block">History</span>
             </div>
-            <ol className="border-t border-obsidian-900/10">
+            <ol className="border-t border-taupe-200/70">
               {(estimate.reminder_emails as any[]).map((r: any, i: number) => (
-                <li key={i} className="relative flex flex-col gap-1 border-b border-obsidian-900/[0.07] py-3 pl-6 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-                  <span aria-hidden className="absolute left-0 top-[19px] h-px w-3.5 bg-obsidian-900/20" />
-                  <span aria-hidden className="absolute left-[13px] top-[16px] h-[7px] w-[7px] rounded-full border border-obsidian-900/25 bg-white" />
-                  <span className="min-w-0 truncate text-[13px] text-obsidian-900">
-                    Sent to <span className="text-graphite-600">{r.to}</span>
+                <li key={i} className="relative flex flex-col gap-1 border-b border-taupe-200/55 py-3 pl-6 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+                  <span aria-hidden className="absolute left-0 top-[19px] h-px w-3.5 bg-taupe-300" />
+                  <span aria-hidden className="absolute left-[13px] top-[16px] h-[7px] w-[7px] rounded-full border border-taupe-300 bg-white" />
+                  <span className="min-w-0 truncate text-[13px] text-espresso-900">
+                    Sent to <span className="text-taupe-600">{r.to}</span>
                   </span>
-                  <span className="shrink-0 font-mono text-[10px] uppercase tracking-architect tabular-nums text-graphite-400">
+                  <span className="shrink-0 font-sans text-[10px] uppercase tracking-architect tabular-nums text-taupe-400">
                     {new Date(r.sent_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                   </span>
                 </li>
@@ -530,12 +530,12 @@ export default function EstimateDetailPage() {
           </div>
           <div className="panel flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div className="flex min-w-0 items-center gap-3">
-              <svg aria-hidden className="h-4 w-4 shrink-0 text-graphite-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg aria-hidden className="h-4 w-4 shrink-0 text-taupe-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.364-3.314a4.5 4.5 0 00-6.364 0l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
               </svg>
               <div className="min-w-0">
                 <p className="eyebrow">Estimate Link</p>
-                <p className="mt-1 truncate font-mono text-[11.5px] text-obsidian-900">wdocustom.com/estimate/{estimate.token}</p>
+                <p className="mt-1 truncate font-sans text-[11.5px] text-espresso-900">wdocustom.com/estimate/{estimate.token}</p>
               </div>
             </div>
             <button
@@ -544,7 +544,7 @@ export default function EstimateDetailPage() {
                 navigator.clipboard.writeText(`https://www.wdocustom.com/estimate/${estimate.token}`);
                 toast("Link copied!", "success");
               }}
-              className="btn-outline shrink-0 self-start px-4 py-2 font-mono text-[10px] uppercase tracking-architect sm:self-auto"
+              className="btn-outline shrink-0 self-start px-4 py-2 font-sans text-[10px] uppercase tracking-architect sm:self-auto"
             >
               Copy
             </button>
@@ -554,17 +554,17 @@ export default function EstimateDetailPage() {
 
       {/* ── Edit customer sheet ───────────────────────────────────────── */}
       {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-obsidian-950/55 p-4 backdrop-blur-sm sm:items-center">
-          <div className="my-8 w-full max-w-lg animate-rise rounded-sheet border border-obsidian-900/[0.12] bg-white shadow-lift">
-            <div className="border-b border-obsidian-900/10 px-5 py-4 sm:px-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-espresso-950/55 p-4 backdrop-blur-sm sm:items-center">
+          <div className="my-8 w-full max-w-lg animate-rise rounded-sheet border border-taupe-200 bg-white shadow-lift">
+            <div className="border-b border-taupe-200/70 px-6 py-5 sm:px-6">
               <p className="eyebrow">Lead Record</p>
               <h3 className="display-sm mt-1.5">Edit Customer</h3>
-              <p className="mt-2 text-[12.5px] leading-relaxed text-graphite-500">
+              <p className="mt-2 text-[12.5px] leading-relaxed text-taupe-500">
                 These details travel with the lead onto the proposal when you convert it.
               </p>
             </div>
 
-            <div className="space-y-4 px-5 py-5 sm:px-6">
+            <div className="space-y-4 px-6 py-7 sm:px-6">
               <Field label="Name">
                 <input
                   type="text"
@@ -666,13 +666,13 @@ export default function EstimateDetailPage() {
                   placeholder="Gate code, best time to call, site conditions…"
                   className={`${inputClass} resize-y leading-relaxed`}
                 />
-                <p className="mt-1.5 text-[11.5px] leading-relaxed text-graphite-400">
+                <p className="mt-1.5 text-[11.5px] leading-relaxed text-taupe-400">
                   Carried onto the proposal as a private contractor note — hidden from the homeowner.
                 </p>
               </Field>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-obsidian-900/10 px-5 py-4 sm:px-6">
+            <div className="flex items-center justify-end gap-2 border-t border-taupe-200/70 px-6 py-5 sm:px-6">
               <button
                 type="button"
                 onClick={() => setIsEditOpen(false)}

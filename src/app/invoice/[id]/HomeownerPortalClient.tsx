@@ -364,7 +364,7 @@ export default function HomeownerPortalClient({
   };
 
   if (!invoice) return (
-    <div className="flex min-h-screen items-center justify-center bg-bone-50 px-6 text-center font-sans">
+    <div className="flex min-h-screen items-center justify-center bg-alabaster-50 px-6 text-center font-sans">
       <div>
         <p className="eyebrow">Portal</p>
         <p className="display-sm mt-2">Proposal data unavailable</p>
@@ -393,18 +393,18 @@ export default function HomeownerPortalClient({
   const getSubTasksForMilestone = (parentId: string) => scheduleTasks.filter(t => t.parent_id === parentId);
 
   return (
-    <div className="min-h-screen bg-bone-50 text-obsidian-900 font-sans antialiased pb-28 text-left selection:bg-brass-200/40">
+    <div className="min-h-screen bg-alabaster-50 text-espresso-900 font-sans antialiased pb-28 text-left selection:bg-brass-200/40">
 
       {/* Studio rail */}
-      <div className="sticky top-0 z-20 border-b border-obsidian-900/10 bg-bone-50/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
+      <div className="sticky top-0 z-20 border-b border-taupe-200/70 bg-alabaster-50/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4 sm:px-8">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center bg-obsidian-950 text-[8px] font-medium tracking-[0.06em] text-bone-100">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center bg-espresso-900 text-[8px] font-medium tracking-[0.06em] text-alabaster-100">
               W
             </span>
             <div className="min-w-0">
-              <p className="truncate font-mono text-[10px] font-medium uppercase tracking-title text-obsidian-900">WDO Custom</p>
-              <p className="truncate font-mono text-[9px] uppercase tracking-architect text-graphite-400">Client Portal</p>
+              <p className="truncate font-sans text-[10px] font-medium uppercase tracking-title text-espresso-900">WDO Custom</p>
+              <p className="truncate font-sans text-[9px] uppercase tracking-architect text-taupe-400">Client Portal</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -437,12 +437,12 @@ export default function HomeownerPortalClient({
               ? 'border-clay-200 bg-clay-50'
               : isUrgent
                 ? 'cursor-pointer border-brass-200 bg-brass-50'
-                : 'cursor-pointer border-obsidian-900/10 bg-bone-100'
+                : 'cursor-pointer border-taupe-200/70 bg-alabaster-100'
           }`}
         >
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5 sm:px-8">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
             <div className="flex min-w-0 items-center gap-2.5">
-              <svg className={`h-4 w-4 shrink-0 ${isExpired ? 'text-clay-500' : isUrgent ? 'text-brass-500' : 'text-graphite-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className={`h-4 w-4 shrink-0 ${isExpired ? 'text-clay-500' : isUrgent ? 'text-brass-500' : 'text-taupe-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div className="min-w-0">
@@ -452,13 +452,13 @@ export default function HomeownerPortalClient({
                   </p>
                 ) : (
                   <>
-                    <p className={`text-[12px] leading-snug sm:text-[12.5px] ${isUrgent ? 'text-brass-600' : 'text-graphite-600'}`}>
+                    <p className={`text-[12px] leading-snug sm:text-[12.5px] ${isUrgent ? 'text-brass-600' : 'text-taupe-600'}`}>
                       Pricing and schedule hold through{' '}
-                      <span className="font-medium text-obsidian-900">
+                      <span className="font-medium text-espresso-900">
                         {new Date(expiresAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                       </span>
                     </p>
-                    <p className="mt-0.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400 opacity-70 transition-opacity duration-200 group-hover:opacity-100">
+                    <p className="mt-0.5 font-sans text-[9px] uppercase tracking-architect text-taupe-400 opacity-70 transition-opacity duration-200 group-hover:opacity-100">
                       Approve below to secure the date
                     </p>
                   </>
@@ -472,20 +472,20 @@ export default function HomeownerPortalClient({
                   {cd.days > 0 && (
                     <div className="text-center">
                       <p className="figure text-[16px] leading-none sm:text-[19px]">{cd.days}</p>
-                      <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">days</p>
+                      <p className="mt-1 font-sans text-[8px] uppercase tracking-architect text-taupe-400">days</p>
                     </div>
                   )}
                   <div className="text-center">
                     <p className="figure text-[16px] leading-none sm:text-[19px]">{String(cd.hours).padStart(2, '0')}</p>
-                    <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">hrs</p>
+                    <p className="mt-1 font-sans text-[8px] uppercase tracking-architect text-taupe-400">hrs</p>
                   </div>
                   <div className="text-center">
                     <p className="figure text-[16px] leading-none sm:text-[19px]">{String(cd.minutes).padStart(2, '0')}</p>
-                    <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">min</p>
+                    <p className="mt-1 font-sans text-[8px] uppercase tracking-architect text-taupe-400">min</p>
                   </div>
                   <div className="text-center">
                     <p className={`figure text-[16px] leading-none sm:text-[19px] ${isUrgent ? 'text-brass-600' : ''}`}>{String(cd.seconds).padStart(2, '0')}</p>
-                    <p className="mt-1 font-mono text-[8px] uppercase tracking-architect text-graphite-400">sec</p>
+                    <p className="mt-1 font-sans text-[8px] uppercase tracking-architect text-taupe-400">sec</p>
                   </div>
                 </div>
               );
@@ -495,31 +495,31 @@ export default function HomeownerPortalClient({
       )}
 
       {/* Cover plate — the presentation opens on the project itself */}
-      <div className="border-b border-obsidian-900/10 bg-obsidian-950 text-bone-100">
+      <div className="border-b border-taupe-200/70 bg-espresso-900 text-alabaster-100">
         <div className="blueprint-grid-dark">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-14">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <p className="eyebrow-invert">Proposal</p>
               {(invoice as any).proposal_number && (
                 <>
-                  <span aria-hidden className="h-3 w-px bg-bone-100/20" />
-                  <p className="font-mono text-[10px] uppercase tracking-architect text-bone-100/60">
+                  <span aria-hidden className="h-3 w-px bg-alabaster-100/20" />
+                  <p className="font-sans text-[10px] uppercase tracking-architect text-alabaster-100/60">
                     {(invoice as any).proposal_number}
                   </p>
                 </>
               )}
             </div>
 
-            <h1 className="mt-4 font-display text-[2.1rem] leading-[1.06] tracking-[-0.02em] text-bone-50 sm:text-[3.1rem]">
+            <h1 className="mt-4 font-display text-[2.1rem] leading-[1.06] tracking-[-0.02em] text-alabaster-50 sm:text-[3.1rem]">
               {invoice.homeowner_name || "Client"}
             </h1>
 
-            <p className="mt-3 max-w-xl text-[13.5px] leading-relaxed text-bone-100/65">
+            <p className="mt-3 max-w-xl text-[13.5px] leading-relaxed text-alabaster-100/65">
               {invoice.job_address || "Address Pending"}
             </p>
 
             {(invoice as any).project_title && (
-              <p className="mt-4 inline-block border border-brass-400/40 px-2.5 py-1 font-mono text-[10px] uppercase tracking-architect text-brass-300">
+              <p className="mt-4 inline-block border border-brass-400/40 px-2.5 py-1 font-sans text-[10px] uppercase tracking-architect text-brass-300">
                 {(invoice as any).project_title}
               </p>
             )}
@@ -532,15 +532,15 @@ export default function HomeownerPortalClient({
             <dl className="grid grid-cols-1 divide-y divide-white/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
               <div className="py-4 sm:pr-6">
                 <dt className="eyebrow-invert">Contractor of Record</dt>
-                <dd className="mt-1.5 font-display text-[1.05rem] leading-snug text-bone-50">Skyler Camacho</dd>
+                <dd className="mt-1.5 font-display text-[1.05rem] leading-snug text-alabaster-50">Skyler Camacho</dd>
               </div>
               <div className="py-4 sm:px-6">
                 <dt className="eyebrow-invert">License</dt>
-                <dd className="mt-1.5 font-mono text-[12px] tracking-[0.04em] text-bone-100/75">LIC-1901422</dd>
+                <dd className="mt-1.5 font-sans text-[12px] tracking-[0.04em] text-alabaster-100/75">LIC-1901422</dd>
               </div>
               <div className="py-4 sm:pl-6">
                 <dt className="eyebrow-invert">Direct</dt>
-                <dd className="mt-1.5 space-y-0.5 text-[12.5px] text-bone-100/75">
+                <dd className="mt-1.5 space-y-0.5 text-[12.5px] text-alabaster-100/75">
                   <p>402-819-8558</p>
                   <p className="break-all">skyler@wdocustom.com</p>
                 </dd>
@@ -554,7 +554,7 @@ export default function HomeownerPortalClient({
 
         {/* Payment Status Banner */}
         {paymentStatus === "success" && (
-          <div className="mb-6 flex items-center gap-3 border border-patina-200 bg-patina-50 px-4 py-3.5 text-[13px] text-patina-700">
+          <div className="mb-6 flex items-center gap-3 border border-patina-200 bg-patina-50 px-5 py-5 text-[13px] text-patina-700">
             <svg className="h-4 w-4 shrink-0 text-patina-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
@@ -562,7 +562,7 @@ export default function HomeownerPortalClient({
           </div>
         )}
         {paymentStatus === "cancelled" && (
-          <div className="mb-6 flex items-center gap-3 border border-brass-200 bg-brass-50 px-4 py-3.5 text-[13px] text-brass-600">
+          <div className="mb-6 flex items-center gap-3 border border-brass-200 bg-brass-50 px-5 py-5 text-[13px] text-brass-600">
             <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.5h.008M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -613,7 +613,7 @@ export default function HomeownerPortalClient({
                   </span>
                 )}
                 {tabKey === "messages" && !hasUnread && messages.length > 0 && (
-                  <span className="text-[9px] leading-none tabular-nums text-graphite-300">
+                  <span className="text-[9px] leading-none tabular-nums text-taupe-300">
                     {messages.length}
                   </span>
                 )}
@@ -624,7 +624,7 @@ export default function HomeownerPortalClient({
 
         {/* Progress Tracker — always visible post-approval */}
         {isLocked && (
-          <div className="panel mb-7 p-5 sm:p-6">
+          <div className="panel mb-7 p-6 sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="eyebrow">Progress</p>
               <span className={`badge ${invoice.deposit_cleared ? 'badge-approved' : 'badge-pending'}`}>
@@ -635,9 +635,9 @@ export default function HomeownerPortalClient({
 
             <div className="scrollbar-none relative mt-6 flex w-full items-start justify-between overflow-x-auto pb-1">
               {/* Datum line */}
-              <div className="absolute left-8 right-8 top-[9px] z-0 h-px bg-obsidian-900/[0.12]">
+              <div className="absolute left-8 right-8 top-[9px] z-0 h-px bg-taupe-300">
                 <div
-                  className="h-full bg-obsidian-900 transition-all duration-700 ease-architect"
+                  className="h-full bg-espresso-900 transition-all duration-700 ease-architect"
                   style={{ width: `${(dynamicTimelineIndex / (standardMilestones.length - 1)) * 100}%` }}
                 />
               </div>
@@ -647,22 +647,22 @@ export default function HomeownerPortalClient({
                 return (
                   <div key={idx} className="relative z-10 flex w-[64px] shrink-0 flex-col items-center text-center sm:w-[92px]">
                     <div className={`flex h-[18px] w-[18px] items-center justify-center border transition-all duration-300 ease-architect ${
-                      isCompleted ? 'border-obsidian-900 bg-obsidian-900 text-bone-50' :
+                      isCompleted ? 'border-espresso-900 bg-espresso-900 text-alabaster-50' :
                       isCurrent ? 'border-brass-500 bg-brass-50 ring-[3px] ring-brass-500/15' :
-                      'border-obsidian-900/20 bg-white'
+                      'border-taupe-300 bg-white'
                     }`}>
                       {isCompleted ? (
                         <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                         </svg>
                       ) : (
-                        <span className={`h-[5px] w-[5px] ${isCurrent ? 'bg-brass-500' : 'bg-obsidian-900/20'}`} />
+                        <span className={`h-[5px] w-[5px] ${isCurrent ? 'bg-brass-500' : 'bg-taupe-300'}`} />
                       )}
                     </div>
-                    <p className={`mt-2.5 font-mono text-[9px] uppercase leading-tight tracking-architect ${
-                      isCurrent ? 'text-brass-600' : isCompleted ? 'text-obsidian-900' : 'text-graphite-300'
+                    <p className={`mt-2.5 font-sans text-[9px] uppercase leading-tight tracking-architect ${
+                      isCurrent ? 'text-brass-600' : isCompleted ? 'text-espresso-900' : 'text-taupe-300'
                     }`}>{step.title}</p>
-                    <p className="mt-0.5 hidden font-mono text-[8.5px] uppercase tracking-architect text-graphite-300 sm:block">{step.subtitle}</p>
+                    <p className="mt-0.5 hidden font-sans text-[8.5px] uppercase tracking-architect text-taupe-300 sm:block">{step.subtitle}</p>
                   </div>
                 );
               })}
@@ -680,22 +680,22 @@ export default function HomeownerPortalClient({
 
           if (hasAnnouncement) {
             return (
-              <div className="mb-7 flex items-start gap-3.5 border border-brass-200 border-l-2 border-l-brass-500 bg-brass-50 px-5 py-4">
+              <div className="mb-7 flex items-start gap-3.5 border border-brass-200 border-l-2 border-l-brass-500 bg-brass-50 px-6 py-5">
                 <p className="eyebrow mt-[3px] shrink-0 text-brass-500">Notice</p>
-                <p className="text-[13px] leading-relaxed text-graphite-700">{(invoice as any).announcement}</p>
+                <p className="text-[13px] leading-relaxed text-taupe-700">{(invoice as any).announcement}</p>
               </div>
             );
           }
           if (showNewContractBanner) {
             return (
-              <div className="mb-7 flex items-start gap-3.5 border border-patina-200 border-l-2 border-l-patina-500 bg-patina-50 px-5 py-4">
+              <div className="mb-7 flex items-start gap-3.5 border border-patina-200 border-l-2 border-l-patina-500 bg-patina-50 px-6 py-5">
                 <p className="eyebrow mt-[3px] shrink-0 text-patina-600">Signed</p>
-                <p className="text-[13px] leading-relaxed text-graphite-700">Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, selections, communicate, and manage payments.</p>
+                <p className="text-[13px] leading-relaxed text-taupe-700">Your contract is signed and active. Skyler Camacho and the WDO Custom team are now managing your project. Use the tabs above to track progress, selections, communicate, and manage payments.</p>
               </div>
             );
           }
           return (
-            <div className="mb-7 border border-obsidian-900/10 border-l-2 border-l-obsidian-900/25 bg-white px-5 py-3.5 text-[13px] leading-relaxed text-graphite-600">
+            <div className="mb-7 border border-taupe-200/70 border-l-2 border-l-espresso-900/25 bg-white px-6 py-5 text-[13px] leading-relaxed text-taupe-600">
               Welcome back, {invoice.homeowner_name?.split(" ")[0] || "there"}. Use the tabs above to track progress, selections, communicate, and manage payments.
             </div>
           );
@@ -706,7 +706,7 @@ export default function HomeownerPortalClient({
         {/* ── PRE-APPROVAL: PROPOSAL TAB (default) ── */}
         {!isLocked && (activeTab === "proposal" || activeTab === "overview") && (
           <div className="grid animate-rise grid-cols-1 items-start gap-8 lg:grid-cols-3 lg:gap-10">
-            <div className="min-w-0 space-y-8 lg:col-span-2">
+            <div className="min-w-0 space-y-12 lg:col-span-2">
 
               {/* Specification grade */}
               {(invoice as any).show_luxury_tier && (
@@ -714,19 +714,19 @@ export default function HomeownerPortalClient({
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="eyebrow">Specification Grade</p>
-                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-graphite-500">Compare pricing across tiers.</p>
+                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-taupe-500">Compare pricing across tiers.</p>
                     </div>
-                    <div className="flex shrink-0 border border-obsidian-900/[0.12]">
-                      <button type="button" onClick={() => setTier("mid")} className={`px-5 py-2.5 font-mono text-[10px] uppercase tracking-architect transition-all duration-300 ease-architect ${tier === 'mid' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>
+                    <div className="flex shrink-0 border border-taupe-200">
+                      <button type="button" onClick={() => setTier("mid")} className={`px-6 py-3 font-sans text-[10px] uppercase tracking-architect transition-all duration-300 ease-architect ${tier === 'mid' ? 'bg-espresso-900 text-alabaster-50' : 'bg-white text-taupe-500 hover:text-espresso-900'}`}>
                         Standard
                       </button>
-                      <button type="button" onClick={() => setTier("high")} className={`border-l border-obsidian-900/[0.12] px-5 py-2.5 font-mono text-[10px] uppercase tracking-architect transition-all duration-300 ease-architect ${tier === 'high' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>
+                      <button type="button" onClick={() => setTier("high")} className={`border-l border-taupe-200 px-6 py-3 font-sans text-[10px] uppercase tracking-architect transition-all duration-300 ease-architect ${tier === 'high' ? 'bg-espresso-900 text-alabaster-50' : 'bg-white text-taupe-500 hover:text-espresso-900'}`}>
                         Luxury
                       </button>
                     </div>
                   </div>
                   {tier === 'high' && (
-                    <p className="mt-4 flex items-start gap-2 border-t border-obsidian-900/[0.07] pt-3.5 text-[12px] leading-relaxed text-graphite-500">
+                    <p className="mt-4 flex items-start gap-2 border-t border-taupe-200/55 pt-3.5 text-[12px] leading-relaxed text-taupe-500">
                       <span className="mt-[6px] h-px w-4 shrink-0 bg-brass-400" />
                       Luxury tier includes premium materials, upgraded finishes, and extended warranties.
                     </p>
@@ -741,7 +741,7 @@ export default function HomeownerPortalClient({
                   <span className="eyebrow">{activeIndices.length} of {masterItems.length} included</span>
                 </div>
 
-                <div className="border-t border-obsidian-900/10">
+                <div className="border-t border-taupe-200/70">
                   {masterItems.map((item: any, idx: number) => {
                     const isItemActive = activeIndices.includes(idx);
                     const isExpanded = expandedIndices.includes(idx);
@@ -750,14 +750,14 @@ export default function HomeownerPortalClient({
                     return (
                       <div key={idx}>
                         {startsCategory && (
-                          <div className="flex items-center gap-3 bg-bone-100/60 px-3 py-2 sm:px-4">
+                          <div className="flex items-center gap-3 bg-alabaster-100/60 px-3 py-2 sm:px-4">
                             <span className="eyebrow shrink-0">{category}</span>
-                            <span aria-hidden className="h-px flex-1 bg-obsidian-900/10" />
+                            <span aria-hidden className="h-px flex-1 bg-taupe-200" />
                           </div>
                         )}
                         <div
-                          className={`group relative border-b border-obsidian-900/[0.07] px-3 py-4 transition-colors duration-300 ease-architect sm:px-4 ${
-                            !isItemActive ? 'bg-bone-100/40' : 'bg-white hover:bg-bone-50'
+                          className={`group relative border-b border-taupe-200/55 px-3 py-4 transition-colors duration-300 ease-architect sm:px-4 ${
+                            !isItemActive ? 'bg-alabaster-100/40' : 'bg-white hover:bg-alabaster-50'
                           }`}
                         >
                           {isItemActive && (
@@ -770,24 +770,24 @@ export default function HomeownerPortalClient({
                                 type="button"
                                 onClick={() => toggleExpandDescription(idx)}
                                 aria-expanded={isExpanded}
-                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-obsidian-900/15 text-graphite-400 transition-all duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900"
+                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-taupe-300/70 text-taupe-400 transition-all duration-200 ease-architect hover:border-taupe-400 hover:text-espresso-900"
                               >
                                 <svg className={`h-2.5 w-2.5 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" d="M12 5v14M5 12h14" />
                                 </svg>
                               </button>
                               <div className="min-w-0">
-                                <h4 className={`text-[13.5px] font-medium leading-snug tracking-[-0.01em] sm:text-[14px] ${isItemActive ? 'text-obsidian-900' : 'text-graphite-400 line-through decoration-graphite-300'}`}>
+                                <h4 className={`text-[13.5px] font-medium leading-snug tracking-[-0.01em] sm:text-[14px] ${isItemActive ? 'text-espresso-900' : 'text-taupe-400 line-through decoration-taupe-300'}`}>
                                   {tier === 'mid' ? item.title : item.high_title}
                                 </h4>
                                 {!isItemActive && (
-                                  <p className="mt-1 font-mono text-[9px] uppercase tracking-architect text-graphite-400">Removed from scope</p>
+                                  <p className="mt-1 font-sans text-[9px] uppercase tracking-architect text-taupe-400">Removed from scope</p>
                                 )}
                               </div>
                             </div>
 
                             <div className="flex shrink-0 items-center gap-3 sm:gap-4">
-                              <span className={`figure text-[14px] sm:text-[15px] ${isItemActive ? '' : 'text-graphite-300 line-through'}`}>
+                              <span className={`figure text-[14px] sm:text-[15px] ${isItemActive ? '' : 'text-taupe-300 line-through'}`}>
                                 ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
                               {isItemActive ? (
@@ -795,7 +795,7 @@ export default function HomeownerPortalClient({
                                   type="button"
                                   onClick={() => handleRemoveIndex(idx)}
                                   title="remove item"
-                                  className="flex h-5 w-5 shrink-0 items-center justify-center text-graphite-300 transition-colors duration-200 ease-architect hover:text-clay-600"
+                                  className="flex h-5 w-5 shrink-0 items-center justify-center text-taupe-300 transition-colors duration-200 ease-architect hover:text-clay-600"
                                 >
                                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                     <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
@@ -805,7 +805,7 @@ export default function HomeownerPortalClient({
                                 <button
                                   type="button"
                                   onClick={() => handleReinstateIndex(idx)}
-                                  className="shrink-0 border border-obsidian-900/15 px-2.5 py-1 font-mono text-[9px] uppercase tracking-architect text-graphite-600 transition-all duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900"
+                                  className="shrink-0 border border-taupe-300/70 px-2.5 py-1 font-sans text-[9px] uppercase tracking-architect text-taupe-600 transition-all duration-200 ease-architect hover:border-taupe-400 hover:text-espresso-900"
                                 >
                                   Restore
                                 </button>
@@ -814,8 +814,8 @@ export default function HomeownerPortalClient({
                           </div>
 
                           {isExpanded && (
-                            <div className="mt-3 max-w-2xl animate-rise border-t border-obsidian-900/[0.06] pl-8 pt-3">
-                              <p className="text-[12.5px] leading-relaxed text-graphite-600">
+                            <div className="mt-3 max-w-2xl animate-rise border-t border-taupe-200/50 pl-8 pt-3">
+                              <p className="text-[12.5px] leading-relaxed text-taupe-600">
                                 {tier === 'mid' ? item.mid_description : item.high_description}
                               </p>
                             </div>
@@ -831,24 +831,24 @@ export default function HomeownerPortalClient({
             {/* Sidebar — the execution rail */}
             <div className="space-y-4 lg:sticky lg:top-24">
               <div className="panel-raised overflow-hidden">
-                <div className="bg-obsidian-950 px-6 py-6 text-bone-100">
+                <div className="bg-espresso-900 px-6 py-6 text-alabaster-100">
                   <p className="eyebrow-invert">Project Total</p>
-                  <p className="mt-2 font-display text-[2.25rem] leading-none tracking-[-0.02em] text-bone-50 tnum">
+                  <p className="mt-2 font-display text-[2.25rem] leading-none tracking-[-0.02em] text-alabaster-50 tnum">
                     ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <dl className="divide-y divide-obsidian-900/[0.07]">
-                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                <dl className="divide-y divide-taupe-200/60">
+                  <div className="flex items-baseline justify-between px-7 py-5">
                     <dt className="eyebrow">Deposit ({depositPercent}%)</dt>
                     <dd className="figure text-[13px]">${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
                   </div>
-                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                  <div className="flex items-baseline justify-between px-7 py-5">
                     <dt className="eyebrow">Timeline</dt>
-                    <dd className="text-[13px] font-medium text-obsidian-900">{invoice.project_length || "9 Weeks"}</dd>
+                    <dd className="text-[13px] font-medium text-espresso-900">{invoice.project_length || "9 Weeks"}</dd>
                   </div>
-                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                  <div className="flex items-baseline justify-between px-7 py-5">
                     <dt className="eyebrow">Start Date</dt>
-                    <dd className="text-[13px] font-medium text-obsidian-900">
+                    <dd className="text-[13px] font-medium text-espresso-900">
                       {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "TBD"}
                     </dd>
                   </div>
@@ -858,22 +858,22 @@ export default function HomeownerPortalClient({
               {/* Signature */}
               <div id="approve-section">
               {isExpired ? (
-                <div className="panel space-y-4 border-clay-200 bg-clay-50 p-6">
+                <div className="panel space-y-4 border-clay-200 bg-clay-50 p-7">
                   <div>
                     <p className="eyebrow text-clay-600">Expired</p>
                     <h3 className="display-sm mt-1.5 text-clay-700">Proposal Expired</h3>
                     <p className="mt-2 text-[12.5px] leading-relaxed text-clay-600">Your reserved schedule slot and pricing have been released. Reach out to discuss availability and an updated proposal.</p>
                   </div>
-                  <a href="tel:4028198558" className="block w-full border border-clay-300 bg-white py-3 text-center font-mono text-[11px] uppercase tracking-architect text-clay-700 transition-colors duration-200 ease-architect hover:bg-clay-100">
+                  <a href="tel:4028198558" className="block w-full border border-clay-300 bg-white py-3 text-center font-sans text-[11px] uppercase tracking-architect text-clay-700 transition-colors duration-200 ease-architect hover:bg-clay-100">
                     Call 402-819-8558
                   </a>
                 </div>
               ) : (
-                <form onSubmit={handleApprove} className="panel-raised space-y-4 p-6">
+                <form onSubmit={handleApprove} className="panel-raised space-y-4 p-7">
                   <div>
                     <p className="eyebrow">Execution</p>
                     <h3 className="display-sm mt-1.5">Approve &amp; Sign</h3>
-                    <p className="mt-1.5 text-[12px] leading-relaxed text-graphite-500">Type your full legal name to authorize this proposal.</p>
+                    <p className="mt-1.5 text-[12px] leading-relaxed text-taupe-500">Type your full legal name to authorize this proposal.</p>
                   </div>
                   <div>
                     <input
@@ -882,9 +882,9 @@ export default function HomeownerPortalClient({
                       placeholder="Your full name"
                       value={typedSignature}
                       onChange={(e) => setTypedSignature(e.target.value)}
-                      className="w-full border-0 border-b border-obsidian-900/20 bg-transparent px-0 pb-2 pt-1 font-display text-[1.35rem] tracking-[-0.01em] text-obsidian-900 outline-none transition-colors duration-200 ease-architect placeholder:font-sans placeholder:text-[13px] placeholder:tracking-normal placeholder:text-graphite-300 focus:border-obsidian-900"
+                      className="w-full border-0 border-b border-taupe-300 bg-transparent px-0 pb-2 pt-1 font-display text-[1.35rem] tracking-[-0.01em] text-espresso-900 outline-none transition-colors duration-200 ease-architect placeholder:font-sans placeholder:text-[13px] placeholder:tracking-normal placeholder:text-taupe-300 focus:border-espresso-900"
                     />
-                    <p className="mt-2 font-mono text-[9px] uppercase tracking-architect text-graphite-300">Signature of Homeowner</p>
+                    <p className="mt-2 font-sans text-[9px] uppercase tracking-architect text-taupe-300">Signature of Homeowner</p>
                   </div>
                   <button type="submit" disabled={isSubmitting || activeIndices.length === 0} className="btn-ink w-full py-3.5 text-[12.5px]">
                     {isSubmitting ? "Processing..." : "Accept Proposal"}
@@ -895,19 +895,19 @@ export default function HomeownerPortalClient({
 
               {/* Legal Terms */}
               <div className="panel overflow-hidden">
-                <button type="button" onClick={() => setShowTerms(!showTerms)} aria-expanded={showTerms} className="flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-200 ease-architect hover:bg-bone-50">
+                <button type="button" onClick={() => setShowTerms(!showTerms)} aria-expanded={showTerms} className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-200 ease-architect hover:bg-alabaster-50">
                   <span className="eyebrow">Terms &amp; Conditions</span>
-                  <svg className={`h-3 w-3 shrink-0 text-graphite-400 transition-transform duration-300 ease-architect ${showTerms ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className={`h-3 w-3 shrink-0 text-taupe-400 transition-transform duration-300 ease-architect ${showTerms ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 {showTerms && (
-                  <div className="max-h-[50vh] space-y-4 overflow-y-auto border-t border-obsidian-900/[0.07] px-5 pb-5 pt-4">
-                    <p className="font-mono text-[9.5px] uppercase leading-relaxed tracking-architect text-graphite-600">WDO Custom — General Contracting Terms &amp; Conditions</p>
+                  <div className="max-h-[50vh] space-y-4 overflow-y-auto border-t border-taupe-200/55 px-5 pb-5 pt-4">
+                    <p className="font-sans text-[9.5px] uppercase leading-relaxed tracking-architect text-taupe-600">WDO Custom — General Contracting Terms &amp; Conditions</p>
                     {TERMS_AND_CONDITIONS.map((section, i) => (
                       <div key={i} className="space-y-1">
-                        <p className="text-[11.5px] font-medium text-obsidian-900">{section.heading}</p>
-                        <p className="text-[11.5px] leading-relaxed text-graphite-500">{section.text}</p>
+                        <p className="text-[11.5px] font-medium text-espresso-900">{section.heading}</p>
+                        <p className="text-[11.5px] leading-relaxed text-taupe-500">{section.text}</p>
                       </div>
                     ))}
                   </div>
@@ -920,7 +920,7 @@ export default function HomeownerPortalClient({
         {/* ── POST-APPROVAL: OVERVIEW TAB ── */}
         {isLocked && (activeTab === "overview" || activeTab === "proposal") && (
           <div className="grid animate-rise grid-cols-1 items-start gap-8 lg:grid-cols-3 lg:gap-10">
-            <div className="min-w-0 space-y-9 lg:col-span-2">
+            <div className="min-w-0 space-y-14 lg:col-span-2">
 
               {scheduleTasks.length > 0 && (
                 <div>
@@ -932,13 +932,13 @@ export default function HomeownerPortalClient({
                     {masterMilestones.map((milestone) => {
                       const subTasks = getSubTasksForMilestone(milestone.id);
                       return (
-                        <div key={milestone.id} className="border-b border-obsidian-900/[0.07] last:border-b-0">
-                          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5 bg-bone-100/60 px-4 py-3">
-                            <h3 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">
+                        <div key={milestone.id} className="border-b border-taupe-200/55 last:border-b-0">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5 bg-alabaster-100/60 px-5 py-4">
+                            <h3 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-espresso-900">
                               {milestone.task_name}
                             </h3>
                             <div className="flex shrink-0 items-baseline gap-3">
-                              <span className="font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                              <span className="font-sans text-[9.5px] uppercase tracking-architect text-taupe-400">
                                 {new Date(milestone.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(milestone.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
                               </span>
                               <span className="figure text-[12px]">{milestone.progress_percent}%</span>
@@ -946,19 +946,19 @@ export default function HomeownerPortalClient({
                           </div>
                           <div>
                             {subTasks.map((task) => (
-                              <div key={task.id} className="flex flex-col gap-2 border-t border-obsidian-900/[0.05] px-4 py-3 transition-colors duration-200 ease-architect hover:bg-bone-50 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+                              <div key={task.id} className="flex flex-col gap-2 border-t border-taupe-200/45 px-5 py-4 transition-colors duration-200 ease-architect hover:bg-alabaster-50 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
                                 <div className="flex min-w-0 flex-1 items-baseline gap-2.5">
-                                  <span aria-hidden className="mt-1 h-px w-3 shrink-0 bg-obsidian-900/20" />
-                                  <span className="min-w-0 truncate text-[12.5px] text-graphite-700">{task.task_name}</span>
-                                  <span className={`shrink-0 border px-1.5 py-0.5 font-mono text-[8.5px] uppercase tracking-architect ${task.color_theme}`}>
+                                  <span aria-hidden className="mt-1 h-px w-3 shrink-0 bg-taupe-300" />
+                                  <span className="min-w-0 truncate text-[12.5px] text-taupe-700">{task.task_name}</span>
+                                  <span className={`shrink-0 border px-1.5 py-0.5 font-sans text-[8.5px] uppercase tracking-architect ${task.color_theme}`}>
                                     {new Date(task.target_start_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})} – {new Date(task.target_end_date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'})}
                                   </span>
                                 </div>
                                 <div className="flex shrink-0 items-center gap-3 pl-5 sm:pl-0">
-                                  <div className="h-[3px] w-20 overflow-hidden bg-obsidian-900/10">
-                                    <div className="h-full bg-obsidian-900 transition-all duration-500 ease-architect" style={{ width: `${task.progress_percent}%` }} />
+                                  <div className="h-[3px] w-20 overflow-hidden bg-taupe-200">
+                                    <div className="h-full bg-espresso-900 transition-all duration-500 ease-architect" style={{ width: `${task.progress_percent}%` }} />
                                   </div>
-                                  <span className="min-w-[28px] text-right font-mono text-[10px] tabular-nums text-graphite-500">{task.progress_percent}%</span>
+                                  <span className="min-w-[28px] text-right font-sans text-[10px] tabular-nums text-taupe-500">{task.progress_percent}%</span>
                                 </div>
                               </div>
                             ))}
@@ -976,20 +976,20 @@ export default function HomeownerPortalClient({
                     <h2 className="display-sm">Field Log</h2>
                     <span className="eyebrow hidden sm:block">{dailyLogs.length} entries</span>
                   </div>
-                  <div className="max-h-[420px] overflow-y-auto border-t border-obsidian-900/10">
+                  <div className="max-h-[420px] overflow-y-auto border-t border-taupe-200/70">
                     {dailyLogs.map((log) => (
-                      <div key={log.id} className="space-y-3 border-b border-obsidian-900/[0.07] px-1 py-5 sm:px-2">
+                      <div key={log.id} className="space-y-3 border-b border-taupe-200/55 px-1 py-5 sm:px-2">
                         <div className="flex items-baseline justify-between gap-3">
                           <span className="eyebrow">Site Report</span>
-                          <span className="font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                          <span className="font-sans text-[9.5px] uppercase tracking-architect text-taupe-400">
                             {new Date(log.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}
                           </span>
                         </div>
-                        <p className="whitespace-pre-line text-[13px] leading-relaxed text-graphite-700">{log.log_text}</p>
+                        <p className="whitespace-pre-line text-[13px] leading-relaxed text-taupe-700">{log.log_text}</p>
                         {log.photo_urls && log.photo_urls.length > 0 && (
                           <div className="grid grid-cols-2 gap-1.5 pt-1 sm:grid-cols-4">
                             {log.photo_urls.map((photoUrl: string, pIdx: number) => (
-                              <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="group relative block aspect-[4/3] overflow-hidden border border-obsidian-900/10 bg-bone-100">
+                              <a key={pIdx} href={photoUrl} target="_blank" rel="noopener noreferrer" className="group relative block aspect-[4/3] overflow-hidden border border-taupe-200/70 bg-alabaster-100">
                                 <img src={photoUrl} alt="" className="h-full w-full object-cover transition-transform duration-500 ease-architect group-hover:scale-[1.03]" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
                               </a>
                             ))}
@@ -1007,7 +1007,7 @@ export default function HomeownerPortalClient({
                   <span className="eyebrow hidden sm:block">Expand for detail</span>
                 </div>
 
-                <div className="border-t border-obsidian-900/10">
+                <div className="border-t border-taupe-200/70">
                   {masterItems.map((item: any, idx: number) => {
                     const isItemActive = activeIndices.includes(idx);
                     const isExpanded = expandedIndices.includes(idx);
@@ -1023,12 +1023,12 @@ export default function HomeownerPortalClient({
                     return (
                       <div key={idx}>
                         {startsCategory && (
-                          <div className="flex items-center gap-3 bg-bone-100/60 px-3 py-2 sm:px-4">
+                          <div className="flex items-center gap-3 bg-alabaster-100/60 px-3 py-2 sm:px-4">
                             <span className="eyebrow shrink-0">{category}</span>
-                            <span aria-hidden className="h-px flex-1 bg-obsidian-900/10" />
+                            <span aria-hidden className="h-px flex-1 bg-taupe-200" />
                           </div>
                         )}
-                        <div className="group relative border-b border-obsidian-900/[0.07] bg-white px-3 py-3.5 transition-colors duration-300 ease-architect hover:bg-bone-50 sm:px-4">
+                        <div className="group relative border-b border-taupe-200/55 bg-white px-3 py-3.5 transition-colors duration-300 ease-architect hover:bg-alabaster-50 sm:px-4">
                           <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
                           <div className="flex items-start justify-between gap-3 sm:gap-5">
                             <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -1036,18 +1036,18 @@ export default function HomeownerPortalClient({
                                 type="button"
                                 onClick={() => toggleExpandDescription(idx)}
                                 aria-expanded={isExpanded}
-                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-obsidian-900/15 text-graphite-400 transition-all duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900"
+                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-taupe-300/70 text-taupe-400 transition-all duration-200 ease-architect hover:border-taupe-400 hover:text-espresso-900"
                               >
                                 <svg className={`h-2.5 w-2.5 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" d="M12 5v14M5 12h14" />
                                 </svg>
                               </button>
-                              <h4 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">{item.title}</h4>
+                              <h4 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-espresso-900">{item.title}</h4>
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1">
                               <div className="flex items-baseline gap-2.5">
                                 {item.actual_cost != null && (
-                                  <span className="font-mono text-[10px] tabular-nums text-graphite-300 line-through">
+                                  <span className="font-sans text-[10px] tabular-nums text-taupe-300 line-through">
                                     ${toNum(item.cost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
                                 )}
@@ -1056,15 +1056,15 @@ export default function HomeownerPortalClient({
                                 </span>
                               </div>
                               {item.actual_cost != null && (
-                                <span className={`font-mono text-[9px] uppercase tracking-architect ${toNum(item.actual_cost) > toNum(item.cost) ? 'text-clay-600' : 'text-patina-600'}`}>
+                                <span className={`font-sans text-[9px] uppercase tracking-architect ${toNum(item.actual_cost) > toNum(item.cost) ? 'text-clay-600' : 'text-patina-600'}`}>
                                   {toNum(item.actual_cost) > toNum(item.cost) ? 'Over' : 'Under'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost)).toLocaleString(undefined, {minimumFractionDigits:2})}
                                 </span>
                               )}
                             </div>
                           </div>
                           {isExpanded && (
-                            <div className="mt-3 max-w-2xl animate-rise border-t border-obsidian-900/[0.06] pl-8 pt-3">
-                              <p className="text-[12.5px] leading-relaxed text-graphite-600">{item.description}</p>
+                            <div className="mt-3 max-w-2xl animate-rise border-t border-taupe-200/50 pl-8 pt-3">
+                              <p className="text-[12.5px] leading-relaxed text-taupe-600">{item.description}</p>
                             </div>
                           )}
                         </div>
@@ -1078,19 +1078,19 @@ export default function HomeownerPortalClient({
             {/* Sidebar — signed status + total */}
             <div className="space-y-4 lg:sticky lg:top-24">
               <div className="panel-raised overflow-hidden">
-                <div className="bg-obsidian-950 px-6 py-6 text-bone-100">
+                <div className="bg-espresso-900 px-6 py-6 text-alabaster-100">
                   <p className="eyebrow-invert">Project Total</p>
-                  <p className="mt-2 font-display text-[2.25rem] leading-none tracking-[-0.02em] text-bone-50 tnum">
+                  <p className="mt-2 font-display text-[2.25rem] leading-none tracking-[-0.02em] text-alabaster-50 tnum">
                     ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
-                <dl className="divide-y divide-obsidian-900/[0.07]">
-                  <div className="flex items-baseline justify-between px-6 py-3.5">
+                <dl className="divide-y divide-taupe-200/60">
+                  <div className="flex items-baseline justify-between px-7 py-5">
                     <dt className="eyebrow">Contract Base</dt>
                     <dd className="figure text-[13px]">${toNum(baseTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
                   </div>
                   {approvedCoTotal > 0 && (
-                    <div className="flex items-baseline justify-between px-6 py-3.5">
+                    <div className="flex items-baseline justify-between px-7 py-5">
                       <dt className="eyebrow text-brass-500">Approved Variations</dt>
                       <dd className="figure text-[13px] text-brass-600">+${toNum(approvedCoTotal).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
                     </div>
@@ -1104,30 +1104,30 @@ export default function HomeownerPortalClient({
                   <svg className="h-3.5 w-3.5 shrink-0 text-patina-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
-                  <p className="font-mono text-[10px] uppercase tracking-architect text-patina-700">Contract Executed</p>
+                  <p className="font-sans text-[10px] uppercase tracking-architect text-patina-700">Contract Executed</p>
                 </div>
-                <p className="mt-3 font-display text-[1.5rem] leading-none tracking-[-0.01em] text-obsidian-900">
+                <p className="mt-3 font-display text-[1.5rem] leading-none tracking-[-0.01em] text-espresso-900">
                   {invoice.signature_name}
                 </p>
-                <p className="mt-2.5 border-t border-patina-200 pt-2.5 font-mono text-[9.5px] uppercase tracking-architect text-patina-600">
+                <p className="mt-2.5 border-t border-patina-200 pt-2.5 font-sans text-[9.5px] uppercase tracking-architect text-patina-600">
                   {new Date(invoice.signed_at || "").toLocaleString()}
                 </p>
               </div>
 
               <div className="panel overflow-hidden">
-                <button type="button" onClick={() => setShowTerms(!showTerms)} aria-expanded={showTerms} className="flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-200 ease-architect hover:bg-bone-50">
+                <button type="button" onClick={() => setShowTerms(!showTerms)} aria-expanded={showTerms} className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-200 ease-architect hover:bg-alabaster-50">
                   <span className="eyebrow">Binding Terms</span>
-                  <svg className={`h-3 w-3 shrink-0 text-graphite-400 transition-transform duration-300 ease-architect ${showTerms ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className={`h-3 w-3 shrink-0 text-taupe-400 transition-transform duration-300 ease-architect ${showTerms ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 {showTerms && (
-                  <div className="max-h-[50vh] space-y-4 overflow-y-auto border-t border-obsidian-900/[0.07] px-5 pb-5 pt-4">
-                    <p className="font-mono text-[9.5px] uppercase leading-relaxed tracking-architect text-graphite-600">WDO Custom — General Contracting Terms &amp; Conditions</p>
+                  <div className="max-h-[50vh] space-y-4 overflow-y-auto border-t border-taupe-200/55 px-5 pb-5 pt-4">
+                    <p className="font-sans text-[9.5px] uppercase leading-relaxed tracking-architect text-taupe-600">WDO Custom — General Contracting Terms &amp; Conditions</p>
                     {TERMS_AND_CONDITIONS.map((section, i) => (
                       <div key={i} className="space-y-1">
-                        <p className="text-[11.5px] font-medium text-obsidian-900">{section.heading}</p>
-                        <p className="text-[11.5px] leading-relaxed text-graphite-500">{section.text}</p>
+                        <p className="text-[11.5px] font-medium text-espresso-900">{section.heading}</p>
+                        <p className="text-[11.5px] leading-relaxed text-taupe-500">{section.text}</p>
                       </div>
                     ))}
                   </div>
@@ -1146,14 +1146,14 @@ export default function HomeownerPortalClient({
             </div>
 
             <div className="panel overflow-hidden">
-              <div className="max-h-[440px] space-y-4 overflow-y-auto bg-bone-100/40 p-4 sm:p-5">
+              <div className="max-h-[440px] space-y-4 overflow-y-auto bg-alabaster-100/40 p-5 sm:p-7">
                 {Array.isArray((invoice as any).questions) && (invoice as any).questions.length > 0 ? (
                   (invoice as any).questions.map((msg: any, i: number) => (
                     <div key={i} className={`flex ${msg.author === "homeowner" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[86%] px-4 py-3 text-[13px] leading-relaxed sm:max-w-[76%] ${
+                      <div className={`max-w-[86%] px-5 py-4 text-[13px] leading-relaxed sm:max-w-[76%] ${
                         msg.author === "homeowner"
-                          ? "border border-obsidian-900 bg-obsidian-900 text-bone-50"
-                          : "border border-obsidian-900/10 bg-white text-graphite-700"
+                          ? "border border-espresso-900 bg-espresso-900 text-alabaster-50"
+                          : "border border-taupe-200/70 bg-white text-taupe-700"
                       }`}>
                         {msg.image_url && (
                           <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="mb-2.5 block">
@@ -1161,7 +1161,7 @@ export default function HomeownerPortalClient({
                           </a>
                         )}
                         {msg.text && <p>{msg.text}</p>}
-                        <p className={`mt-2.5 font-mono text-[9px] uppercase tracking-architect ${msg.author === "homeowner" ? "text-bone-100/45" : "text-graphite-400"}`}>
+                        <p className={`mt-2.5 font-sans text-[9px] uppercase tracking-architect ${msg.author === "homeowner" ? "text-alabaster-100/45" : "text-taupe-400"}`}>
                           {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </p>
                       </div>
@@ -1170,7 +1170,7 @@ export default function HomeownerPortalClient({
                 ) : (
                   <div className="blueprint-grid px-6 py-16 text-center">
                     <p className="display-sm">No messages yet</p>
-                    <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                    <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-taupe-500">
                       Ask about materials, timeline or pricing — we&rsquo;re here to help.
                     </p>
                   </div>
@@ -1207,7 +1207,7 @@ export default function HomeownerPortalClient({
                     setIsSendingQa(false);
                   }
                 }}
-                className="flex gap-2 border-t border-obsidian-900/10 bg-white p-3 sm:p-4"
+                className="flex gap-2 border-t border-taupe-200/70 bg-white p-3 sm:p-4"
               >
                 <input
                   type="text"
@@ -1230,7 +1230,7 @@ export default function HomeownerPortalClient({
 
         {/* ── PRE-APPROVAL: SCHEDULE TAB ── */}
         {!isLocked && activeTab === "schedule" && (
-          <div className="mx-auto max-w-3xl animate-rise space-y-9">
+          <div className="mx-auto max-w-3xl animate-rise space-y-14">
             <div>
               <div className="title-block">
                 <h2 className="display-sm">Payment Schedule</h2>
@@ -1238,7 +1238,7 @@ export default function HomeownerPortalClient({
               </div>
 
               <div className="panel overflow-hidden">
-                <div className="hidden items-baseline justify-between border-b border-obsidian-900/[0.07] bg-bone-100/60 px-4 py-2.5 sm:flex">
+                <div className="hidden items-baseline justify-between border-b border-taupe-200/55 bg-alabaster-100/60 px-5 py-3 sm:flex">
                   <span className="eyebrow">Draw</span>
                   <span className="eyebrow">Amount</span>
                 </div>
@@ -1246,14 +1246,14 @@ export default function HomeownerPortalClient({
                   const phaseVal = phaseAmountOf(phase, baseTotal);
                   const phasePercent = phasePercentOf(phase, baseTotal);
                   return (
-                    <div key={idx} className="flex items-start justify-between gap-4 border-b border-obsidian-900/[0.06] px-4 py-3.5 transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50">
+                    <div key={idx} className="flex items-start justify-between gap-4 border-b border-taupe-200/50 px-5 py-5 transition-colors duration-200 ease-architect last:border-b-0 hover:bg-alabaster-50">
                       <div className="flex min-w-0 gap-3.5">
-                        <span className="mt-[3px] shrink-0 font-mono text-[10px] tabular-nums text-graphite-300">
+                        <span className="mt-[3px] shrink-0 font-sans text-[10px] tabular-nums text-taupe-300">
                           {String(idx + 1).padStart(2, "0")}
                         </span>
                         <div className="min-w-0">
-                          <p className="text-[13px] font-medium leading-snug text-obsidian-900">{phase.name}</p>
-                          <p className="mt-1 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                          <p className="text-[13px] font-medium leading-snug text-espresso-900">{phase.name}</p>
+                          <p className="mt-1 font-sans text-[9px] uppercase tracking-architect text-taupe-400">
                             {displayPercent(phasePercent)}% of contract
                           </p>
                         </div>
@@ -1271,23 +1271,23 @@ export default function HomeownerPortalClient({
               <div className="title-block">
                 <h2 className="display-sm">Terms</h2>
               </div>
-              <dl className="panel divide-y divide-obsidian-900/[0.07]">
-                <div className="flex items-baseline justify-between px-4 py-3.5">
+              <dl className="panel divide-y divide-taupe-200/60">
+                <div className="flex items-baseline justify-between px-5 py-5">
                   <dt className="eyebrow">Construction Deposit ({depositPercent}%)</dt>
                   <dd className="figure text-[14px]">${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</dd>
                 </div>
-                <div className="flex items-baseline justify-between px-4 py-3.5">
+                <div className="flex items-baseline justify-between px-5 py-5">
                   <dt className="eyebrow">Estimated Build Timeline</dt>
-                  <dd className="text-[13px] font-medium text-obsidian-900">{invoice.project_length || "9 Weeks"}</dd>
+                  <dd className="text-[13px] font-medium text-espresso-900">{invoice.project_length || "9 Weeks"}</dd>
                 </div>
-                <div className="flex items-baseline justify-between px-4 py-3.5">
+                <div className="flex items-baseline justify-between px-5 py-5">
                   <dt className="eyebrow">Start Date</dt>
-                  <dd className="text-[13px] font-medium text-obsidian-900">
+                  <dd className="text-[13px] font-medium text-espresso-900">
                     {invoice.estimated_start_date ? new Date(invoice.estimated_start_date + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }) : "Jun 15, 2026"}
                   </dd>
                 </div>
               </dl>
-              <p className="mt-2.5 font-mono text-[9px] uppercase tracking-architect text-graphite-300">
+              <p className="mt-2.5 font-sans text-[9px] uppercase tracking-architect text-taupe-300">
                 Start date subject to permit issuance and material lead times.
               </p>
             </div>
@@ -1303,19 +1303,19 @@ export default function HomeownerPortalClient({
                   <h2 className="display-sm">Finish Selections</h2>
                   <span className="eyebrow hidden sm:block">Specification Board</span>
                 </div>
-                <p className="-mt-1 mb-7 max-w-lg text-[12.5px] leading-relaxed text-graphite-500">
+                <p className="-mt-1 mb-7 max-w-lg text-[12.5px] leading-relaxed text-taupe-500">
                   Choose a finish for each component. Selections are logged against the build schedule once confirmed.
                 </p>
 
-                <div className="space-y-8">
+                <div className="space-y-12">
                   {invoice.homeowner_options.map((group: any, gIdx: number) => {
                     const chosen = invoice.homeowner_selections?.[group.category];
                     const isPendingCategory = pendingSelection?.category === group.category;
                     return (
                       <div key={gIdx}>
-                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-obsidian-900/10 pb-2.5">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-taupe-200/70 pb-2.5">
                           <div className="flex items-baseline gap-3">
-                            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">
+                            <span className="font-sans text-[10px] font-medium tracking-architect text-brass-500">
                               {String(gIdx + 1).padStart(2, "0")}
                             </span>
                             <h3 className="display-sm">{group.category}</h3>
@@ -1336,12 +1336,12 @@ export default function HomeownerPortalClient({
                             const isChosen = chosen === choiceLabel && !isPendingCategory;
                             const isPending = isPendingCategory && pendingSelection?.value === choiceLabel;
                             return (
-                              <div key={cIdx} className={`group flex flex-col overflow-hidden border transition-all duration-300 ease-architect ${
+                              <div key={cIdx} className={`group flex flex-col overflow-hidden rounded-panel border transition-all duration-300 ease-architect ${
                                 isPending
                                   ? 'border-brass-500 shadow-riser ring-1 ring-brass-500/30'
                                   : isChosen
-                                    ? 'border-obsidian-900 shadow-riser'
-                                    : 'border-obsidian-900/[0.12] hover:border-obsidian-900/35'
+                                    ? 'border-brass-400 shadow-lift ring-1 ring-brass-400/25'
+                                    : 'border-taupe-200 hover:border-taupe-300 hover:shadow-riser'
                               }`}>
                                 {imageUrl && (
                                   <a
@@ -1349,7 +1349,7 @@ export default function HomeownerPortalClient({
                                     target={productUrl ? "_blank" : undefined}
                                     rel="noopener noreferrer"
                                     onClick={(e) => { if (!productUrl) e.preventDefault(); }}
-                                    className="block aspect-[4/3] overflow-hidden bg-bone-100"
+                                    className="block aspect-[4/3] overflow-hidden bg-alabaster-100"
                                   >
                                     <img src={imageUrl} alt={choiceLabel} className="h-full w-full object-cover transition-transform duration-500 ease-architect group-hover:scale-[1.04]" />
                                   </a>
@@ -1362,8 +1362,8 @@ export default function HomeownerPortalClient({
                                     isPending
                                       ? 'bg-brass-50 text-brass-600'
                                       : isChosen
-                                        ? 'bg-obsidian-900 text-bone-50'
-                                        : 'bg-white text-graphite-600 hover:bg-bone-50 hover:text-obsidian-900'
+                                        ? 'bg-espresso-900 text-alabaster-50'
+                                        : 'bg-white text-taupe-600 hover:bg-alabaster-50 hover:text-espresso-900'
                                   }`}
                                 >
                                   <span className="min-w-0">{choiceLabel}</span>
@@ -1373,11 +1373,11 @@ export default function HomeownerPortalClient({
                                     </svg>
                                   )}
                                   {isPending && (
-                                    <span className="shrink-0 font-mono text-[8.5px] uppercase tracking-architect">Pending</span>
+                                    <span className="shrink-0 font-sans text-[8.5px] uppercase tracking-architect">Pending</span>
                                   )}
                                 </button>
                                 {productUrl && !imageUrl && (
-                                  <a href={productUrl} target="_blank" rel="noopener noreferrer" className="border-t border-obsidian-900/[0.07] px-3 py-1.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400 transition-colors duration-200 hover:text-brass-600">
+                                  <a href={productUrl} target="_blank" rel="noopener noreferrer" className="border-t border-taupe-200/55 px-3 py-1.5 font-sans text-[9px] uppercase tracking-architect text-taupe-400 transition-colors duration-200 hover:text-brass-600">
                                     View product
                                   </a>
                                 )}
@@ -1387,10 +1387,10 @@ export default function HomeownerPortalClient({
                         </div>
 
                         {isPendingCategory && (
-                          <div className="mt-3.5 flex flex-wrap items-center gap-2.5 border border-brass-200 bg-brass-50 px-4 py-3">
+                          <div className="mt-3.5 flex flex-wrap items-center gap-2.5 border border-brass-200 bg-brass-50 px-5 py-4">
                             <button type="button" onClick={confirmSelection} className="btn-ink px-4 py-2">Confirm Selection</button>
                             <button type="button" onClick={() => setPendingSelection(null)} className="btn-quiet">Cancel</button>
-                            <span className="font-mono text-[9px] uppercase tracking-architect text-brass-600">Confirm to lock in your choice</span>
+                            <span className="font-sans text-[9px] uppercase tracking-architect text-brass-600">Confirm to lock in your choice</span>
                           </div>
                         )}
                       </div>
@@ -1401,7 +1401,7 @@ export default function HomeownerPortalClient({
             ) : (
               <div className="blueprint-grid panel px-8 py-20 text-center">
                 <p className="display-sm">No selections yet</p>
-                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-taupe-500">
                   Your contractor will add design choices here as the project progresses.
                 </p>
               </div>
@@ -1411,7 +1411,7 @@ export default function HomeownerPortalClient({
 
         {/* ── POST-APPROVAL: PAYMENTS TAB ── */}
         {isLocked && activeTab === "payments" && (
-          <div className="mx-auto max-w-3xl animate-rise space-y-9">
+          <div className="mx-auto max-w-3xl animate-rise space-y-14">
 
             {/* Deposit Dock */}
             {!invoice.deposit_cleared && (
@@ -1422,22 +1422,22 @@ export default function HomeownerPortalClient({
                 </div>
 
                 <div className="panel-raised overflow-hidden">
-                  <div className="flex border-b border-obsidian-900/10">
-                    <button type="button" onClick={() => setPaymentMethod("stripe")} className={`flex-1 py-3 font-mono text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${paymentMethod === 'stripe' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>Pay Online</button>
-                    <button type="button" onClick={() => setPaymentMethod("check")} className={`flex-1 border-l border-obsidian-900/10 py-3 font-mono text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${paymentMethod === 'check' ? 'bg-obsidian-900 text-bone-50' : 'bg-white text-graphite-500 hover:text-obsidian-900'}`}>Physical Check</button>
+                  <div className="flex border-b border-taupe-200/70">
+                    <button type="button" onClick={() => setPaymentMethod("stripe")} className={`flex-1 py-3 font-sans text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${paymentMethod === 'stripe' ? 'bg-espresso-900 text-alabaster-50' : 'bg-white text-taupe-500 hover:text-espresso-900'}`}>Pay Online</button>
+                    <button type="button" onClick={() => setPaymentMethod("check")} className={`flex-1 border-l border-taupe-200/70 py-3 font-sans text-[10px] uppercase tracking-architect transition-colors duration-200 ease-architect ${paymentMethod === 'check' ? 'bg-espresso-900 text-alabaster-50' : 'bg-white text-taupe-500 hover:text-espresso-900'}`}>Physical Check</button>
                   </div>
 
                   <div className="p-5">
                     {paymentMethod === 'stripe' ? (
                       <div className="space-y-4">
-                        <div className="flex items-baseline justify-between border-b border-obsidian-900/[0.07] pb-4">
+                        <div className="flex items-baseline justify-between border-b border-taupe-200/55 pb-4">
                           <span className="eyebrow">Amount Due</span>
                           <span className="figure text-[1.6rem] leading-none">
                             ${toNum(depositAmount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
                           </span>
                         </div>
-                        <p className="flex items-start gap-2 text-[12px] leading-relaxed text-graphite-500">
-                          <svg className="mt-[2px] h-3.5 w-3.5 shrink-0 text-graphite-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <p className="flex items-start gap-2 text-[12px] leading-relaxed text-taupe-500">
+                          <svg className="mt-[2px] h-3.5 w-3.5 shrink-0 text-taupe-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                           </svg>
                           Secure payment via Stripe. Card and ACH bank transfer accepted.
@@ -1452,8 +1452,8 @@ export default function HomeownerPortalClient({
                         </button>
                       </div>
                     ) : (
-                      <p className="text-[12.5px] leading-relaxed text-graphite-600">
-                        Make check payable to <span className="font-medium text-obsidian-900">WDO Custom</span>. Field coordinators will confirm receipt upon site staging arrival.
+                      <p className="text-[12.5px] leading-relaxed text-taupe-600">
+                        Make check payable to <span className="font-medium text-espresso-900">WDO Custom</span>. Field coordinators will confirm receipt upon site staging arrival.
                       </p>
                     )}
                   </div>
@@ -1479,23 +1479,23 @@ export default function HomeownerPortalClient({
                   const canPayPhase = isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) && idx > 0;
 
                   return (
-                    <div key={idx} className={`border-b border-obsidian-900/[0.06] px-4 py-4 last:border-b-0 ${isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) ? 'border-l-2 border-l-brass-500 bg-brass-50/40' : ''}`}>
+                    <div key={idx} className={`border-b border-taupe-200/50 px-5 py-5 last:border-b-0 ${isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) ? 'border-l-2 border-l-brass-500 bg-brass-50/40' : ''}`}>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex min-w-0 gap-3.5">
-                          <span className="mt-[3px] shrink-0 font-mono text-[10px] tabular-nums text-graphite-300">
+                          <span className="mt-[3px] shrink-0 font-sans text-[10px] tabular-nums text-taupe-300">
                             {String(idx + 1).padStart(2, "0")}
                           </span>
                           <div className="min-w-0">
-                            <p className="text-[13px] font-medium leading-snug text-obsidian-900">{phase.name}</p>
+                            <p className="text-[13px] font-medium leading-snug text-espresso-900">{phase.name}</p>
                             <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
                               {(isPaid || isFirstPhaseDepositPaid) ? (
                                 <span className="badge badge-approved"><span className="badge-dot bg-patina-500" />Paid</span>
                               ) : isPhaseActive ? (
                                 <span className="badge badge-pending"><span className="badge-dot bg-brass-400" />Active</span>
                               ) : (
-                                <span className="badge badge-neutral"><span className="badge-dot bg-graphite-300" />Scheduled</span>
+                                <span className="badge badge-neutral"><span className="badge-dot bg-taupe-300" />Scheduled</span>
                               )}
-                              <span className="font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                              <span className="font-sans text-[9px] uppercase tracking-architect text-taupe-400">
                                 {displayPercent(phasePercent)}% of contract
                               </span>
                             </div>
@@ -1540,13 +1540,13 @@ export default function HomeownerPortalClient({
                     const isExpanded = expandedCoId === co.id;
 
                     return (
-                      <div key={co.id} className="border-b border-obsidian-900/[0.06] last:border-b-0">
-                        <div onClick={() => setExpandedCoId(isExpanded ? null : co.id)} className="flex cursor-pointer items-start justify-between gap-4 px-4 py-3.5 transition-colors duration-200 ease-architect hover:bg-bone-50">
+                      <div key={co.id} className="border-b border-taupe-200/50 last:border-b-0">
+                        <div onClick={() => setExpandedCoId(isExpanded ? null : co.id)} className="flex cursor-pointer items-start justify-between gap-4 px-5 py-5 transition-colors duration-200 ease-architect hover:bg-alabaster-50">
                           <div className="min-w-0">
                             {co.proposal_number && (
-                              <p className="font-mono text-[9.5px] tracking-architect text-graphite-300">{co.proposal_number}</p>
+                              <p className="font-sans text-[9.5px] tracking-architect text-taupe-300">{co.proposal_number}</p>
                             )}
-                            <p className="mt-0.5 truncate text-[13px] font-medium leading-snug text-obsidian-900">{co.description}</p>
+                            <p className="mt-0.5 truncate text-[13px] font-medium leading-snug text-espresso-900">{co.description}</p>
                             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                               <span className={`badge ${isCoApproved ? 'badge-approved' : 'badge-pending'}`}>
                                 <span className={`badge-dot ${isCoApproved ? 'bg-patina-500' : 'bg-brass-400'}`} />
@@ -1561,17 +1561,17 @@ export default function HomeownerPortalClient({
                           </div>
                           <div className="flex shrink-0 items-center gap-3">
                             <span className="figure text-[13.5px]">${toNum(co.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
-                            <svg className={`h-3 w-3 shrink-0 text-graphite-300 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <svg className={`h-3 w-3 shrink-0 text-taupe-300 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
                           </div>
                         </div>
                         {isExpanded && (
-                          <div className="animate-rise space-y-3 border-t border-obsidian-900/[0.06] bg-bone-100/50 p-4">
+                          <div className="animate-rise space-y-3 border-t border-taupe-200/50 bg-alabaster-100/50 p-4">
                             <div className="panel overflow-hidden">
                               {co.items?.map((item: any, iIdx: number) => (
-                                <div key={iIdx} className="flex items-baseline justify-between gap-4 border-b border-obsidian-900/[0.06] px-3.5 py-2.5 last:border-b-0">
-                                  <span className="min-w-0 truncate text-[12.5px] text-graphite-700">{item.title}</span>
+                                <div key={iIdx} className="flex items-baseline justify-between gap-4 border-b border-taupe-200/50 px-3.5 py-2.5 last:border-b-0">
+                                  <span className="min-w-0 truncate text-[12.5px] text-taupe-700">{item.title}</span>
                                   <span className="figure shrink-0 text-[12.5px]">${toNum(item.cost).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                                 </div>
                               ))}
@@ -1607,23 +1607,23 @@ export default function HomeownerPortalClient({
               </div>
 
               <div className="panel-raised overflow-hidden">
-                <div className="flex items-baseline justify-between bg-obsidian-950 px-5 py-5 text-bone-100">
+                <div className="flex items-baseline justify-between bg-espresso-900 px-6 py-7 text-alabaster-100">
                   <span className="eyebrow-invert">Total Project Value</span>
-                  <span className="font-display text-[1.75rem] leading-none tracking-[-0.02em] text-bone-50 tnum">
+                  <span className="font-display text-[1.75rem] leading-none tracking-[-0.02em] text-alabaster-50 tnum">
                     ${toNum(combinedProjectTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
 
                 {Array.isArray(invoice.payment_history) && invoice.payment_history.length > 0 && (
                   <>
-                    <p className="eyebrow border-b border-obsidian-900/[0.07] bg-bone-100/60 px-5 py-2.5">Payment Receipts</p>
+                    <p className="eyebrow border-b border-taupe-200/55 bg-alabaster-100/60 px-6 py-3">Payment Receipts</p>
                     {invoice.payment_history.map((pmt: any, i: number) => (
-                      <div key={i} className="flex items-start justify-between gap-4 border-b border-obsidian-900/[0.06] px-5 py-3.5">
+                      <div key={i} className="flex items-start justify-between gap-4 border-b border-taupe-200/50 px-6 py-5">
                         <div className="min-w-0">
-                          <p className="text-[12.5px] font-medium text-obsidian-900">
+                          <p className="text-[12.5px] font-medium text-espresso-900">
                             {pmt.phase_index === 0 ? "Deposit" : `Phase ${pmt.phase_index} Draw`}
                           </p>
-                          <p className="mt-1 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                          <p className="mt-1 font-sans text-[9px] uppercase tracking-architect text-taupe-400">
                             {new Date(pmt.paid_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
                             {pmt.customer_email && ` · ${pmt.customer_email}`}
                           </p>
@@ -1632,18 +1632,18 @@ export default function HomeownerPortalClient({
                           <span className="figure text-[13px] text-patina-600">
                             ${toNum(pmt.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
-                          <p className="mt-0.5 font-mono text-[8.5px] uppercase tracking-architect text-patina-600">Confirmed</p>
+                          <p className="mt-0.5 font-sans text-[8.5px] uppercase tracking-architect text-patina-600">Confirmed</p>
                         </div>
                       </div>
                     ))}
-                    <dl className="divide-y divide-obsidian-900/[0.07]">
-                      <div className="flex items-baseline justify-between px-5 py-3.5">
+                    <dl className="divide-y divide-taupe-200/60">
+                      <div className="flex items-baseline justify-between px-6 py-5">
                         <dt className="eyebrow">Total Paid</dt>
                         <dd className="figure text-[14px] text-patina-600">
                           ${invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </dd>
                       </div>
-                      <div className="flex items-baseline justify-between bg-bone-100/60 px-5 py-4">
+                      <div className="flex items-baseline justify-between bg-alabaster-100/60 px-6 py-5">
                         <dt className="eyebrow-ink">Remaining Balance</dt>
                         <dd className="figure text-[17px]">
                           ${(combinedProjectTotal - invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -1665,11 +1665,11 @@ export default function HomeownerPortalClient({
               <span className="eyebrow hidden sm:block">From your contractor</span>
             </div>
 
-            <div className="border-t border-obsidian-900/10">
+            <div className="border-t border-taupe-200/70">
               {((invoice as any)?.contractor_notes || []).filter((n: any) => n.visible).map((note: any, i: number) => (
-                <div key={i} className="border-b border-obsidian-900/[0.07] px-1 py-5 sm:px-2">
-                  <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-graphite-700">{note.text}</p>
-                  <p className="mt-2.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                <div key={i} className="border-b border-taupe-200/55 px-1 py-5 sm:px-2">
+                  <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-taupe-700">{note.text}</p>
+                  <p className="mt-2.5 font-sans text-[9px] uppercase tracking-architect text-taupe-400">
                     Skyler · WDO Custom · {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   </p>
                 </div>
@@ -1687,16 +1687,16 @@ export default function HomeownerPortalClient({
             </div>
 
             {Array.isArray((invoice as any).documents) && (invoice as any).documents.length > 0 ? (
-              <div className="border-t border-obsidian-900/10">
+              <div className="border-t border-taupe-200/70">
                 {(invoice as any).documents.map((doc: any, i: number) => (
-                  <div key={i} className="group flex items-center justify-between gap-4 border-b border-obsidian-900/[0.07] px-1 py-4 transition-colors duration-300 ease-architect hover:bg-white sm:px-2">
+                  <div key={i} className="group flex items-center justify-between gap-4 border-b border-taupe-200/55 px-1 py-4 transition-colors duration-300 ease-architect hover:bg-white sm:px-2">
                     <div className="flex min-w-0 items-center gap-3.5">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-obsidian-900/[0.12] bg-bone-100 font-mono text-[8.5px] uppercase tracking-architect text-graphite-500 transition-colors duration-300 ease-architect group-hover:border-brass-300 group-hover:bg-brass-50 group-hover:text-brass-600">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-taupe-200 bg-alabaster-100 font-sans text-[8.5px] uppercase tracking-architect text-taupe-500 transition-colors duration-300 ease-architect group-hover:border-brass-300 group-hover:bg-brass-50 group-hover:text-brass-600">
                         {doc.name?.split('.').pop()?.slice(0, 4)}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-[13px] font-medium text-obsidian-900">{doc.name}</p>
-                        <p className="mt-0.5 font-mono text-[9px] uppercase tracking-architect text-graphite-400">
+                        <p className="truncate text-[13px] font-medium text-espresso-900">{doc.name}</p>
+                        <p className="mt-0.5 font-sans text-[9px] uppercase tracking-architect text-taupe-400">
                           {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                           {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
                         </p>
@@ -1717,7 +1717,7 @@ export default function HomeownerPortalClient({
             ) : (
               <div className="blueprint-grid panel px-8 py-20 text-center">
                 <p className="display-sm">No documents yet</p>
-                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-taupe-500">
                   Your contractor will upload project documents here as they become available.
                 </p>
               </div>
