@@ -145,38 +145,43 @@ export default function AnalyticsPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-brand-alabaster flex items-center justify-center font-sans">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-6 h-6 border-2 border-brand-charcoal/20 border-t-brand-charcoal rounded-full animate-spin" />
-          <p className="text-xs font-medium text-brand-muted tracking-wide">Loading analytics...</p>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-6 w-6 animate-spin rounded-full border border-obsidian-900/15 border-t-obsidian-900" />
+          <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-400">Loading analytics</p>
         </div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-brand-alabaster text-brand-charcoal font-sans antialiased pb-24">
-      {/* Header */}
-      <div className="border-b border-brand-stone/60 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <button type="button" onClick={() => router.push("/admin/projects")} className="text-brand-muted hover:text-brand-charcoal transition-colors shrink-0">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <div className="pb-28 text-left">
+
+      {/* ── Sticky title block ────────────────────────────────────────── */}
+      <div className="sticky top-0 z-20 border-b border-obsidian-900/10 bg-bone-50/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/admin/projects")}
+              className="btn-quiet -ml-2 shrink-0 px-2"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
               </svg>
             </button>
             <div className="min-w-0">
-              <h1 className="font-editorial text-lg sm:text-xl font-bold tracking-tight text-brand-charcoal">Site Analytics</h1>
-              <p className="text-[11px] font-medium tracking-wide text-brand-muted">wdocustom.com &middot; All pages &middot; Live tracking</p>
+              <p className="eyebrow">Analytics</p>
+              <h1 className="display-md mt-1 truncate">Site Analytics</h1>
             </div>
           </div>
-          <div className="flex gap-1 bg-brand-warm rounded-lg p-0.5 shrink-0">
+          <div className="grid shrink-0 grid-cols-4 gap-px border border-obsidian-900/[0.12] bg-obsidian-900/[0.12] sm:flex">
             {([["today", "Today"], ["7d", "7 Days"], ["30d", "30 Days"], ["all", "All"]] as const).map(([val, label]) => (
               <button
                 key={val}
                 type="button"
                 onClick={() => setRange(val)}
-                className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold tracking-wide uppercase transition-all ${
-                  range === val ? "bg-white text-brand-charcoal shadow-sm" : "text-brand-muted hover:text-brand-charcoal"
+                className={`px-2.5 py-1.5 text-center font-mono text-[9.5px] uppercase tracking-architect transition-colors duration-200 ease-architect ${
+                  range === val ? "bg-obsidian-900 text-bone-50" : "bg-white text-graphite-500 hover:bg-bone-50 hover:text-obsidian-900"
                 }`}
               >
                 {label}
@@ -186,286 +191,348 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 space-y-5">
+      <div className="mx-auto max-w-6xl space-y-9 px-4 pt-7 sm:px-8 sm:pt-9">
 
-        {/* Top Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* Metric ledger */}
+        <div className="grid grid-cols-2 gap-px border border-obsidian-900/10 bg-obsidian-900/10 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard label="Page Views" value={totalViews.toLocaleString()} />
           <StatCard label="Unique Visitors" value={uniqueIPs.toLocaleString()} />
           <StatCard label="Sessions" value={uniqueSessions.toLocaleString()} />
           <StatCard label="Pages / Session" value={avgPagesPerSession} />
           <StatCard label="Bounce Rate" value={`${bounceRate}%`} />
-          <StatCard label="Leads" value={totalLeads.toLocaleString()} color="text-luxury-ochre" />
+          <StatCard label="Leads" value={totalLeads.toLocaleString()} color="text-brass-500" />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-brand-warm rounded-xl p-1">
+        {/* Index tabs */}
+        <div className="tabstrip">
           {([["overview", "Overview"], ["pages", "Pages"], ["flow", "User Flow"], ["sources", "Sources"]] as const).map(([val, label]) => (
             <button
               key={val}
               type="button"
               onClick={() => setTab(val)}
-              className={`flex-1 text-center py-2 rounded-lg text-[11px] font-bold tracking-wide uppercase transition-all ${
-                tab === val ? "bg-white text-brand-charcoal shadow-sm" : "text-brand-muted hover:text-brand-charcoal"
-              }`}
+              className={`tab ${tab === val ? "tab-active" : ""}`}
             >
               {label}
             </button>
           ))}
         </div>
 
-        {/* ═══ OVERVIEW TAB ═══ */}
+        {/* ═══ OVERVIEW ═══ */}
         {tab === "overview" && (
           <>
-            {/* Daily Chart */}
+            {/* Daily series */}
             {dailyEntries.length > 0 && (
-              <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-                <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-4">Page Views Over Time</h2>
-                <div className="flex items-end gap-[2px] h-32">
-                  {dailyEntries.map(([day, count]) => (
-                    <div key={day} className="flex-1 flex flex-col items-center justify-end h-full group relative">
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-brand-charcoal text-white text-[9px] font-bold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                        {fmtDay(day)}: {count}
-                      </div>
-                      <div className="w-full bg-luxury-gold/70 hover:bg-luxury-gold rounded-t transition-colors min-h-[2px]" style={{ height: `${(count / maxDaily) * 100}%` }} />
+              <section className="animate-rise">
+                <div className="title-block">
+                  <h2 className="display-sm">Page Views Over Time</h2>
+                  <span className="eyebrow hidden sm:block">Daily</span>
+                </div>
+                <div className="panel p-4 sm:p-5">
+                  <div className="relative pt-7">
+                    <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 top-7 flex flex-col justify-between">
+                      <span className="h-px w-full bg-obsidian-900/[0.06]" />
+                      <span className="h-px w-full bg-obsidian-900/[0.06]" />
+                      <span className="h-px w-full bg-obsidian-900/[0.06]" />
                     </div>
-                  ))}
+                    <div className="relative flex h-32 items-end gap-px border-b border-obsidian-900/25">
+                      {dailyEntries.map(([day, count]) => (
+                        <div key={day} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+                          <div className="pointer-events-none absolute -top-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-edge bg-obsidian-950 px-2 py-1 font-mono text-[9px] tracking-architect text-bone-50 opacity-0 transition-opacity duration-200 ease-architect group-hover:opacity-100">
+                            {fmtDay(day)}: {count}
+                          </div>
+                          <div className="min-h-[2px] w-full bg-obsidian-800 transition-colors duration-200 ease-architect group-hover:bg-brass-500" style={{ height: `${(count / maxDaily) * 100}%` }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-2.5 flex justify-between font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                    <span>{dailyEntries.length > 0 && fmtDay(dailyEntries[0][0])}</span>
+                    <span>{dailyEntries.length > 0 && fmtDay(dailyEntries[dailyEntries.length - 1][0])}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between mt-2">
-                  <span className="text-[9px] text-brand-muted font-medium">{dailyEntries.length > 0 && fmtDay(dailyEntries[0][0])}</span>
-                  <span className="text-[9px] text-brand-muted font-medium">{dailyEntries.length > 0 && fmtDay(dailyEntries[dailyEntries.length - 1][0])}</span>
-                </div>
-              </div>
+              </section>
             )}
 
-            {/* Conversion Funnel + Hourly Heatmap */}
-            <div className="grid lg:grid-cols-2 gap-3">
-              <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-                <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-4">Conversion Funnel</h2>
-                <div className="space-y-3">
+            <div className="grid gap-9 lg:grid-cols-2">
+              {/* Funnel */}
+              <section className="animate-rise">
+                <div className="title-block">
+                  <h2 className="display-sm">Conversion Funnel</h2>
+                  <span className="eyebrow hidden sm:block">Sessions</span>
+                </div>
+                <div className="space-y-2.5">
                   {[
-                    { label: "Site Visitors", count: uniqueSessions, color: "bg-brand-charcoal" },
-                    { label: "Viewed Estimator", count: pageCounts["/estimate"]?.sessions.size || 0, color: "bg-luxury-gold" },
-                    { label: "Viewed Consultation", count: pageCounts["/consultation"]?.sessions.size || 0, color: "bg-emerald-500" },
-                    { label: "Submitted Lead", count: totalLeads, color: "bg-sage-500" },
-                    { label: "Converted", count: convertedLeads, color: "bg-blue-500" },
+                    { label: "Site Visitors", count: uniqueSessions, color: "bg-obsidian-900" },
+                    { label: "Viewed Estimator", count: pageCounts["/estimate"]?.sessions.size || 0, color: "bg-obsidian-700" },
+                    { label: "Viewed Consultation", count: pageCounts["/consultation"]?.sessions.size || 0, color: "bg-obsidian-500" },
+                    { label: "Submitted Lead", count: totalLeads, color: "bg-brass-500" },
+                    { label: "Converted", count: convertedLeads, color: "bg-patina-600" },
                   ].map((stage) => (
-                    <div key={stage.label} className="flex items-center gap-3">
-                      <div className="w-28 text-right shrink-0">
-                        <span className="text-[11px] font-bold text-brand-muted">{stage.label}</span>
+                    <div key={stage.label} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                      <div className="sm:w-32 sm:shrink-0 sm:text-right">
+                        <span className="eyebrow leading-tight">{stage.label}</span>
                       </div>
-                      <div className="flex-1 bg-brand-warm rounded-full h-7 overflow-hidden">
+                      <div className="h-6 flex-1 overflow-hidden border border-obsidian-900/[0.08] bg-bone-100">
                         <div
-                          className={`h-full ${stage.color} rounded-full flex items-center justify-end pr-2.5 transition-all duration-700`}
+                          className={`h-full ${stage.color} flex items-center justify-end pr-2 transition-all duration-700 ease-architect`}
                           style={{ width: uniqueSessions > 0 ? `${Math.max((stage.count / uniqueSessions) * 100, stage.count > 0 ? 8 : 0)}%` : "0%" }}
                         >
-                          {stage.count > 0 && <span className="text-[10px] font-black text-white">{stage.count}</span>}
+                          {stage.count > 0 && <span className="font-mono text-[9.5px] tabular-nums text-white">{stage.count}</span>}
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
 
-              <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-                <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-4">Traffic by Hour of Day</h2>
-                <div className="flex items-end gap-[3px] h-28">
-                  {hourlyCounts.map((count, h) => (
-                    <div key={h} className="flex-1 flex flex-col items-center justify-end h-full group relative">
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-brand-charcoal text-white text-[9px] font-bold px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                        {h === 0 ? "12am" : h < 12 ? `${h}am` : h === 12 ? "12pm" : `${h - 12}pm`}: {count}
-                      </div>
-                      <div
-                        className={`w-full rounded-t transition-colors min-h-[2px] ${count > 0 ? "bg-sage-400 hover:bg-sage-500" : "bg-brand-stone/10"}`}
-                        style={{ height: `${(count / maxHourly) * 100}%` }}
-                      />
+              {/* Hour of day */}
+              <section className="animate-rise">
+                <div className="title-block">
+                  <h2 className="display-sm">Traffic by Hour</h2>
+                  <span className="eyebrow hidden sm:block">Local Time</span>
+                </div>
+                <div className="panel p-4 sm:p-5">
+                  <div className="relative pt-7">
+                    <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 top-7 flex flex-col justify-between">
+                      <span className="h-px w-full bg-obsidian-900/[0.06]" />
+                      <span className="h-px w-full bg-obsidian-900/[0.06]" />
+                      <span className="h-px w-full bg-obsidian-900/[0.06]" />
                     </div>
-                  ))}
+                    <div className="relative flex h-28 items-end gap-px border-b border-obsidian-900/25">
+                      {hourlyCounts.map((count, h) => (
+                        <div key={h} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+                          <div className="pointer-events-none absolute -top-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-edge bg-obsidian-950 px-2 py-1 font-mono text-[9px] tracking-architect text-bone-50 opacity-0 transition-opacity duration-200 ease-architect group-hover:opacity-100">
+                            {h === 0 ? "12am" : h < 12 ? `${h}am` : h === 12 ? "12pm" : `${h - 12}pm`}: {count}
+                          </div>
+                          <div
+                            className={`min-h-[2px] w-full transition-colors duration-200 ease-architect ${count > 0 ? "bg-obsidian-700 group-hover:bg-brass-500" : "bg-obsidian-900/[0.08]"}`}
+                            style={{ height: `${(count / maxHourly) * 100}%` }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-2.5 flex justify-between font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                    <span>12am</span>
+                    <span>6am</span>
+                    <span>12pm</span>
+                    <span>6pm</span>
+                    <span>11pm</span>
+                  </div>
                 </div>
-                <div className="flex justify-between mt-2">
-                  <span className="text-[9px] text-brand-muted font-medium">12am</span>
-                  <span className="text-[9px] text-brand-muted font-medium">6am</span>
-                  <span className="text-[9px] text-brand-muted font-medium">12pm</span>
-                  <span className="text-[9px] text-brand-muted font-medium">6pm</span>
-                  <span className="text-[9px] text-brand-muted font-medium">11pm</span>
-                </div>
-              </div>
+              </section>
             </div>
 
-            {/* Recent Activity */}
-            <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-              <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-4">Recent Visitors</h2>
-              <div className="space-y-0 max-h-72 overflow-y-auto">
+            {/* Recent activity */}
+            <section className="animate-rise">
+              <div className="title-block">
+                <h2 className="display-sm">Recent Visitors</h2>
+                <span className="eyebrow hidden sm:block">Live Feed</span>
+              </div>
+              <div className="max-h-80 overflow-y-auto border-t border-obsidian-900/10">
                 {filtered.slice(0, 40).map((v) => (
-                  <div key={v.id} className="flex items-center gap-3 py-2 border-b border-brand-stone/10 last:border-0">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-[9px] font-black shrink-0 ${
-                      v.device === "iOS" ? "bg-blue-500" : v.device === "Android" ? "bg-green-500" : v.device === "Desktop" ? "bg-slate-600" : "bg-brand-muted"
+                  <div key={v.id} className="flex items-center gap-3 border-b border-obsidian-900/[0.07] py-2.5 transition-colors duration-200 ease-architect last:border-0 hover:bg-white">
+                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-edge border font-mono text-[10px] ${
+                      v.device === "iOS" ? "border-obsidian-900 bg-obsidian-900 text-bone-50" : v.device === "Android" ? "border-patina-200 bg-patina-50 text-patina-700" : v.device === "Desktop" ? "border-obsidian-900/[0.12] bg-bone-100 text-graphite-600" : "border-obsidian-900/[0.08] bg-white text-graphite-400"
                     }`}>
                       {(v.device || "?")[0]}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-brand-charcoal truncate">
-                        <span className="text-luxury-ochre">{pageLabels[v.page] || v.page}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] text-obsidian-900">
+                        <span>{pageLabels[v.page] || v.page}</span>
                       </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-brand-muted">{v.browser}</span>
+                      <div className="mt-0.5 flex items-center gap-2 font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                        <span>{v.browser}</span>
                         {v.referrer && !v.referrer.includes("wdocustom") && (
                           <>
-                            <span className="text-brand-stone/30">&middot;</span>
-                            <span className="text-[10px] text-brand-muted truncate">via {new URL(v.referrer, "https://x.com").hostname.replace("www.", "")}</span>
+                            <span aria-hidden className="text-graphite-300">·</span>
+                            <span className="truncate">via {new URL(v.referrer, "https://x.com").hostname.replace("www.", "")}</span>
                           </>
                         )}
                       </div>
                     </div>
-                    <span className="text-[10px] font-medium text-brand-muted shrink-0 whitespace-nowrap">{timeAgo(v.created_at)}</span>
+                    <span className="shrink-0 whitespace-nowrap font-mono text-[9.5px] uppercase tracking-architect tabular-nums text-graphite-400">{timeAgo(v.created_at)}</span>
                   </div>
                 ))}
-                {filtered.length === 0 && <p className="text-sm text-brand-muted py-6 text-center">No page views in this period</p>}
+                {filtered.length === 0 && (
+                  <div className="blueprint-grid px-8 py-16 text-center">
+                    <p className="display-sm">No page views</p>
+                    <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-graphite-500">Nothing was recorded in this period.</p>
+                  </div>
+                )}
               </div>
-            </div>
+            </section>
           </>
         )}
 
-        {/* ═══ PAGES TAB ═══ */}
+        {/* ═══ PAGES ═══ */}
         {tab === "pages" && (
           <>
-            <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft overflow-hidden">
-              <div className="px-5 py-4 border-b border-brand-stone/20">
-                <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest">All Pages</h2>
+            <section className="animate-rise">
+              <div className="title-block">
+                <h2 className="display-sm">All Pages</h2>
+                <span className="eyebrow hidden sm:block">Index</span>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b border-brand-stone/15 bg-brand-warm/30">
-                      <th className="px-5 py-3 text-[10px] font-black text-brand-muted uppercase tracking-widest">Page</th>
-                      <th className="px-4 py-3 text-[10px] font-black text-brand-muted uppercase tracking-widest text-right">Views</th>
-                      <th className="px-4 py-3 text-[10px] font-black text-brand-muted uppercase tracking-widest text-right">Sessions</th>
-                      <th className="px-5 py-3 text-[10px] font-black text-brand-muted uppercase tracking-widest text-right">% of Traffic</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pageEntries.map((p) => (
-                      <tr key={p.page} className="border-b border-brand-stone/10 hover:bg-brand-alabaster/60 transition-colors">
-                        <td className="px-5 py-3">
-                          <p className="text-sm font-semibold text-brand-charcoal">{pageLabels[p.page] || p.page}</p>
-                          <p className="text-[10px] text-brand-muted">{p.page}</p>
-                        </td>
-                        <td className="px-4 py-3 text-sm font-bold text-brand-charcoal text-right" style={{ fontVariantNumeric: "tabular-nums" }}>{p.views}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-brand-muted text-right" style={{ fontVariantNumeric: "tabular-nums" }}>{p.sessions}</td>
-                        <td className="px-5 py-3 text-right">
-                          <div className="inline-flex items-center gap-2">
-                            <div className="w-16 bg-brand-warm rounded-full h-1.5 overflow-hidden">
-                              <div className="h-full bg-luxury-gold rounded-full" style={{ width: `${totalViews > 0 ? (p.views / totalViews) * 100 : 0}%` }} />
-                            </div>
-                            <span className="text-[11px] font-bold text-brand-muted" style={{ fontVariantNumeric: "tabular-nums" }}>
-                              {totalViews > 0 ? ((p.views / totalViews) * 100).toFixed(0) : 0}%
-                            </span>
-                          </div>
-                        </td>
+              <div className="panel overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[520px] text-left">
+                    <thead>
+                      <tr className="border-b border-obsidian-900/[0.07] bg-bone-100/60">
+                        <th scope="col" className="eyebrow px-4 py-2.5 font-medium sm:px-5">Page</th>
+                        <th scope="col" className="eyebrow px-4 py-2.5 text-right font-medium">Views</th>
+                        <th scope="col" className="eyebrow px-4 py-2.5 text-right font-medium">Sessions</th>
+                        <th scope="col" className="eyebrow px-4 py-2.5 text-right font-medium sm:px-5">% of Traffic</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {pageEntries.map((p) => (
+                        <tr key={p.page} className="border-b border-obsidian-900/[0.06] transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50">
+                          <td className="px-4 py-3 sm:px-5">
+                            <p className="text-[13px] font-medium tracking-[-0.01em] text-obsidian-900">{pageLabels[p.page] || p.page}</p>
+                            <p className="mt-0.5 font-mono text-[10px] text-graphite-400">{p.page}</p>
+                          </td>
+                          <td className="figure px-4 py-3 text-right text-[13px]">{p.views}</td>
+                          <td className="px-4 py-3 text-right text-[13px] tabular-nums text-graphite-500">{p.sessions}</td>
+                          <td className="px-4 py-3 text-right sm:px-5">
+                            <div className="inline-flex items-center gap-2.5">
+                              <div className="h-1 w-16 overflow-hidden bg-bone-200">
+                                <div className="h-full bg-obsidian-800" style={{ width: `${totalViews > 0 ? (p.views / totalViews) * 100 : 0}%` }} />
+                              </div>
+                              <span className="w-8 text-right font-mono text-[10px] tabular-nums text-graphite-500">
+                                {totalViews > 0 ? ((p.views / totalViews) * 100).toFixed(0) : 0}%
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {pageEntries.length === 0 && (
+                  <div className="blueprint-grid px-8 py-16 text-center">
+                    <p className="display-sm">No page views</p>
+                    <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-graphite-500">Nothing was recorded in this period.</p>
+                  </div>
+                )}
               </div>
-              {pageEntries.length === 0 && <p className="px-5 py-12 text-center text-sm text-brand-muted">No page views in this period</p>}
-            </div>
+            </section>
 
-            {/* Entry Pages */}
-            <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-              <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-4">Landing Pages (First Page Visited)</h2>
-              <div className="space-y-2">
+            {/* Landing pages */}
+            <section className="animate-rise">
+              <div className="title-block">
+                <h2 className="display-sm">Landing Pages</h2>
+                <span className="eyebrow hidden sm:block">First Page Visited</span>
+              </div>
+              <div className="border-t border-obsidian-900/10">
                 {entryEntries.slice(0, 10).map(([page, count]) => (
-                  <div key={page} className="flex items-center justify-between py-2 border-b border-brand-stone/10 last:border-0">
-                    <div>
-                      <span className="text-sm font-semibold text-brand-charcoal">{pageLabels[page] || page}</span>
-                      <span className="text-[10px] text-brand-muted ml-2">{page}</span>
+                  <div key={page} className="flex items-baseline justify-between gap-4 border-b border-obsidian-900/[0.07] py-3 transition-colors duration-200 ease-architect hover:bg-white">
+                    <div className="min-w-0">
+                      <span className="text-[13px] font-medium tracking-[-0.01em] text-obsidian-900">{pageLabels[page] || page}</span>
+                      <span className="ml-2 font-mono text-[10px] text-graphite-400">{page}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-brand-charcoal" style={{ fontVariantNumeric: "tabular-nums" }}>{count}</span>
-                      <span className="text-[10px] text-brand-muted">sessions</span>
+                    <div className="flex shrink-0 items-baseline gap-2">
+                      <span className="figure text-[13px]">{count}</span>
+                      <span className="eyebrow">Sessions</span>
                     </div>
                   </div>
                 ))}
-                {entryEntries.length === 0 && <p className="text-sm text-brand-muted">No data</p>}
+                {entryEntries.length === 0 && (
+                  <p className="py-8 text-center font-mono text-[10px] uppercase tracking-architect text-graphite-400">No data</p>
+                )}
               </div>
-            </div>
+            </section>
           </>
         )}
 
-        {/* ═══ USER FLOW TAB ═══ */}
+        {/* ═══ USER FLOW ═══ */}
         {tab === "flow" && (
           <>
-            <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-              <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-1">Navigation Paths</h2>
-              <p className="text-[11px] text-brand-muted mb-4">How visitors move between pages — most common transitions</p>
-              <div className="space-y-2">
+            <section className="animate-rise">
+              <div className="title-block">
+                <h2 className="display-sm">Navigation Paths</h2>
+                <span className="eyebrow hidden sm:block">Top Transitions</span>
+              </div>
+              <p className="-mt-1 mb-4 text-[12.5px] leading-relaxed text-graphite-500">
+                How visitors move between pages — the most common transitions in this period.
+              </p>
+              <div className="border-t border-obsidian-900/10">
                 {flowEntries.map(([flow, count]) => {
                   const [from, to] = flow.split(" → ");
                   return (
-                    <div key={flow} className="flex items-center gap-3 py-2.5 border-b border-brand-stone/10 last:border-0">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="inline-block bg-brand-warm text-brand-charcoal text-[10px] font-bold px-2.5 py-1 rounded-lg truncate max-w-[140px]">
+                    <div key={flow} className="flex flex-col gap-2.5 border-b border-obsidian-900/[0.07] py-3 transition-colors duration-200 ease-architect hover:bg-white sm:flex-row sm:items-center sm:gap-4">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="max-w-[45%] truncate rounded-edge border border-obsidian-900/[0.12] bg-bone-100 px-2.5 py-1 font-mono text-[10px] uppercase tracking-architect text-graphite-600 sm:max-w-[160px]">
                           {pageLabels[from] || from}
                         </span>
-                        <svg className="w-4 h-4 text-luxury-gold shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg aria-hidden className="h-3.5 w-3.5 shrink-0 text-graphite-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
-                        <span className="inline-block bg-luxury-soft text-luxury-ochre text-[10px] font-bold px-2.5 py-1 rounded-lg truncate max-w-[140px]">
+                        <span className="max-w-[45%] truncate rounded-edge border border-brass-200 bg-brass-50 px-2.5 py-1 font-mono text-[10px] uppercase tracking-architect text-brass-600 sm:max-w-[160px]">
                           {pageLabels[to] || to}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="w-16 bg-brand-warm rounded-full h-2 overflow-hidden">
-                          <div className="h-full bg-luxury-gold rounded-full" style={{ width: `${(count / (flowEntries[0]?.[1] || 1)) * 100}%` }} />
+                      <div className="flex shrink-0 items-center gap-2.5">
+                        <div className="h-1 w-20 overflow-hidden bg-bone-200 sm:w-16">
+                          <div className="h-full bg-obsidian-800" style={{ width: `${(count / (flowEntries[0]?.[1] || 1)) * 100}%` }} />
                         </div>
-                        <span className="text-xs font-black text-brand-charcoal w-8 text-right" style={{ fontVariantNumeric: "tabular-nums" }}>{count}</span>
+                        <span className="figure w-8 text-right text-[13px]">{count}</span>
                       </div>
                     </div>
                   );
                 })}
-                {flowEntries.length === 0 && <p className="text-sm text-brand-muted text-center py-6">Not enough session data yet — need multi-page visits</p>}
+                {flowEntries.length === 0 && (
+                  <div className="blueprint-grid px-8 py-16 text-center">
+                    <p className="display-sm">Not enough session data</p>
+                    <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-graphite-500">Multi-page visits are needed to map a path.</p>
+                  </div>
+                )}
               </div>
-            </div>
+            </section>
 
             {/* Session depth */}
-            <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-              <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-4">Session Depth</h2>
-              <div className="grid grid-cols-4 gap-3">
+            <section className="animate-rise">
+              <div className="title-block">
+                <h2 className="display-sm">Session Depth</h2>
+                <span className="eyebrow hidden sm:block">Pages per Session</span>
+              </div>
+              <div className="grid grid-cols-2 gap-px border border-obsidian-900/10 bg-obsidian-900/10 sm:grid-cols-4">
                 {[
                   { label: "1 page", count: Object.values(sessionPages).filter((p) => p.length === 1).length },
                   { label: "2 pages", count: Object.values(sessionPages).filter((p) => p.length === 2).length },
                   { label: "3 pages", count: Object.values(sessionPages).filter((p) => p.length === 3).length },
                   { label: "4+ pages", count: Object.values(sessionPages).filter((p) => p.length >= 4).length },
                 ].map((d) => (
-                  <div key={d.label} className="text-center bg-brand-alabaster rounded-xl p-3 border border-brand-stone/15">
-                    <p className="text-xl font-black text-brand-charcoal" style={{ fontVariantNumeric: "tabular-nums" }}>{d.count}</p>
-                    <p className="text-[10px] font-bold text-brand-muted uppercase tracking-wider mt-0.5">{d.label}</p>
+                  <div key={d.label} className="bg-white px-4 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50 sm:px-5">
+                    <p className="eyebrow">{d.label}</p>
+                    <p className="figure mt-2 text-[1.75rem] leading-none">{d.count}</p>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           </>
         )}
 
-        {/* ═══ SOURCES TAB ═══ */}
+        {/* ═══ SOURCES ═══ */}
         {tab === "sources" && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <BreakdownCard title="Devices" entries={Object.entries(deviceCounts).sort((a, b) => b[1] - a[1])} total={totalViews} colorFn={deviceColor} />
             <BreakdownCard title="Browsers" entries={Object.entries(browserCounts).sort((a, b) => b[1] - a[1])} total={totalViews} />
             <BreakdownCard title="Referrers" entries={Object.entries(referrerCounts).sort((a, b) => b[1] - a[1])} total={totalViews} />
             {Object.keys(utmCounts).length > 0 && (
               <BreakdownCard title="UTM Campaigns" entries={Object.entries(utmCounts).sort((a, b) => b[1] - a[1])} total={totalViews} />
             )}
-            <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-              <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-3">Screen Sizes</h2>
-              <div className="space-y-2">
+            <div className="panel p-4 sm:p-5">
+              <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-obsidian-900/10 pb-2.5">
+                <h2 className="display-sm">Screen Sizes</h2>
+              </div>
+              <div className="divide-hairline">
                 {(() => {
                   const screenCounts: Record<string, number> = {};
                   filtered.forEach((v) => { screenCounts[v.screen || "Unknown"] = (screenCounts[v.screen || "Unknown"] || 0) + 1; });
                   return Object.entries(screenCounts).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([s, c]) => (
-                    <div key={s} className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-brand-charcoal">{s}</span>
-                      <span className="text-xs font-bold text-brand-muted" style={{ fontVariantNumeric: "tabular-nums" }}>{c}</span>
+                    <div key={s} className="flex items-baseline justify-between gap-3 py-2">
+                      <span className="min-w-0 truncate font-mono text-[11px] tabular-nums text-graphite-600">{s}</span>
+                      <span className="figure shrink-0 text-[12.5px]">{c}</span>
                     </div>
                   ));
                 })()}
@@ -480,44 +547,48 @@ export default function AnalyticsPage() {
 
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-4">
-      <p className="text-[9px] font-semibold text-brand-muted uppercase tracking-wider">{label}</p>
-      <p className={`text-xl sm:text-2xl font-black mt-0.5 ${color || "text-brand-charcoal"}`} style={{ fontVariantNumeric: "tabular-nums" }}>{value}</p>
+    <div className="bg-white px-4 py-4 transition-colors duration-300 ease-architect hover:bg-bone-50 sm:px-5 sm:py-5">
+      <p className="eyebrow">{label}</p>
+      <p className={`figure mt-2 truncate text-[1.5rem] leading-none sm:text-[1.875rem] ${color || "text-obsidian-900"}`}>{value}</p>
     </div>
   );
 }
 
 function BreakdownCard({ title, entries, total, colorFn }: { title: string; entries: [string, number][]; total: number; colorFn?: (k: string) => string }) {
   return (
-    <div className="bg-white rounded-2xl border border-brand-stone/30 shadow-soft p-5">
-      <h2 className="text-xs font-black text-brand-charcoal uppercase tracking-widest mb-3">{title}</h2>
-      <div className="space-y-2">
+    <div className="panel p-4 sm:p-5">
+      <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-obsidian-900/10 pb-2.5">
+        <h2 className="display-sm">{title}</h2>
+      </div>
+      <div className="divide-hairline">
         {entries.slice(0, 8).map(([key, count]) => (
-          <div key={key} className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              {colorFn && <span className={`w-2 h-2 rounded-full shrink-0 ${colorFn(key)}`} />}
-              <span className="text-xs font-medium text-brand-charcoal truncate">{key}</span>
+          <div key={key} className="flex items-baseline justify-between gap-3 py-2">
+            <div className="flex min-w-0 items-baseline gap-2">
+              {colorFn && <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${colorFn(key)}`} />}
+              <span className="truncate text-[12.5px] text-obsidian-900">{key}</span>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[10px] font-bold text-brand-muted" style={{ fontVariantNumeric: "tabular-nums" }}>
+            <div className="flex shrink-0 items-baseline gap-2.5">
+              <span className="font-mono text-[10px] tabular-nums text-graphite-400">
                 {total > 0 ? `${((count / total) * 100).toFixed(0)}%` : "—"}
               </span>
-              <span className="text-xs font-bold text-brand-charcoal w-6 text-right" style={{ fontVariantNumeric: "tabular-nums" }}>{count}</span>
+              <span className="figure w-6 text-right text-[12.5px]">{count}</span>
             </div>
           </div>
         ))}
-        {entries.length === 0 && <p className="text-xs text-brand-muted">No data</p>}
+        {entries.length === 0 && (
+          <p className="py-3 font-mono text-[10px] uppercase tracking-architect text-graphite-400">No data</p>
+        )}
       </div>
     </div>
   );
 }
 
 function deviceColor(d: string): string {
-  if (d === "iOS") return "bg-blue-500";
-  if (d === "Android") return "bg-green-500";
-  if (d === "Desktop") return "bg-slate-600";
-  if (d === "Tablet") return "bg-purple-500";
-  return "bg-brand-muted";
+  if (d === "iOS") return "bg-obsidian-900";
+  if (d === "Android") return "bg-patina-600";
+  if (d === "Desktop") return "bg-brass-500";
+  if (d === "Tablet") return "bg-graphite-400";
+  return "bg-bone-300";
 }
 
 function fmtDay(d: string): string {

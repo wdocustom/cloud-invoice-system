@@ -727,108 +727,143 @@ export default function ProjectWorkspaceControlHub() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-sans">
-      <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-6 w-6 animate-spin rounded-full border border-obsidian-900/15 border-t-obsidian-900" />
+        <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-400">Loading project</p>
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans antialiased pb-24 text-left">
+    <div className="pb-28 text-left">
       
       {/* Navigation Header Banner */}
-      <div className="bg-slate-900 text-white shadow-md border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <div className="space-y-0.5 min-w-0">
-            <button onClick={() => router.push("/admin/projects")} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition block mb-1">
-              ← BACK TO PROJECT INDEX LEDGER
-            </button>
-            <h1 className="text-base font-extrabold tracking-tight uppercase text-slate-100 break-words">
-              {project?.homeowner_name || "CLIENT"} WORKSPACE
-            </h1>
-            {project?.proposal_number && (
-              <p className="font-mono text-[11px] font-bold text-amber-400/90 tracking-widest break-words">
-                {project.proposal_number}
-                {project.estimate_number && (
-                  <span className="text-slate-500 font-medium normal-case tracking-normal ml-2 whitespace-nowrap">
-                    from {project.estimate_number}
-                  </span>
-                )}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <span className={`text-[9px] rounded-full px-3 py-1 font-black uppercase tracking-wider border ${
-              project?.status === "approved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-              project?.status === "declined" ? "bg-red-500/10 text-red-400 border-red-500/20" :
-              "bg-amber-500/10 text-amber-400 border-amber-500/20"
-            }`}>
-              PROPOSAL STATE: {project?.status || "PENDING"}
-            </span>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/invoice/${projectId}`);
-                toast("Portal link copied", "success");
-              }}
-              className="bg-white hover:bg-slate-50 text-slate-900 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
-            >
-              Copy Link
-            </button>
-            <button
-              onClick={sendProposalEmail}
-              disabled={isSendingEmail}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none flex items-center gap-1.5"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-              {isSendingEmail ? "Sending..." : "Send Proposal"}
-            </button>
-            {project?.status !== "approved" && project?.status !== "declined" && (
+      <div className="sticky top-0 z-40 border-b border-obsidian-900/10 bg-bone-50/85 backdrop-blur-md">
+        <div className="mx-auto max-w-6xl px-4 py-4 sm:px-8 sm:py-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+
+            <div className="min-w-0">
               <button
-                onClick={markDeclined}
-                className="bg-red-600 hover:bg-red-700 text-white font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
+                type="button"
+                onClick={() => router.push("/admin/projects")}
+                className="group inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-400 transition-colors duration-200 ease-architect hover:text-obsidian-900"
               >
-                Declined
+                <svg aria-hidden className="h-3 w-3 transition-transform duration-300 ease-architect group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Project Index
               </button>
-            )}
-            {project?.status === "declined" && (
+
+              <h1 className="display-md mt-1.5 break-words">
+                {project?.homeowner_name || "CLIENT"}
+              </h1>
+
+              {project?.proposal_number && (
+                <p className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-[10.5px] tracking-architect">
+                  <span className="break-all text-brass-500">{project.proposal_number}</span>
+                  {project.estimate_number && (
+                    <span className="whitespace-nowrap text-[10px] normal-case tracking-[0.08em] text-graphite-400">
+                      from {project.estimate_number}
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              <span className={`badge ${
+                project?.status === "approved" ? "badge-approved" :
+                project?.status === "declined" ? "badge-declined" :
+                "badge-pending"
+              }`}>
+                <span className={`badge-dot ${
+                  project?.status === "approved" ? "bg-patina-500" :
+                  project?.status === "declined" ? "bg-clay-500" :
+                  "bg-brass-400"
+                }`} />
+                {project?.status || "PENDING"}
+              </span>
+
               <button
-                onClick={reopenProposal}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/invoice/${projectId}`);
+                  toast("Portal link copied", "success");
+                }}
+                className="btn-outline px-3 sm:px-4"
+                title="Copy the client portal link"
               >
-                Reopen
+                <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
+                Copy Link
               </button>
-            )}
+
+              <button
+                type="button"
+                onClick={sendProposalEmail}
+                disabled={isSendingEmail}
+                className="btn-ink px-3 sm:px-4"
+              >
+                <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                {isSendingEmail ? "Sending..." : "Send Proposal"}
+              </button>
+
+              {project?.status !== "approved" && project?.status !== "declined" && (
+                <button
+                  type="button"
+                  onClick={markDeclined}
+                  className="btn-outline border-clay-200 px-3 text-clay-700 hover:border-clay-500 hover:bg-clay-50 sm:px-4"
+                >
+                  Mark Declined
+                </button>
+              )}
+
+              {project?.status === "declined" && (
+                <button
+                  type="button"
+                  onClick={reopenProposal}
+                  className="btn-brass px-3 sm:px-4"
+                >
+                  Reopen
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* METRICS ROW CARDS AREA */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+      <div className="mx-auto max-w-6xl px-4 pt-7 sm:px-8 sm:pt-9">
+        <div className="grid grid-cols-1 gap-px border border-obsidian-900/10 bg-obsidian-900/10 lg:grid-cols-3">
+
         {/* PROJECT ADDRESS CARD */}
-        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4 relative overflow-hidden flex flex-col justify-between">
+        <div className="relative flex flex-col justify-between gap-5 overflow-hidden bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50">
           <div>
-            <div className="flex items-center justify-between border-b pb-2 mb-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PROJECT ADDRESS</p>
+            <div className="flex items-baseline justify-between gap-3 border-b border-obsidian-900/[0.07] pb-2.5">
+              <p className="eyebrow">Project Address</p>
               <button
+                type="button"
                 onClick={() => setIsEditModalOpen(true)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wider transition outline-none"
+                className="font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-400 transition-colors duration-200 ease-architect hover:text-obsidian-900"
               >
                 Edit
               </button>
             </div>
-            <h3 className="font-extrabold text-slate-900 text-sm leading-relaxed mb-1">{project?.job_address || "No address specified."}</h3>
+            <h3 className="mt-3 font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-obsidian-900 sm:text-[1.1875rem]">{project?.job_address || "No address specified."}</h3>
             {project?.project_title && (
-              <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">{project.project_title}</p>
+              <p className="mt-1.5 font-mono text-[10px] uppercase tracking-architect text-brass-500">{project.project_title}</p>
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div>
-              <label className="text-[9px] font-black text-slate-400 uppercase block mb-0.5">CLIENT</label>
-              <p className="font-bold text-xs text-slate-800">{project?.homeowner_name || "N/A"}</p>
+              <p className="eyebrow">Client</p>
+              <p className="mt-1 text-[13px] font-medium text-obsidian-900">{project?.homeowner_name || "N/A"}</p>
             </div>
-            <p className="font-mono font-bold text-[11px] text-slate-500 truncate">{project?.homeowner_email || "N/A"}</p>
+            <p className="truncate font-mono text-[11px] text-graphite-500">{project?.homeowner_email || "N/A"}</p>
             {project?.homeowner_phone && (
-              <a href={`tel:${project.homeowner_phone}`} className="font-mono font-bold text-[11px] text-slate-500 truncate block hover:text-slate-800 transition-colors">
+              <a href={`tel:${project.homeowner_phone}`} className="block truncate font-mono text-[11px] text-graphite-500 transition-colors duration-200 ease-architect hover:text-obsidian-900">
                 {project.homeowner_phone}
               </a>
             )}
@@ -836,9 +871,9 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         {/* PROJECT COST METRIC CARD */}
-        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 flex flex-col justify-between">
+        <div className="flex flex-col justify-between gap-5 bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50">
           <div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b pb-2 mb-3">PROJECT COST</p>
+            <p className="eyebrow border-b border-obsidian-900/[0.07] pb-2.5">Project Cost</p>
             {(() => {
               const items = Array.isArray(project?.items) ? project.items : [];
               const hasActuals = project?.status === "approved" && items.some((i: any) => i.actual_cost != null);
@@ -846,13 +881,15 @@ export default function ProjectWorkspaceControlHub() {
               const actualTotal = items.reduce((s: number, i: any) => s + toNum(i.actual_cost ?? i.cost ?? i.mid_cost), 0);
               if (hasActuals) {
                 return (
-                  <div className="space-y-1.5">
-                    <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans" style={{fontVariantNumeric:'tabular-nums'}}>
-                      ${actualTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <div className="mt-3 space-y-2.5">
+                    <h2 className="figure text-[1.75rem] leading-none sm:text-[2rem]">
+                      <span className="text-graphite-300">$</span>{actualTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </h2>
-                    <div className="flex items-center gap-2 text-[10px]">
-                      <span className="text-slate-400 font-bold">Bid: <span className="text-slate-600 font-black">${bidTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></span>
-                      <span className={`font-black ${actualTotal > bidTotal ? 'text-red-500' : 'text-emerald-600'}`}>
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-[10px] uppercase tracking-architect">
+                      <span className="text-graphite-400">
+                        Bid <span className="tnum text-graphite-600">${bidTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </span>
+                      <span className={`tnum ${actualTotal > bidTotal ? 'text-clay-600' : 'text-patina-600'}`}>
                         {actualTotal > bidTotal ? '▲' : '▼'} ${Math.abs(actualTotal - bidTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </div>
@@ -860,8 +897,8 @@ export default function ProjectWorkspaceControlHub() {
                 );
               }
               return (
-                <h2 className="text-3xl font-black text-slate-950 tracking-tight font-sans" style={{fontVariantNumeric:'tabular-nums'}}>
-                  ${toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                <h2 className="figure mt-3 text-[1.75rem] leading-none sm:text-[2rem]">
+                  <span className="text-graphite-300">$</span>{toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h2>
               );
             })()}
@@ -880,178 +917,200 @@ export default function ProjectWorkspaceControlHub() {
                 toast("Failed to update deposit status: " + error.message, "error");
               }
             }}
-            className="flex items-center justify-between bg-slate-50 p-2 rounded-xl border mt-4 cursor-pointer hover:bg-slate-100 transition outline-none"
+            className="flex items-center justify-between gap-3 rounded-edge border border-obsidian-900/10 bg-bone-50 px-3 py-2.5 transition-colors duration-300 ease-architect hover:border-obsidian-900/25 hover:bg-bone-100"
           >
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider pl-1">DEPOSIT PAID</span>
-            <div className={`w-8 h-4 rounded-full p-0.5 flex transition-all duration-200 ${project?.deposit_cleared ? 'bg-emerald-500 justify-end' : 'bg-slate-200 justify-start'}`}>
-              <div className="w-3 h-3 bg-white rounded-full shadow-sm" />
-            </div>
+            <span className="eyebrow">Deposit Paid</span>
+            <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project?.deposit_cleared ? 'bg-patina-500 justify-end' : 'bg-bone-300 justify-start'}`}>
+              <span className="h-3 w-3 rounded-full bg-white" />
+            </span>
           </button>
         </div>
 
         {/* PORTAL ANALYTICS FEED CARD */}
-        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-3">
-          <div className="flex justify-between items-center border-b pb-2">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PORTAL ANALYTICS</p>
-            <span className="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-0.5 rounded-md border border-blue-100">Views: {project?.view_count || 0}</span>
+        <div className="bg-white px-5 py-5 transition-colors duration-300 ease-architect hover:bg-bone-50">
+          <div className="flex items-baseline justify-between gap-3 border-b border-obsidian-900/[0.07] pb-2.5">
+            <p className="eyebrow">Portal Analytics</p>
+            <span className="badge badge-neutral">Views<span className="tnum">{project?.view_count || 0}</span></span>
           </div>
-          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <div className="mt-1 max-h-52 overflow-y-auto scrollbar-none">
             {Array.isArray(project?.view_history) && [...project.view_history].reverse().map((hit: any, i: number) => (
-              <div key={i} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-[10px] space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="font-black text-slate-700">#{project.view_history.length - i}</span>
-                  <span className="font-mono text-slate-500 text-[9px]">
+              <div key={i} className="border-b border-obsidian-900/[0.06] py-2.5 last:border-b-0">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-mono text-[10px] tabular-nums tracking-architect text-graphite-500">#{project.view_history.length - i}</span>
+                  <span className="font-mono text-[10px] tabular-nums text-graphite-400">
                     {hit.timestamp ? new Date(hit.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : "—"}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="mt-1.5 flex flex-wrap gap-1">
                   {hit.ip && (
-                    <span className="bg-white border border-slate-200 text-slate-600 font-mono font-bold text-[8px] px-1.5 py-0.5 rounded">{hit.ip}</span>
+                    <span className="rounded-edge border border-obsidian-900/10 bg-bone-50 px-1.5 py-0.5 font-mono text-[9px] tabular-nums text-graphite-500">{hit.ip}</span>
                   )}
                   {hit.device && (
-                    <span className={`font-bold text-[8px] px-1.5 py-0.5 rounded border ${
-                      hit.device.includes("iOS") ? "bg-blue-50 text-blue-700 border-blue-100" :
-                      hit.device.includes("Android") ? "bg-green-50 text-green-700 border-green-100" :
-                      "bg-slate-100 text-slate-600 border-slate-200"
+                    <span className={`rounded-edge border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-architect ${
+                      hit.device.includes("iOS") ? "border-obsidian-900/15 bg-bone-100 text-graphite-700" :
+                      hit.device.includes("Android") ? "border-patina-200 bg-patina-50 text-patina-700" :
+                      "border-obsidian-900/10 bg-bone-50 text-graphite-500"
                     }`}>{hit.device}</span>
                   )}
                   {hit.browser && (
-                    <span className="bg-amber-50 text-amber-700 border border-amber-100 font-bold text-[8px] px-1.5 py-0.5 rounded">{hit.browser}</span>
+                    <span className="rounded-edge border border-brass-200 bg-brass-50 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-architect text-brass-600">{hit.browser}</span>
                   )}
                   {hit.screen && (
-                    <span className="bg-purple-50 text-purple-700 border border-purple-100 font-bold text-[8px] px-1.5 py-0.5 rounded">{hit.screen}</span>
+                    <span className="rounded-edge border border-obsidian-900/10 bg-bone-50 px-1.5 py-0.5 font-mono text-[9px] tabular-nums text-graphite-400">{hit.screen}</span>
                   )}
                 </div>
                 {hit.referrer && (
-                  <p className="text-[8px] text-slate-400 font-medium truncate">via: {hit.referrer}</p>
+                  <p className="mt-1 truncate font-mono text-[9px] text-graphite-300">via {hit.referrer}</p>
                 )}
               </div>
             ))}
             {(!project?.view_history || project.view_history.length === 0) && (
-              <p className="text-center italic text-slate-400 text-xs pt-4">No portal views yet.</p>
+              <p className="py-8 text-center font-mono text-[10px] uppercase tracking-architect text-graphite-300">No portal views yet</p>
             )}
           </div>
         </div>
 
+        </div>
       </div>
 
       {/* PROJECT DETAILS — start date & timeline */}
-      <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-5">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-            <div className="flex-1 space-y-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Estimated Start Date</label>
-              <input
-                type="date"
-                value={project?.estimated_start_date || ""}
-                onChange={(e) => {
-                  setProject((prev: any) => ({ ...prev, estimated_start_date: e.target.value || null }));
-                }}
-                onBlur={async () => {
-                  const { error } = await supabase
-                    .from("invoices")
-                    .update({ estimated_start_date: project?.estimated_start_date || null })
-                    .eq("id", projectId);
-                  if (error) toast("Failed to save start date: " + error.message, "error");
-                }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-              />
-            </div>
-            <div className="flex-1 space-y-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Project Timeline</label>
-              <input
-                type="text"
-                placeholder="e.g. 8–10 Weeks"
-                value={project?.project_length || ""}
-                onChange={(e) => {
-                  setProject((prev: any) => ({ ...prev, project_length: e.target.value }));
-                }}
-                onBlur={async () => {
-                  const { error } = await supabase
-                    .from("invoices")
-                    .update({ project_length: project?.project_length || null })
-                    .eq("id", projectId);
-                  if (error) toast("Failed to save timeline: " + error.message, "error");
-                }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-              />
-            </div>
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">01</span>
+            <h2 className="display-sm">Programme</h2>
+          </div>
+          <span className="eyebrow hidden sm:block">Dates</span>
+        </div>
+        <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="project-start-date" className="field-label">Estimated Start Date</label>
+            <input
+              id="project-start-date"
+              type="date"
+              value={project?.estimated_start_date || ""}
+              onChange={(e) => {
+                setProject((prev: any) => ({ ...prev, estimated_start_date: e.target.value || null }));
+              }}
+              onBlur={async () => {
+                const { error } = await supabase
+                  .from("invoices")
+                  .update({ estimated_start_date: project?.estimated_start_date || null })
+                  .eq("id", projectId);
+                if (error) toast("Failed to save start date: " + error.message, "error");
+              }}
+              className="field tnum"
+            />
+          </div>
+          <div>
+            <label htmlFor="project-timeline" className="field-label">Project Timeline</label>
+            <input
+              id="project-timeline"
+              type="text"
+              placeholder="e.g. 8–10 Weeks"
+              value={project?.project_length || ""}
+              onChange={(e) => {
+                setProject((prev: any) => ({ ...prev, project_length: e.target.value }));
+              }}
+              onBlur={async () => {
+                const { error } = await supabase
+                  .from("invoices")
+                  .update({ project_length: project?.project_length || null })
+                  .eq("id", projectId);
+                if (error) toast("Failed to save timeline: " + error.message, "error");
+              }}
+              className="field"
+            />
           </div>
         </div>
-      </div>
+      </section>
 
       {/* CLIENT ANNOUNCEMENT / PRIORITY BANNER */}
       {project?.status === "approved" && (
-        <div className="max-w-7xl mx-auto px-4 pt-6">
-          <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                  <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                  Client Announcement
-                </h3>
-                <p className="text-[11px] text-slate-400 font-medium">This message appears as a priority banner at the top of the homeowner portal. Leave blank to show the default status message.</p>
-              </div>
-              {project?.announcement && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setProject((prev: any) => ({ ...prev, announcement: null }));
-                    const { error } = await supabase
-                      .from("invoices")
-                      .update({ announcement: null })
-                      .eq("id", projectId);
-                    if (error) toast("Failed to clear: " + error.message, "error");
-                    else toast("Announcement cleared", "success");
-                  }}
-                  className="text-red-400 hover:text-red-600 text-xs font-black transition p-2 rounded-lg hover:bg-red-50 shrink-0"
-                >
-                  Clear
-                </button>
-              )}
+        <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+          <div className="title-block">
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">02</span>
+              <h2 className="display-sm">Client Announcement</h2>
             </div>
-            <textarea
-              value={project?.announcement || ""}
-              onChange={(e) => {
-                setProject((prev: any) => ({ ...prev, announcement: e.target.value }));
-              }}
-              onBlur={async () => {
-                const val = project?.announcement?.trim() || null;
-                const { error } = await supabase
-                  .from("invoices")
-                  .update({ announcement: val })
-                  .eq("id", projectId);
-                if (error) toast("Failed to save announcement: " + error.message, "error");
-                else if (val) toast("Announcement published", "success");
-              }}
-              placeholder="e.g. Tile selections are due by Friday — please visit the Selections tab and make your choices so we can stay on schedule."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 transition-all min-h-[60px]"
-              rows={2}
-            />
             {project?.announcement && (
-              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                <span className="text-amber-600 text-sm shrink-0 mt-0.5">📢</span>
-                <p className="text-[11px] font-medium text-amber-800 leading-relaxed">Live on portal: "{project.announcement}"</p>
-              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  setProject((prev: any) => ({ ...prev, announcement: null }));
+                  const { error } = await supabase
+                    .from("invoices")
+                    .update({ announcement: null })
+                    .eq("id", projectId);
+                  if (error) toast("Failed to clear: " + error.message, "error");
+                  else toast("Announcement cleared", "success");
+                }}
+                className="shrink-0 font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-400 transition-colors duration-200 ease-architect hover:text-clay-600"
+              >
+                Clear
+              </button>
             )}
           </div>
-        </div>
+
+          <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+            This message runs as a priority banner at the top of the homeowner portal. Leave it blank to show the default status line.
+          </p>
+
+          <label htmlFor="client-announcement" className="sr-only">Client announcement</label>
+          <textarea
+            id="client-announcement"
+            value={project?.announcement || ""}
+            onChange={(e) => {
+              setProject((prev: any) => ({ ...prev, announcement: e.target.value }));
+            }}
+            onBlur={async () => {
+              const val = project?.announcement?.trim() || null;
+              const { error } = await supabase
+                .from("invoices")
+                .update({ announcement: val })
+                .eq("id", projectId);
+              if (error) toast("Failed to save announcement: " + error.message, "error");
+              else if (val) toast("Announcement published", "success");
+            }}
+            placeholder="e.g. Tile selections are due by Friday — please visit the Selections tab and make your choices so we can stay on schedule."
+            className="field mt-3.5 min-h-[64px] resize-y leading-relaxed"
+            rows={2}
+          />
+
+          {project?.announcement && (
+            <div className="mt-3 flex items-start gap-3 border-l-2 border-brass-400 bg-brass-50/60 px-4 py-3">
+              <svg aria-hidden className="mt-px h-3.5 w-3.5 shrink-0 text-brass-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253 1.077.583 2.123.983 3.13.457 1.15.83 1.62 1.677 1.62.848 0 1.535-.687 1.535-1.535 0-.264-.067-.523-.194-.755a19.5 19.5 0 01-1.03-2.16m-2.97-.3a48.4 48.4 0 013.66.66m-3.66-9.54a48.4 48.4 0 003.66-.66m0 10.2a24.3 24.3 0 000-9.54m0 9.54a3.75 3.75 0 000-9.54" />
+              </svg>
+              <p className="text-[12px] leading-relaxed text-graphite-700">
+                <span className="eyebrow-ink mr-2">Live on portal</span>
+                {project.announcement}
+              </p>
+            </div>
+          )}
+        </section>
       )}
 
       {/* PROPOSAL EXPIRATION TIMER — only pre-approval */}
       {project?.status !== "approved" && (
-        <div className="max-w-7xl mx-auto px-4 pt-6">
-          <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                  <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Proposal Expiration
-                </h3>
-                <p className="text-[11px] text-slate-400 font-medium">Set a deadline to hold pricing and a schedule slot. A live countdown appears on the client portal.</p>
-              </div>
-              <div className="flex items-center gap-3">
+        <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+          <div className="title-block">
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">02</span>
+              <h2 className="display-sm">Proposal Expiration</h2>
+            </div>
+            <span className="eyebrow hidden sm:block">Hold</span>
+          </div>
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <p className="max-w-md text-[12.5px] leading-relaxed text-graphite-500">
+              Set a deadline to hold pricing and a schedule slot. A live countdown appears on the client portal.
+            </p>
+            <div className="flex items-end gap-2">
+              <div className="min-w-0">
+                <label htmlFor="proposal-expires-at" className="field-label">Expires</label>
                 <input
+                  id="proposal-expires-at"
                   type="datetime-local"
                   value={project?.proposal_expires_at ? new Date(new Date(project.proposal_expires_at).getTime() - new Date(project.proposal_expires_at).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
                   onChange={(e) => {
@@ -1066,63 +1125,68 @@ export default function ProjectWorkspaceControlHub() {
                     if (error) toast("Failed to save expiration: " + error.message, "error");
                     else toast("Expiration updated", "success");
                   }}
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  className="field tnum w-full sm:w-auto"
                 />
-                {project?.proposal_expires_at && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setProject((prev: any) => ({ ...prev, proposal_expires_at: null }));
-                      const { error } = await supabase
-                        .from("invoices")
-                        .update({ proposal_expires_at: null })
-                        .eq("id", projectId);
-                      if (error) toast("Failed to clear expiration: " + error.message, "error");
-                      else toast("Expiration removed", "success");
-                    }}
-                    className="text-red-400 hover:text-red-600 text-xs font-black transition p-2 rounded-lg hover:bg-red-50"
-                  >
-                    ✕
-                  </button>
-                )}
               </div>
+              {project?.proposal_expires_at && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setProject((prev: any) => ({ ...prev, proposal_expires_at: null }));
+                    const { error } = await supabase
+                      .from("invoices")
+                      .update({ proposal_expires_at: null })
+                      .eq("id", projectId);
+                    if (error) toast("Failed to clear expiration: " + error.message, "error");
+                    else toast("Expiration removed", "success");
+                  }}
+                  className="mb-[1px] flex h-[38px] w-9 shrink-0 items-center justify-center rounded-edge border border-obsidian-900/[0.12] text-graphite-400 transition-colors duration-200 ease-architect hover:border-clay-300 hover:bg-clay-50 hover:text-clay-600"
+                  title="Clear expiration"
+                >
+                  <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
-            {project?.proposal_expires_at && (
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
-                {new Date(project.proposal_expires_at) > new Date() ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                    <p className="text-[11px] font-bold text-slate-600">
-                      Expires {new Date(project.proposal_expires_at).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                      {' · '}
-                      <span className="text-amber-600">
-                        {(() => {
-                          const diff = new Date(project.proposal_expires_at).getTime() - Date.now();
-                          const days = Math.floor(diff / 86400000);
-                          const hours = Math.floor((diff % 86400000) / 3600000);
-                          if (days > 0) return `${days}d ${hours}h remaining`;
-                          const mins = Math.floor((diff % 3600000) / 60000);
-                          return `${hours}h ${mins}m remaining`;
-                        })()}
-                      </span>
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
-                    <p className="text-[11px] font-bold text-red-600">Proposal expired — client can no longer accept</p>
-                  </>
-                )}
-              </div>
-            )}
           </div>
+
+          {project?.proposal_expires_at && (
+            <div className="mt-4 flex items-center gap-2.5 border-t border-obsidian-900/[0.07] pt-3.5">
+              {new Date(project.proposal_expires_at) > new Date() ? (
+                <>
+                  <span className="badge-dot animate-pulse bg-brass-400" />
+                  <p className="text-[12px] text-graphite-600">
+                    Expires <span className="tnum">{new Date(project.proposal_expires_at).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                    {' · '}
+                    <span className="font-mono text-[10.5px] uppercase tracking-architect text-brass-600">
+                      {(() => {
+                        const diff = new Date(project.proposal_expires_at).getTime() - Date.now();
+                        const days = Math.floor(diff / 86400000);
+                        const hours = Math.floor((diff % 86400000) / 3600000);
+                        if (days > 0) return `${days}d ${hours}h remaining`;
+                        const mins = Math.floor((diff % 3600000) / 60000);
+                        return `${hours}h ${mins}m remaining`;
+                      })()}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <span className="badge-dot bg-clay-500" />
+                  <p className="text-[12px] text-clay-700">Proposal expired — the client can no longer accept</p>
+                </>
+              )}
+            </div>
+          )}
+
           {Array.isArray(project?.proposal_emails) && project.proposal_emails.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-slate-100">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-2">Email History</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="mt-4 border-t border-obsidian-900/[0.07] pt-3.5">
+              <p className="eyebrow mb-2">Email History</p>
+              <div className="flex flex-wrap gap-1.5">
                 {project.proposal_emails.map((log: any, i: number) => (
-                  <span key={i} className={`text-[9px] font-bold px-2.5 py-1 rounded-lg border ${
-                    log.type === 'reminder' ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-blue-50 text-blue-700 border-blue-100'
+                  <span key={i} className={`badge ${
+                    log.type === 'reminder' ? 'badge-pending' : 'badge-neutral'
                   }`}>
                     {log.type === 'reminder' ? `Reminder (${log.tier})` : 'Proposal sent'} · {new Date(log.sent_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   </span>
@@ -1130,42 +1194,62 @@ export default function ProjectWorkspaceControlHub() {
               </div>
             </div>
           )}
-        </div>
+        </section>
       )}
 
       {/* GANTT BLUEPRINT SCHEDULER HORIZON TRACK */}
-      <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            🗓️ PRODUCTION PHASE GANTT BLUEPRINT SCHEDULER
-          </h3>
-          <p className="text-[11px] text-slate-400 font-medium -mt-2">Construct sub-tasks, nest trade rows, and update operational progress margins directly into live streams charts grids.</p>
-          <div className="h-32 border border-slate-200 rounded-xl bg-slate-50/50 flex flex-col items-center justify-between p-4">
-            <div className="w-full flex justify-between text-[10px] font-black text-slate-400 border-b pb-2 uppercase tracking-wider">
-              <span>PHASE WORKSPACE MANAGEMENT TRACK</span>
-              <span>OPERATIONAL HORIZON CALENDAR GRID VIEW</span>
-            </div>
-            <p className="text-[11px] font-medium text-slate-400 italic mb-4">Operational horizon timeline component active</p>
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">03</span>
+            <h2 className="display-sm">Schedule Horizon</h2>
+          </div>
+          <span className="eyebrow hidden sm:block">Production Phases</span>
+        </div>
+
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+          Nest trade rows and track phase progress against the production calendar.
+        </p>
+
+        <div className="panel blueprint-grid mt-4 overflow-hidden">
+          <div className="flex items-baseline justify-between gap-4 border-b border-obsidian-900/[0.07] bg-bone-100/60 px-4 py-2.5 sm:px-5">
+            <span className="eyebrow">Phase Track</span>
+            <span className="eyebrow hidden sm:block">Calendar Grid</span>
+          </div>
+
+          <div className="px-6 py-14 text-center">
+            <p className="display-sm">Horizon track not configured</p>
+            <p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed text-graphite-500">
+              Phase rows appear here once the production calendar is built out for this project.
+            </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* PAYMENT SCHEDULE & DEPOSIT MANAGER */}
-      <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] p-6 space-y-5">
-          <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">💰 PAYMENT SCHEDULE & DEPOSIT</h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Configure deposit percentage and payment draw phases. Changes sync instantly to the homeowner portal.</p>
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">04</span>
+            <h2 className="display-sm">Schedule of Values</h2>
           </div>
+          <span className="eyebrow hidden sm:block">Deposit &amp; Draws</span>
+        </div>
 
-          {/* Deposit Amount & Percentage — the percentage is what's stored; the
-              dollar figure is always derived from the current project total. */}
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1 min-w-0">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit $</label>
-                <span className="text-[10px] font-bold text-slate-400">$</span>
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+          Configure the deposit and the payment draw phases. Changes sync instantly to the homeowner portal.
+        </p>
+
+        {/* Deposit Amount & Percentage — the percentage is what's stored; the
+            dollar figure is always derived from the current project total. */}
+        <div className="mt-5">
+          <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-[minmax(0,1fr)_120px]">
+            <div>
+              <label htmlFor="deposit-amount" className="field-label">Deposit Amount</label>
+              <div className="flex items-center gap-1.5 rounded-edge border border-obsidian-900/[0.12] bg-white px-3.5 transition-all duration-200 ease-architect focus-within:border-obsidian-900/45 focus-within:ring-[3px] focus-within:ring-obsidian-900/[0.06]">
+                <span className="font-mono text-[11px] text-graphite-300">$</span>
                 <input
+                  id="deposit-amount"
                   type="number"
                   min="0"
                   value={depositAmountOf(project, project?.amount)}
@@ -1176,12 +1260,15 @@ export default function ProjectWorkspaceControlHub() {
                     }))
                   }
                   onBlur={saveDeposit}
-                  className="flex-1 min-w-0 sm:w-32 sm:flex-none bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  className="no-spin tnum w-full min-w-0 bg-transparent py-2.5 text-[13px] font-medium text-obsidian-900 outline-none"
                 />
               </div>
-              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-1 min-w-0">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">Deposit %</label>
+            </div>
+            <div>
+              <label htmlFor="deposit-percent" className="field-label">Deposit %</label>
+              <div className="flex items-center gap-1.5 rounded-edge border border-obsidian-900/[0.12] bg-white px-3.5 transition-all duration-200 ease-architect focus-within:border-obsidian-900/45 focus-within:ring-[3px] focus-within:ring-obsidian-900/[0.06]">
                 <input
+                  id="deposit-percent"
                   type="number"
                   min="0"
                   max="100"
@@ -1193,455 +1280,478 @@ export default function ProjectWorkspaceControlHub() {
                     }))
                   }
                   onBlur={saveDeposit}
-                  className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 text-center outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  className="no-spin tnum w-full min-w-0 bg-transparent py-2.5 text-[13px] font-medium text-obsidian-900 outline-none"
                 />
-                <span className="text-[10px] font-bold text-slate-400">%</span>
+                <span className="font-mono text-[11px] text-graphite-300">%</span>
               </div>
             </div>
-            <p className="text-[11px] text-slate-500 font-medium px-2">
-              Edit either amount or percentage — the other updates automatically. The deposit is stored as a
-              percentage, so it follows the project total if the scope changes.
+          </div>
+          <p className="mt-2.5 text-[11.5px] leading-relaxed text-graphite-400">
+            Edit either amount or percentage — the other updates automatically. The deposit is stored as a
+            percentage, so it follows the project total if the scope changes.
+          </p>
+        </div>
+
+        {/* Phase Rows */}
+        <div className="mt-7">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-obsidian-900/10 pb-2.5">
+            <p className="eyebrow">Draw Phases</p>
+            <p className="font-mono text-[10px] uppercase tracking-architect text-graphite-400">
+              Total <span className={`tnum ${
+                totalScheduledPercent(project?.payment_phases, project?.amount) === 100
+                  ? "text-patina-600" : "text-clay-600"
+              }`}>
+                {displayPercent(totalScheduledPercent(project?.payment_phases, project?.amount))}%
+              </span>
+              <span className="tnum text-graphite-300">
+                {" "}· ${totalScheduledAmount(project?.payment_phases, project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} of $
+                {toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
             </p>
           </div>
 
-          {/* Phase Rows */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Draw Phases</p>
-              <p className="text-[9px] font-bold text-slate-400">
-                Total: <span className={`font-black ${
-                  totalScheduledPercent(project?.payment_phases, project?.amount) === 100
-                    ? "text-emerald-600" : "text-red-500"
-                }`}>
-                  {displayPercent(totalScheduledPercent(project?.payment_phases, project?.amount))}%
-                </span>
-                <span className="text-slate-400 font-medium">
-                  {" "}· ${totalScheduledAmount(project?.payment_phases, project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} of $
-                  {toNum(project?.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </span>
-              </p>
-            </div>
+          {Array.isArray(project?.payment_phases) && project.payment_phases.map((phase: any, idx: number) => {
+            const phaseAmount = phaseAmountOf(phase, project?.amount);
+            const phasePercent = phasePercentOf(phase, project?.amount);
+            const isApprovedProject = project?.status === "approved";
+            const activePhaseIdx = project?.current_phase_index || 0;
+            const isPhasePaid = isApprovedProject && project?.deposit_cleared && (idx === 0 || idx < activePhaseIdx);
+            const isPhaseActive = isApprovedProject && (idx === activePhaseIdx || (idx === 0 && !project?.deposit_cleared));
+            const canRemind = isApprovedProject && isPhaseActive && !isPhasePaid;
 
-            {Array.isArray(project?.payment_phases) && project.payment_phases.map((phase: any, idx: number) => {
-              const phaseAmount = phaseAmountOf(phase, project?.amount);
-              const phasePercent = phasePercentOf(phase, project?.amount);
-              const isApprovedProject = project?.status === "approved";
-              const activePhaseIdx = project?.current_phase_index || 0;
-              const isPhasePaid = isApprovedProject && project?.deposit_cleared && (idx === 0 || idx < activePhaseIdx);
-              const isPhaseActive = isApprovedProject && (idx === activePhaseIdx || (idx === 0 && !project?.deposit_cleared));
-              const canRemind = isApprovedProject && isPhaseActive && !isPhasePaid;
+            const updatePhase = (updates: any) => {
+              const updated = [...project.payment_phases];
+              updated[idx] = { ...updated[idx], ...updates };
+              setProject((prev: any) => ({ ...prev, payment_phases: updated }));
+            };
 
-              const updatePhase = (updates: any) => {
-                const updated = [...project.payment_phases];
-                updated[idx] = { ...updated[idx], ...updates };
-                setProject((prev: any) => ({ ...prev, payment_phases: updated }));
-              };
+            const savePhase = () => savePhases(project.payment_phases);
 
-              const savePhase = () => savePhases(project.payment_phases);
+            return (
+              <div key={idx} className="group relative border-b border-obsidian-900/[0.07] py-3.5 transition-colors duration-300 ease-architect hover:bg-white">
+                <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
 
-              return (
-                <div key={idx} className="bg-slate-50/50 border border-slate-200/60 rounded-xl p-2.5 group space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1 sm:min-w-0">
-                      <span className="text-[9px] font-black text-slate-400 bg-white border border-slate-200 px-2 py-1 rounded-lg shadow-sm shrink-0">#{idx + 1}</span>
-                      <input
-                        type="text"
-                        value={phase.name}
-                        onChange={(e) => updatePhase({ name: e.target.value })}
-                        onBlur={savePhase}
-                        className="flex-1 min-w-0 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                      />
-                    </div>
-
-                    {/* Amount Input — takes the free space on its own mobile row */}
-                    <div className="flex items-center bg-white border border-slate-200 rounded-lg px-2 gap-1 flex-1 sm:flex-none sm:shrink-0">
-                      <span className="text-[10px] font-bold text-slate-400">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={phaseAmount}
-                        onChange={(e) => {
-                          const percentage = amountToPercent(e.target.value, project?.amount);
-                          updatePhase({ percentage, amount: roundCents(e.target.value) });
-                        }}
-                        onBlur={savePhase}
-                        className="w-full sm:w-24 min-w-0 py-1.5 text-xs font-black text-slate-900 text-right outline-none bg-transparent"
-                        style={{fontVariantNumeric:'tabular-nums'}}
-                      />
-                    </div>
-
-                    {/* Percentage Display */}
-                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={displayPercent(phasePercent)}
-                        onChange={(e) => {
-                          const percent = Math.min(100, Math.max(0, toNum(e.target.value)));
-                          updatePhase({ percentage: percent, amount: phaseAmountOf({ percentage: percent }, project?.amount) });
-                        }}
-                        onBlur={savePhase}
-                        className="w-12 py-1.5 text-xs font-black text-slate-900 text-center outline-none bg-transparent"
-                      />
-                      <span className="text-[10px] font-bold text-slate-400">%</span>
-                    </div>
-
-                    {isApprovedProject && isPhasePaid && (
-                      <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">Paid</span>
-                    )}
-                    {isApprovedProject && isPhaseActive && !isPhasePaid && (
-                      <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 animate-pulse shrink-0">Due</span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (project.payment_phases.length <= 1) return toast("Must have at least one phase.", "info");
-                        if (!confirm(`Remove "${phase.name}"?`)) return;
-                        await savePhases(project.payment_phases.filter((_: any, i: number) => i !== idx));
-                      }}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all duration-200 shrink-0 p-1"
-                    >
-                      ✕
-                    </button>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:pl-3">
+                  <div className="flex w-full items-center gap-2.5 sm:w-auto sm:min-w-0 sm:flex-1">
+                    <span className="shrink-0 font-mono text-[10px] tabular-nums tracking-architect text-graphite-300">
+                      #{idx + 1}
+                    </span>
+                    <input
+                      type="text"
+                      value={phase.name}
+                      onChange={(e) => updatePhase({ name: e.target.value })}
+                      onBlur={savePhase}
+                      title="Draw phase name"
+                      className="min-w-0 flex-1 border-0 border-b border-transparent bg-transparent py-1 text-[13px] font-medium text-obsidian-900 outline-none transition-colors duration-200 ease-architect hover:border-obsidian-900/15 focus:border-obsidian-900/45"
+                    />
                   </div>
-                  {canRemind && idx === 0 && !project?.deposit_cleared && (
-                    <button
-                      type="button"
-                      disabled={sendingReminderIdx === 0}
-                      onClick={async () => {
-                        if (!project?.homeowner_email) return toast("No email on file.", "error");
-                        setSendingReminderIdx(0);
-                        try {
-                          const res = await fetch("/api/send-deposit-email", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ invoice_id: projectId, base_url: window.location.origin, preview_only: true }),
-                          });
-                          const data = await res.json();
-                          if (!res.ok) throw new Error(data.error || "Failed");
-                          setDepositPreviewHtml(data.html);
-                        } catch (err: any) {
-                          toast("Preview failed: " + err.message, "error");
-                        } finally {
-                          setSendingReminderIdx(null);
-                        }
-                      }}
-                      className="w-full flex items-center justify-center gap-1.5 bg-sage-50 hover:bg-sage-100 border border-sage-200 text-sage-700 font-black text-[9px] py-1.5 rounded-lg uppercase tracking-wider transition-all duration-200 outline-none"
-                    >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                      {sendingReminderIdx === 0 ? "Loading..." : "Send Deposit Email"}
-                    </button>
-                  )}
-                  {canRemind && (idx > 0 || project?.deposit_cleared) && (
-                    <button
-                      type="button"
-                      disabled={sendingReminderIdx === idx}
-                      onClick={async () => {
-                        if (!project?.homeowner_email) return toast("No email on file.", "error");
-                        setSendingReminderIdx(idx);
-                        try {
-                          const totalPaid = (project.payment_history || []).reduce((s: number, p: any) => s + toNum(p.amount), 0);
-                          const totalRemaining = toNum(project.amount) - totalPaid;
-                          const res = await fetch("/api/send-payment-reminder", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              invoice_id: projectId,
-                              phase_name: phase.name,
-                              phase_amount: phaseAmount,
-                              total_remaining: totalRemaining,
-                              base_url: window.location.origin,
-                            }),
-                          });
-                          const data = await res.json();
-                          if (!res.ok) throw new Error(data.error || "Failed");
-                          toast(`Reminder sent to ${data.sent_to}`, "success");
-                        } catch (err: any) {
-                          toast("Reminder failed: " + err.message, "error");
-                        } finally {
-                          setSendingReminderIdx(null);
-                        }
-                      }}
-                      className="w-full flex items-center justify-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-black text-[9px] py-1.5 rounded-lg uppercase tracking-wider transition-all duration-200 outline-none"
-                    >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                      {sendingReminderIdx === idx ? "Sending..." : "Send Payment Reminder"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
 
-            {/* Add Phase Button */}
-            <button
-              type="button"
-              onClick={async () => {
-                const currentPhases = Array.isArray(project?.payment_phases) ? [...project.payment_phases] : [];
-                const remaining = Math.max(0, 100 - totalScheduledPercent(currentPhases, project?.amount));
-                await savePhases([...currentPhases, { name: "New Phase", percentage: remaining }]);
-              }}
-              className="w-full border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl py-2.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-wider transition-all duration-200 outline-none"
-            >
-              + Add Draw Phase
-            </button>
-          </div>
+                  {/* Amount Input — takes the free space on its own mobile row */}
+                  <div className="flex flex-1 items-center gap-1 rounded-edge border border-obsidian-900/10 bg-white px-2 transition-colors duration-200 ease-architect focus-within:border-obsidian-900/45 sm:w-[124px] sm:flex-none">
+                    <span className="font-mono text-[10px] text-graphite-300">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={phaseAmount}
+                      onChange={(e) => {
+                        const percentage = amountToPercent(e.target.value, project?.amount);
+                        updatePhase({ percentage, amount: roundCents(e.target.value) });
+                      }}
+                      onBlur={savePhase}
+                      title="Draw amount"
+                      className="no-spin tnum w-full min-w-0 bg-transparent py-1.5 text-right text-[12.5px] font-medium text-obsidian-900 outline-none"
+                    />
+                  </div>
+
+                  {/* Percentage Display */}
+                  <div className="flex shrink-0 items-center gap-1 rounded-edge border border-obsidian-900/10 bg-bone-100 px-2 transition-colors duration-200 ease-architect focus-within:border-obsidian-900/45">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={displayPercent(phasePercent)}
+                      onChange={(e) => {
+                        const percent = Math.min(100, Math.max(0, toNum(e.target.value)));
+                        updatePhase({ percentage: percent, amount: phaseAmountOf({ percentage: percent }, project?.amount) });
+                      }}
+                      onBlur={savePhase}
+                      title="Draw percentage"
+                      className="no-spin tnum w-11 bg-transparent py-1.5 text-center text-[12.5px] font-medium text-obsidian-900 outline-none"
+                    />
+                    <span className="font-mono text-[10px] text-graphite-300">%</span>
+                  </div>
+
+                  {isApprovedProject && isPhasePaid && (
+                    <span className="badge badge-approved shrink-0"><span className="badge-dot bg-patina-500" />Paid</span>
+                  )}
+                  {isApprovedProject && isPhaseActive && !isPhasePaid && (
+                    <span className="badge badge-pending shrink-0"><span className="badge-dot bg-brass-400" />Due</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (project.payment_phases.length <= 1) return toast("Must have at least one phase.", "info");
+                      if (!confirm(`Remove "${phase.name}"?`)) return;
+                      await savePhases(project.payment_phases.filter((_: any, i: number) => i !== idx));
+                    }}
+                    title="Remove draw phase"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-graphite-300 transition-all duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                  >
+                    <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {canRemind && idx === 0 && !project?.deposit_cleared && (
+                  <button
+                    type="button"
+                    disabled={sendingReminderIdx === 0}
+                    onClick={async () => {
+                      if (!project?.homeowner_email) return toast("No email on file.", "error");
+                      setSendingReminderIdx(0);
+                      try {
+                        const res = await fetch("/api/send-deposit-email", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ invoice_id: projectId, base_url: window.location.origin, preview_only: true }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || "Failed");
+                        setDepositPreviewHtml(data.html);
+                      } catch (err: any) {
+                        toast("Preview failed: " + err.message, "error");
+                      } finally {
+                        setSendingReminderIdx(null);
+                      }
+                    }}
+                    className="btn-outline mt-2.5 w-full py-2 text-[10px] uppercase tracking-architect sm:ml-3 sm:w-auto"
+                  >
+                    <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    {sendingReminderIdx === 0 ? "Loading..." : "Send Deposit Email"}
+                  </button>
+                )}
+                {canRemind && (idx > 0 || project?.deposit_cleared) && (
+                  <button
+                    type="button"
+                    disabled={sendingReminderIdx === idx}
+                    onClick={async () => {
+                      if (!project?.homeowner_email) return toast("No email on file.", "error");
+                      setSendingReminderIdx(idx);
+                      try {
+                        const totalPaid = (project.payment_history || []).reduce((s: number, p: any) => s + toNum(p.amount), 0);
+                        const totalRemaining = toNum(project.amount) - totalPaid;
+                        const res = await fetch("/api/send-payment-reminder", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            invoice_id: projectId,
+                            phase_name: phase.name,
+                            phase_amount: phaseAmount,
+                            total_remaining: totalRemaining,
+                            base_url: window.location.origin,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || "Failed");
+                        toast(`Reminder sent to ${data.sent_to}`, "success");
+                      } catch (err: any) {
+                        toast("Reminder failed: " + err.message, "error");
+                      } finally {
+                        setSendingReminderIdx(null);
+                      }
+                    }}
+                    className="btn-outline mt-2.5 w-full border-brass-200 py-2 text-[10px] uppercase tracking-architect text-brass-600 hover:border-brass-400 hover:bg-brass-50 sm:ml-3 sm:w-auto"
+                  >
+                    <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    {sendingReminderIdx === idx ? "Sending..." : "Send Payment Reminder"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Add Phase Button */}
+          <button
+            type="button"
+            onClick={async () => {
+              const currentPhases = Array.isArray(project?.payment_phases) ? [...project.payment_phases] : [];
+              const remaining = Math.max(0, 100 - totalScheduledPercent(currentPhases, project?.amount));
+              await savePhases([...currentPhases, { name: "New Phase", percentage: remaining }]);
+            }}
+            className="mt-4 w-full rounded-edge border border-dashed border-obsidian-900/20 py-2.5 font-mono text-[10px] uppercase tracking-architect text-graphite-400 transition-colors duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900"
+          >
+            Add Draw Phase
+          </button>
         </div>
-      </div>
+      </section>
 
       {/* ITEMS MANAGER LEDGER CARD CONTAINER */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 space-y-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-6">
-          <div className="border-b pb-3 flex items-start justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                ITEMS
-              </h2>
-              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Modify descriptions, values, or append new line scopes directly into the contract ledger structure.</p>
-            </div>
-            <button
-              type="button"
-              onClick={async () => {
-                const newVal = !project?.show_luxury_tier;
-                setProject((prev: any) => ({ ...prev, show_luxury_tier: newVal }));
-                const { error } = await supabase
-                  .from("invoices")
-                  .update({ show_luxury_tier: newVal })
-                  .eq("id", projectId);
-                if (error) {
-                  setProject((prev: any) => ({ ...prev, show_luxury_tier: !newVal }));
-                  toast("Failed to update luxury tier visibility: " + error.message, "error");
-                }
-              }}
-              className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl transition outline-none shrink-0"
-            >
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Luxury Tier</span>
-              <div className={`w-8 h-4 rounded-full p-0.5 flex transition-all duration-200 ${project?.show_luxury_tier ? 'bg-blue-500 justify-end' : 'bg-slate-200 justify-start'}`}>
-                <div className="w-3 h-3 bg-white rounded-full shadow-sm" />
-              </div>
-            </button>
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">05</span>
+            <h2 className="display-sm">Line Items</h2>
           </div>
+          <button
+            type="button"
+            onClick={async () => {
+              const newVal = !project?.show_luxury_tier;
+              setProject((prev: any) => ({ ...prev, show_luxury_tier: newVal }));
+              const { error } = await supabase
+                .from("invoices")
+                .update({ show_luxury_tier: newVal })
+                .eq("id", projectId);
+              if (error) {
+                setProject((prev: any) => ({ ...prev, show_luxury_tier: !newVal }));
+                toast("Failed to update luxury tier visibility: " + error.message, "error");
+              }
+            }}
+            className="flex shrink-0 items-center gap-2.5 rounded-edge border border-obsidian-900/[0.12] bg-white px-2.5 py-1.5 transition-colors duration-300 ease-architect hover:border-obsidian-900/30 hover:bg-bone-50"
+            title="Show or hide the high tier on the client portal"
+          >
+            <span className="eyebrow">High Tier</span>
+            <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project?.show_luxury_tier ? 'bg-obsidian-900 justify-end' : 'bg-bone-300 justify-start'}`}>
+              <span className="h-3 w-3 rounded-full bg-white" />
+            </span>
+          </button>
+        </div>
 
-          {/* AI SCOPE AMENDMENT — pre-approval only; after approval added scope
-              belongs in a change order the homeowner signs separately. */}
-          {project?.status !== "approved" && (
-            <div className="border border-blue-100 bg-blue-50/20 rounded-2xl p-5 space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h4 className="font-black text-blue-600 uppercase tracking-wide text-[10px]">✦ Add Scope with AI</h4>
-                  <p className="text-slate-400 font-medium text-[10px] mt-0.5">
-                    List what you want to add. The estimator checks it against the scope already in this proposal,
-                    folds work into the line it belongs to, prices what&apos;s genuinely new, and files everything by category.
-                    Nothing changes until you approve it below.
-                  </p>
-                </div>
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+          Amend descriptions and values, or append new scope directly into the contract ledger.
+        </p>
+
+        {/* AI SCOPE AMENDMENT — pre-approval only; after approval added scope
+            belongs in a change order the homeowner signs separately. */}
+        {project?.status !== "approved" && (
+          <div className="panel-sunken mt-5 p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="eyebrow-ink">Add Scope with AI</p>
+                <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-graphite-500">
+                  List what you want to add. The estimator checks it against the scope already in this proposal,
+                  folds work into the line it belongs to, prices what&apos;s genuinely new, and files everything by category.
+                  Nothing changes until you approve it below.
+                </p>
               </div>
+            </div>
 
-              <textarea
-                value={amendRequest}
-                onChange={(e) => setAmendRequest(e.target.value)}
-                rows={3}
-                placeholder="e.g. add 6 can lights in the living room, upgrade the island counter to quartz, add a wet bar sink with supply and drain, tile the mudroom floor"
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all resize-y"
-              />
+            <label htmlFor="scope-amendment" className="sr-only">Scope additions</label>
+            <textarea
+              id="scope-amendment"
+              value={amendRequest}
+              onChange={(e) => setAmendRequest(e.target.value)}
+              rows={3}
+              placeholder="e.g. add 6 can lights in the living room, upgrade the island counter to quartz, add a wet bar sink with supply and drain, tile the mudroom floor"
+              className="field mt-4 resize-y leading-relaxed"
+            />
 
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={analyzeScopeAmendment}
-                  disabled={isAnalyzingAmendment || !amendRequest.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
-                >
-                  {isAnalyzingAmendment ? "Analyzing scope..." : "Analyze Additions"}
-                </button>
-              </div>
+            <div className="mt-3.5 flex justify-end">
+              <button
+                type="button"
+                onClick={analyzeScopeAmendment}
+                disabled={isAnalyzingAmendment || !amendRequest.trim()}
+                className="btn-ink"
+              >
+                {isAnalyzingAmendment ? "Analyzing scope..." : "Analyze Additions"}
+              </button>
+            </div>
 
-              {/* Proposed changes — reviewed line by line before anything is saved */}
-              {amendment && (
-                <div className="space-y-3 pt-1 animate-fadeIn">
-                  {amendment.summary && (
-                    <div className="bg-white border border-slate-200 rounded-xl p-3.5">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Estimator Summary</p>
-                      <p className="text-[11px] font-medium text-slate-700 leading-relaxed">{amendment.summary}</p>
-                    </div>
-                  )}
+            {/* Proposed changes — reviewed line by line before anything is saved */}
+            {amendment && (
+              <div className="mt-5 animate-rise">
+                {amendment.summary && (
+                  <div className="panel p-4">
+                    <p className="eyebrow">Estimator Summary</p>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-graphite-700">{amendment.summary}</p>
+                  </div>
+                )}
 
-                  <div className="space-y-2">
-                    {amendment.previews.map((preview: ScopeOperationPreview, idx: number) => {
-                      const rejected = rejectedOps.includes(idx);
-                      const op = preview.operation;
-                      const isMerge = op.action === "merge";
-                      const isRecat = op.action === "recategorize";
-                      const badge = isMerge
-                        ? `Merged into line #${(op.target_index ?? 0) + 1}`
-                        : isRecat
-                        ? `Recategorized line #${(op.target_index ?? 0) + 1}`
-                        : "New line item";
+                <div className="mt-3 border-t border-obsidian-900/10">
+                  {amendment.previews.map((preview: ScopeOperationPreview, idx: number) => {
+                    const rejected = rejectedOps.includes(idx);
+                    const op = preview.operation;
+                    const isMerge = op.action === "merge";
+                    const isRecat = op.action === "recategorize";
+                    const badge = isMerge
+                      ? `Merged into line #${(op.target_index ?? 0) + 1}`
+                      : isRecat
+                      ? `Recategorized line #${(op.target_index ?? 0) + 1}`
+                      : "New line item";
 
-                      return (
-                        <div
-                          key={idx}
-                          className={`border rounded-xl p-3.5 transition-all ${
-                            rejected ? "bg-slate-50 border-slate-200 opacity-50" : "bg-white border-slate-200"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <button
-                              type="button"
-                              onClick={() => toggleAmendmentOp(idx)}
-                              title={rejected ? "Include this change" : "Skip this change"}
-                              className={`w-5 h-5 rounded-md border shrink-0 mt-0.5 flex items-center justify-center text-[10px] font-black transition-all ${
-                                rejected
-                                  ? "bg-white border-slate-300 text-transparent hover:border-slate-400"
-                                  : "bg-blue-600 border-blue-600 text-white"
-                              }`}
-                            >
-                              ✓
-                            </button>
+                    return (
+                      <div
+                        key={idx}
+                        className={`border-b border-obsidian-900/[0.07] px-1 py-4 transition-all duration-300 ease-architect ${
+                          rejected ? "opacity-40" : "bg-white/60"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleAmendmentOp(idx)}
+                            title={rejected ? "Include this change" : "Skip this change"}
+                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-edge border transition-all duration-200 ease-architect ${
+                              rejected
+                                ? "border-obsidian-900/20 bg-white text-transparent hover:border-obsidian-900/45"
+                                : "border-obsidian-900 bg-obsidian-900 text-bone-50"
+                            }`}
+                          >
+                            <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          </button>
 
-                            <div className="flex-1 min-w-0 space-y-1.5">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${
-                                  isMerge
-                                    ? "bg-amber-50 text-amber-700 border-amber-100"
-                                    : isRecat
-                                    ? "bg-slate-100 text-slate-600 border-slate-200"
-                                    : "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                }`}>
-                                  {badge}
-                                </span>
-                                <span className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
-                                  {op.category}
-                                </span>
-                              </div>
-
-                              <p className="text-[11px] font-black text-slate-900">{preview.after.title}</p>
-
-                              {op.addition && (
-                                <p className="text-[10px] font-medium text-slate-500">
-                                  Covers: <span className="italic">&ldquo;{op.addition}&rdquo;</span>
-                                </p>
-                              )}
-                              {op.reason && (
-                                <p className="text-[10px] font-medium text-slate-400 leading-relaxed">{op.reason}</p>
-                              )}
-
-                              {/* Before → after, computed from the saved proposal */}
-                              {preview.before && !isRecat && (
-                                <div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 space-y-1.5">
-                                  <div>
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Was</p>
-                                    <p className="text-[10px] font-medium text-slate-500 leading-relaxed">
-                                      {preview.before.title} — ${midCostOf(preview.before).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Becomes</p>
-                                    <p className="text-[10px] font-medium text-slate-700 leading-relaxed">
-                                      {preview.after.mid_description}
-                                    </p>
-                                  </div>
-                                </div>
-                              )}
-                              {!preview.before && preview.after.mid_description && (
-                                <p className="text-[10px] font-medium text-slate-600 leading-relaxed bg-slate-50 border border-slate-100 rounded-lg p-2.5">
-                                  {preview.after.mid_description}
-                                </p>
-                              )}
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className={`badge ${
+                                isMerge
+                                  ? "badge-pending"
+                                  : isRecat
+                                  ? "badge-neutral"
+                                  : "badge-approved"
+                              }`}>
+                                {badge}
+                              </span>
+                              <span className="badge badge-ink">
+                                {op.category}
+                              </span>
                             </div>
 
-                            <div className="text-right shrink-0">
-                              <p className="text-[11px] font-black text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
-                                ${toNum(preview.after.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            <p className="text-[13px] font-medium leading-snug tracking-[-0.01em] text-obsidian-900">{preview.after.title}</p>
+
+                            {op.addition && (
+                              <p className="text-[11.5px] text-graphite-500">
+                                Covers <span className="italic">&ldquo;{op.addition}&rdquo;</span>
                               </p>
-                              {toNum(preview.mid_delta) !== 0 && (
-                                <p className={`text-[9px] font-black ${toNum(preview.mid_delta) > 0 ? "text-emerald-600" : "text-red-500"}`} style={{fontVariantNumeric:'tabular-nums'}}>
-                                  {toNum(preview.mid_delta) > 0 ? "+" : "−"}${Math.abs(toNum(preview.mid_delta)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                </p>
-                              )}
-                            </div>
+                            )}
+                            {op.reason && (
+                              <p className="text-[11.5px] leading-relaxed text-graphite-400">{op.reason}</p>
+                            )}
+
+                            {/* Before → after, computed from the saved proposal */}
+                            {preview.before && !isRecat && (
+                              <div className="space-y-2 border-l border-obsidian-900/10 pl-3">
+                                <div>
+                                  <p className="eyebrow">Was</p>
+                                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-graphite-400">
+                                    {preview.before.title} — ${midCostOf(preview.before).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="eyebrow">Becomes</p>
+                                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-graphite-600">
+                                    {preview.after.mid_description}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                            {!preview.before && preview.after.mid_description && (
+                              <p className="border-l border-obsidian-900/10 pl-3 text-[11.5px] leading-relaxed text-graphite-600">
+                                {preview.after.mid_description}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="shrink-0 text-right">
+                            <p className="figure text-[13px]">
+                              ${toNum(preview.after.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </p>
+                            {toNum(preview.mid_delta) !== 0 && (
+                              <p className={`mt-0.5 font-mono text-[10px] tabular-nums ${toNum(preview.mid_delta) > 0 ? "text-patina-600" : "text-clay-600"}`}>
+                                {toNum(preview.mid_delta) > 0 ? "+" : "−"}${Math.abs(toNum(preview.mid_delta)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </p>
+                            )}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Apply bar */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3.5">
-                    <div className="space-y-0.5">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                        {acceptedPreviews.length} of {amendment.previews.length} change{amendment.previews.length === 1 ? "" : "s"} selected
-                      </p>
-                      <p className="text-[11px] font-bold text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
-                        Proposal total {acceptedMidDelta >= 0 ? "increases" : "decreases"} by $
-                        {Math.abs(acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        <span className="text-slate-400 font-medium">
-                          {" "}→ ${(toNum(project?.amount) + acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={discardAmendment}
-                        disabled={isApplyingAmendment}
-                        className="bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-600 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition-all outline-none"
-                      >
-                        Discard
-                      </button>
-                      <button
-                        type="button"
-                        onClick={applyAcceptedAmendment}
-                        disabled={isApplyingAmendment || acceptedPreviews.length === 0}
-                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-black text-[10px] px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none"
-                      >
-                        {isApplyingAmendment ? "Applying..." : `Apply ${acceptedPreviews.length} Change${acceptedPreviews.length === 1 ? "" : "s"}`}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* DUAL-TIER WORKSPACE INPUT ROW LOOPS */}
-          <div className="space-y-6">
-            {groupItemsByCategory(project?.items).map((group) => (
-              <div key={group.category} className="space-y-4">
-
-                {/* Category band — the AI files lines under these, and the
-                    stored order follows them so the portal and PDF match. */}
-                <div className="flex items-center gap-3">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest shrink-0">{group.category}</span>
-                  <span className="text-[9px] font-bold text-slate-300 shrink-0">
-                    {group.entries.length} line{group.entries.length === 1 ? "" : "s"}
-                  </span>
-                  <div className="flex-1 h-px bg-slate-200" />
-                  <span className="text-[10px] font-black text-slate-600 shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>
-                    ${group.entries.reduce((sum, e) => sum + midCostOf(e.item), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                <div className="space-y-6">
-                {group.entries.map(({ item, index: idx }: { item: any; index: number }) => (
-              <div key={idx} className="border border-slate-200 rounded-2xl p-5 bg-slate-50/30 space-y-4 relative group transition-all hover:border-slate-300">
-                <button 
-                  type="button" 
+                {/* Apply bar */}
+                <div className="mt-4 flex flex-col justify-between gap-3 border-t border-obsidian-900/[0.12] pt-4 sm:flex-row sm:items-end">
+                  <div>
+                    <p className="eyebrow">
+                      {acceptedPreviews.length} of {amendment.previews.length} change{amendment.previews.length === 1 ? "" : "s"} selected
+                    </p>
+                    <p className="mt-1.5 text-[12.5px] text-obsidian-900">
+                      Proposal total {acceptedMidDelta >= 0 ? "increases" : "decreases"} by <span className="tnum font-medium">$
+                      {Math.abs(acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      <span className="tnum text-graphite-400">
+                        {" "}→ ${(toNum(project?.amount) + acceptedMidDelta).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={discardAmendment}
+                      disabled={isApplyingAmendment}
+                      className="btn-outline"
+                    >
+                      Discard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={applyAcceptedAmendment}
+                      disabled={isApplyingAmendment || acceptedPreviews.length === 0}
+                      className="btn-ink"
+                    >
+                      {isApplyingAmendment ? "Applying..." : `Apply ${acceptedPreviews.length} Change${acceptedPreviews.length === 1 ? "" : "s"}`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* DUAL-TIER WORKSPACE INPUT ROW LOOPS */}
+        <div className="mt-7">
+          {groupItemsByCategory(project?.items).map((group) => (
+            <div key={group.category} className="mb-8 last:mb-0">
+
+              {/* Category band — the AI files lines under these, and the
+                  stored order follows them so the portal and PDF match. */}
+              <div className="flex items-baseline gap-3 border-b border-obsidian-900/[0.12] pb-2">
+                <span className="shrink-0 font-mono text-[10px] font-medium uppercase tracking-architect text-obsidian-900">{group.category}</span>
+                <span className="shrink-0 font-mono text-[10px] uppercase tracking-architect text-graphite-300">
+                  {group.entries.length} line{group.entries.length === 1 ? "" : "s"}
+                </span>
+                <span aria-hidden className="h-px flex-1 self-center bg-obsidian-900/[0.07]" />
+                <span className="figure shrink-0 text-[12.5px]">
+                  ${group.entries.reduce((sum, e) => sum + midCostOf(e.item), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+
+              <div>
+              {group.entries.map(({ item, index: idx }: { item: any; index: number }) => (
+            <div key={idx} className="group relative border-b border-obsidian-900/[0.07] py-5 transition-colors duration-300 ease-architect hover:bg-white">
+              <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+
+              <div className="sm:pl-4">
+                <button
+                  type="button"
                   onClick={() => removeLineRowItem(idx)}
-                  className="absolute top-5 right-5 bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded-lg transition-colors border border-red-100 z-10"
+                  title="Remove line item"
+                  className="absolute right-0 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-edge text-graphite-300 transition-all duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                 >
-                  ✕
+                  <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
 
                 {/* Primary Row Header Component */}
-                <div className="flex flex-wrap gap-2 sm:gap-4 items-center border-b pb-3 sm:pr-10">
-                  <span className="text-[10px] font-black text-slate-400 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-sm shrink-0">LINE #{idx + 1}</span>
-                  <input 
-                    type="text" 
-                    value={item.title || ""} 
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pr-9">
+                  <span className="shrink-0 font-mono text-[10px] tabular-nums tracking-architect text-graphite-300">LINE {idx + 1}</span>
+                  <input
+                    type="text"
+                    value={item.title || ""}
                     onChange={(e) => updateInlineItemField(idx, "title", e.target.value)}
-                    placeholder="Core Specification Group Title"
-                    className="w-full sm:w-auto sm:flex-1 sm:min-w-[10rem] bg-white border py-3 px-4 rounded-xl text-xs font-black text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm" 
+                    placeholder="Line item title"
+                    title="Line item title"
+                    className="w-full min-w-0 border-0 border-b border-transparent bg-transparent py-1 font-display text-[1.0625rem] leading-snug tracking-[-0.01em] text-obsidian-900 outline-none transition-colors duration-200 ease-architect placeholder:font-sans placeholder:text-[13px] placeholder:text-graphite-300 hover:border-obsidian-900/15 focus:border-obsidian-900/45 sm:w-auto sm:min-w-[12rem] sm:flex-1"
                   />
                   {/* Uncontrolled and committed on blur: editing the category
                       regroups the ledger, which would remount a controlled
@@ -1656,25 +1766,25 @@ export default function ProjectWorkspaceControlHub() {
                     }}
                     placeholder="Category"
                     title="Groups this line in the proposal, the client portal, and the PDF"
-                    className="w-full sm:w-36 min-w-0 bg-white border py-3 px-4 rounded-xl text-[11px] font-bold text-slate-600 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm"
+                    className="w-full min-w-0 rounded-edge border border-obsidian-900/10 bg-bone-50 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-architect text-graphite-600 outline-none transition-all duration-200 ease-architect focus:border-obsidian-900/45 focus:bg-white sm:w-40"
                   />
                 </div>
 
                 {/* Cost+ Bid vs Actual (post-approval) */}
                 {project?.status === "approved" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1.5">Bid Amount</span>
-                      <p className="text-sm font-black text-slate-800" style={{fontVariantNumeric:'tabular-nums'}}>
+                  <div className="mt-4 grid grid-cols-1 gap-px border border-obsidian-900/10 bg-obsidian-900/10 sm:grid-cols-2">
+                    <div className="bg-white px-4 py-3">
+                      <p className="eyebrow">Bid Amount</p>
+                      <p className="figure mt-1.5 text-[15px]">
                         ${toNum(item.cost || item.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </p>
                     </div>
-                    <div className={`p-3 rounded-xl border ${item.actual_cost != null ? 'bg-emerald-50/50 border-emerald-200' : 'bg-amber-50/50 border-amber-200'}`}>
-                      <span className={`text-[9px] font-black uppercase tracking-wider block mb-1.5 ${item.actual_cost != null ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    <div className={`px-4 py-3 ${item.actual_cost != null ? 'bg-patina-50' : 'bg-brass-50'}`}>
+                      <p className={`eyebrow ${item.actual_cost != null ? 'text-patina-700' : 'text-brass-600'}`}>
                         Actual Cost
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-bold text-slate-400">$</span>
+                      </p>
+                      <div className="mt-1.5 flex items-baseline gap-1">
+                        <span className="font-mono text-[12px] text-graphite-400">$</span>
                         <input
                           type="number"
                           value={item.actual_cost ?? ""}
@@ -1683,12 +1793,12 @@ export default function ProjectWorkspaceControlHub() {
                             updateInlineItemField(idx, "actual_cost", val);
                           }}
                           placeholder="Enter actual"
-                          className="w-full bg-transparent text-sm font-black text-slate-900 outline-none"
-                          style={{fontVariantNumeric:'tabular-nums'}}
+                          title="Actual cost"
+                          className="figure no-spin w-full bg-transparent text-[15px] outline-none placeholder:font-sans placeholder:text-[12px] placeholder:font-normal placeholder:text-graphite-300"
                         />
                       </div>
                       {item.actual_cost != null && (
-                        <p className={`text-[9px] font-bold mt-1 ${toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? 'text-red-500' : 'text-emerald-600'}`}>
+                        <p className={`mt-1 font-mono text-[10px] tabular-nums ${toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? 'text-clay-600' : 'text-patina-700'}`}>
                           {toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? '▲' : '▼'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)).toLocaleString(undefined, {minimumFractionDigits:2})} ({toNum(item.cost || item.mid_cost) > 0 ? ((toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)) / toNum(item.cost || item.mid_cost) * 100).toFixed(1) : '0'}%)
                         </p>
                       )}
@@ -1698,1204 +1808,1320 @@ export default function ProjectWorkspaceControlHub() {
 
                 {/* Dual Column Layout Matrix Split Tier (pre-approval editing) */}
                 {project?.status !== "approved" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                   {/* Standard Mid Tier Configuration Box */}
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 shadow-sm">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Standard Mid-Tier Spec</span>
-                      <div className="flex items-center bg-slate-50 border rounded-lg px-2 gap-1 max-w-[120px]">
-                        <span className="text-[10px] font-bold text-slate-400">$</span>
+                  <div className="border-t border-obsidian-900/10 pt-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="eyebrow">Standard Tier</span>
+                      <div className="flex max-w-[128px] items-center gap-1 rounded-edge border border-obsidian-900/10 bg-white px-2 transition-colors duration-200 ease-architect focus-within:border-obsidian-900/45">
+                        <span className="font-mono text-[10px] text-graphite-300">$</span>
                         <input
                           type="number"
                           value={item.mid_cost || ""}
                           onChange={(e) => updateInlineItemField(idx, "mid_cost", toNum(e.target.value))}
-                          className="w-full bg-transparent py-1.5 text-xs font-black text-slate-900 outline-none text-right"
+                          title="Standard tier cost"
+                          className="no-spin tnum w-full bg-transparent py-1.5 text-right text-[12.5px] font-medium text-obsidian-900 outline-none"
                         />
                       </div>
                     </div>
                     <textarea
                       value={item.mid_description || item.description || ""}
                       onChange={(e) => updateInlineItemField(idx, "mid_description", e.target.value)}
-                      placeholder="Mid-tier grade specification materials context..."
-                      className="w-full bg-slate-50/50 border p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                      placeholder="Standard grade specification and materials..."
+                      title="Standard tier specification"
+                      className="field-sunken mt-2 resize-y text-[12px] leading-relaxed"
                       rows={2}
                     />
                   </div>
 
                   {/* Luxury High Tier Configuration Box */}
-                  <div className="bg-gradient-to-br from-indigo-50/30 to-white p-4 rounded-xl border border-indigo-200/60 space-y-2 shadow-sm">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black text-indigo-600 uppercase tracking-wider">Luxury High-Tier Upgrade</span>
-                      <div className="flex items-center bg-blue-50/30 border border-blue-100 rounded-lg px-2 gap-1 max-w-[120px]">
-                        <span className="text-[10px] font-bold text-blue-400">$</span>
+                  <div className="border-t border-brass-300 pt-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="eyebrow text-brass-600">High Tier Upgrade</span>
+                      <div className="flex max-w-[128px] items-center gap-1 rounded-edge border border-brass-200 bg-white px-2 transition-colors duration-200 ease-architect focus-within:border-brass-500">
+                        <span className="font-mono text-[10px] text-brass-400">$</span>
                         <input
                           type="number"
                           value={item.high_cost || ""}
                           onChange={(e) => updateInlineItemField(idx, "high_cost", toNum(e.target.value))}
-                          className="w-full bg-transparent py-1.5 text-xs font-black text-blue-900 outline-none text-right"
+                          title="High tier cost"
+                          className="no-spin tnum w-full bg-transparent py-1.5 text-right text-[12.5px] font-medium text-obsidian-900 outline-none"
                         />
                       </div>
                     </div>
                     <textarea
                       value={item.high_description || ""}
                       onChange={(e) => updateInlineItemField(idx, "high_description", e.target.value)}
-                      placeholder="High-tier luxury grade premium specification upgrade options..."
-                      className="w-full bg-blue-50/10 border border-blue-50 p-2.5 rounded-lg text-[11px] font-medium text-slate-600 leading-relaxed outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                      placeholder="High tier premium specification and upgrade options..."
+                      title="High tier specification"
+                      className="mt-2 w-full resize-y rounded-edge border border-brass-200 bg-brass-50/40 px-3.5 py-2.5 text-[12px] leading-relaxed text-obsidian-900 outline-none transition-all duration-200 ease-architect placeholder:text-graphite-300 focus:border-brass-500 focus:bg-white focus:ring-[3px] focus:ring-brass-500/10"
                       rows={2}
                     />
                   </div>
                 </div>
                 )}
-
               </div>
-                ))}
-                </div>
-              </div>
-            ))}
-          </div>
 
-          {/* DUAL LAYER INTEGRATED ENTRY ROW INJECTOR COMPONENT FORM */}
-          <form onSubmit={insertNewLineRow} className="border border-blue-100 bg-blue-50/20 p-5 rounded-2xl space-y-4">
-            <div>
-              <h4 className="font-black text-slate-900 uppercase tracking-wide text-[10px] text-blue-600">➕ Add Contract Line Item</h4>
-              <p className="text-slate-400 font-medium text-[10px] mt-0.5">Append an additional operational transaction row containing both tier matrix options directly into the system catalog.</p>
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <input 
-                type="text" 
-                placeholder="Core Specification Group Name (e.g., Backsplash Tile Install)" 
+              ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* DUAL LAYER INTEGRATED ENTRY ROW INJECTOR COMPONENT FORM */}
+        <form onSubmit={insertNewLineRow} className="panel-sunken mt-7 p-4 sm:p-5">
+          <p className="eyebrow-ink">Add Contract Line Item</p>
+          <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-graphite-500">
+            Append a further line with both tier options into the contract ledger.
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-4">
+            <div className="sm:col-span-3">
+              <label htmlFor="new-item-title" className="field-label">Line Title</label>
+              <input
+                id="new-item-title"
+                type="text"
+                placeholder="e.g. Backsplash Tile Install"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="sm:col-span-3 py-3 px-4 bg-white border rounded-xl outline-none font-bold text-xs text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                className="field"
               />
-              <input 
-                type="number" 
-                placeholder="Standard Cost ($)" 
+            </div>
+            <div>
+              <label htmlFor="new-item-cost" className="field-label">Standard $</label>
+              <input
+                id="new-item-cost"
+                type="number"
+                placeholder="0.00"
                 value={newMidCost}
                 onChange={(e) => setNewMidCost(e.target.value)}
-                className="py-3 px-4 bg-white border rounded-xl outline-none font-black text-xs text-slate-800 shadow-sm text-right focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                className="field no-spin tnum text-right"
               />
+            </div>
+            <div className="sm:col-span-4">
+              <label htmlFor="new-item-category" className="field-label">Category</label>
               <input
+                id="new-item-category"
                 type="text"
-                placeholder="Category (e.g., Electrical) — groups this line in the proposal, portal, and PDF"
+                placeholder="e.g. Electrical — groups this line in the proposal, portal, and PDF"
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
-                className="sm:col-span-4 py-3 px-4 bg-white border rounded-xl outline-none font-bold text-xs text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                className="field"
               />
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wide pl-1">Standard Mid-Tier Description</span>
-                <input 
+          <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="new-item-mid-desc" className="field-label">Standard Tier Description</label>
+              <input
+                id="new-item-mid-desc"
+                type="text"
+                placeholder="Standard grade materials and specification..."
+                value={newMidDescription}
+                onChange={(e) => setNewMidDescription(e.target.value)}
+                className="field"
+              />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                <label htmlFor="new-item-high-desc" className="field-label text-brass-600">High Tier Description</label>
+                <span className="mb-1.5 font-mono text-[9.5px] uppercase tracking-architect text-graphite-300">Blank auto-prices at +35%</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  id="new-item-high-desc"
                   type="text"
-                  placeholder="Standard grade materials specifications descriptions details..."
-                  value={newMidDescription}
-                  onChange={(e) => setNewMidDescription(e.target.value)}
-                  className="w-full py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+                  placeholder="Premium upgrade options..."
+                  value={newHighDescription}
+                  onChange={(e) => setNewHighDescription(e.target.value)}
+                  className="field min-w-0 flex-1"
+                />
+                <input
+                  type="number"
+                  placeholder="$"
+                  title="High tier cost"
+                  value={newHighCost}
+                  onChange={(e) => setNewHighCost(e.target.value)}
+                  className="field no-spin tnum w-24 shrink-0 text-right"
                 />
               </div>
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-wide">Luxury High-Tier Upgrade Description</span>
-                  <span className="text-[8px] text-slate-400 font-bold italic">Leave blank to auto-calculate luxury cost tier (+35%)</span>
-                </div>
-                <div className="flex gap-2">
-                  <input 
-                    type="text"
-                    placeholder="Premium luxury upgrade options data metrics description..."
-                    value={newHighDescription}
-                    onChange={(e) => setNewHighDescription(e.target.value)}
-                    className="flex-1 min-w-0 py-3 px-4 bg-white border rounded-xl outline-none font-semibold text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                  />
-                  <input 
-                    type="number"
-                    placeholder="Luxury ($)"
-                    value={newHighCost}
-                    onChange={(e) => setNewHighCost(e.target.value)}
-                    className="w-24 py-3 px-4 bg-white border rounded-xl outline-none font-black text-right text-slate-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                  />
-                </div>
-              </div>
             </div>
+          </div>
 
-            <div className="flex justify-end pt-2">
-              <button 
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
-              >
-                + Add Line Item
-              </button>
-            </div>
-          </form>
+          <div className="mt-5 flex justify-end">
+            <button
+              type="submit"
+              className="btn-ink"
+            >
+              Add Line Item
+            </button>
+          </div>
+        </form>
 
-        </div>
-      </div>
+      </section>
 
       {/* HOMEOWNER SELECTIONS MANAGER */}
       {project && (
-        <div className="max-w-7xl mx-auto px-4 pt-6">
-          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
-            <div className="border-b pb-3 border-slate-100">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                  <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
-                  Homeowner Selections
-                </h3>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const newVal = !project.selections_visible;
-                    setProject((prev: any) => ({ ...prev, selections_visible: newVal }));
-                    const { error } = await supabase.from("invoices").update({ selections_visible: newVal }).eq("id", projectId);
-                    if (error) {
-                      toast("Failed to update visibility: " + error.message, "error");
-                      setProject((prev: any) => ({ ...prev, selections_visible: !newVal }));
-                    } else {
-                      toast(newVal ? "Selections tab is now visible to homeowner" : "Selections tab hidden from homeowner", "success");
-                    }
-                  }}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all duration-200 ${
-                    project.selections_visible
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
-                      : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-                  }`}
-                >
-                  <div className={`relative w-7 h-4 rounded-full transition-colors duration-200 ${project.selections_visible ? 'bg-emerald-500' : 'bg-slate-300'}`}>
-                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform duration-200 ${project.selections_visible ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
-                  </div>
-                  {project.selections_visible ? 'Visible to Client' : 'Hidden from Client'}
-                </button>
-              </div>
-              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Create selection categories for your client (tile, hardware, countertops, etc.). Each category can have multiple options for the homeowner to choose from in their Selections tab.</p>
+        <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+          <div className="title-block">
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">06</span>
+              <h2 className="display-sm">Selections</h2>
             </div>
+            <button
+              type="button"
+              onClick={async () => {
+                const newVal = !project.selections_visible;
+                setProject((prev: any) => ({ ...prev, selections_visible: newVal }));
+                const { error } = await supabase.from("invoices").update({ selections_visible: newVal }).eq("id", projectId);
+                if (error) {
+                  toast("Failed to update visibility: " + error.message, "error");
+                  setProject((prev: any) => ({ ...prev, selections_visible: !newVal }));
+                } else {
+                  toast(newVal ? "Selections tab is now visible to homeowner" : "Selections tab hidden from homeowner", "success");
+                }
+              }}
+              className={`flex shrink-0 items-center gap-2.5 rounded-edge border px-2.5 py-1.5 font-mono text-[10px] font-medium uppercase tracking-architect transition-colors duration-300 ease-architect ${
+                project.selections_visible
+                  ? 'border-patina-200 bg-patina-50 text-patina-700 hover:border-patina-500'
+                  : 'border-obsidian-900/[0.12] bg-white text-graphite-400 hover:border-obsidian-900/30 hover:text-obsidian-900'
+              }`}
+            >
+              <span className={`flex h-4 w-8 rounded-full p-0.5 transition-all duration-300 ease-architect ${project.selections_visible ? 'bg-patina-500 justify-end' : 'bg-bone-300 justify-start'}`}>
+                <span className="h-3 w-3 rounded-full bg-white" />
+              </span>
+              <span className="hidden sm:inline">{project.selections_visible ? 'Visible to Client' : 'Hidden from Client'}</span>
+            </button>
+          </div>
 
-            {/* Existing Categories */}
-            {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
-              <div className="space-y-3">
-                {project.homeowner_options.map((group: any, gIdx: number) => {
-                  const chosen = project?.homeowner_selections?.[group.category];
-                  return (
-                    <div key={gIdx} className="border border-slate-200 rounded-2xl bg-slate-50/30 overflow-hidden">
-                      {/* Category Header */}
-                      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200/60">
-                        {editingCategoryIdx === gIdx ? (
-                          <div className="flex items-center gap-2 flex-1">
-                            <input
-                              type="text"
-                              value={editingCategoryName}
-                              onChange={(e) => setEditingCategoryName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && editingCategoryName.trim()) {
-                                  const updated = [...project.homeowner_options];
-                                  updated[gIdx] = { ...updated[gIdx], category: editingCategoryName.trim() };
-                                  saveSelectionOptions(updated);
-                                  setEditingCategoryIdx(null);
-                                }
-                              }}
-                              autoFocus
-                              className="flex-1 min-w-0 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!editingCategoryName.trim()) return;
+          <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+            Build selection categories — tile, hardware, countertops — each with the options the homeowner chooses from in their Selections tab.
+          </p>
+
+          {/* Existing Categories */}
+          {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
+            <div className="mt-5 border-t border-obsidian-900/10">
+              {project.homeowner_options.map((group: any, gIdx: number) => {
+                const chosen = project?.homeowner_selections?.[group.category];
+                return (
+                  <div key={gIdx} className="border-b border-obsidian-900/[0.07]">
+                    {/* Category Header */}
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-3">
+                      {editingCategoryIdx === gIdx ? (
+                        <div className="flex w-full items-center gap-2">
+                          <input
+                            type="text"
+                            value={editingCategoryName}
+                            onChange={(e) => setEditingCategoryName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && editingCategoryName.trim()) {
                                 const updated = [...project.homeowner_options];
                                 updated[gIdx] = { ...updated[gIdx], category: editingCategoryName.trim() };
                                 saveSelectionOptions(updated);
                                 setEditingCategoryIdx(null);
-                              }}
-                              className="text-[9px] font-black text-emerald-600 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition"
+                              }
+                            }}
+                            autoFocus
+                            title="Category name"
+                            className="field min-w-0 flex-1 py-1.5"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!editingCategoryName.trim()) return;
+                              const updated = [...project.homeowner_options];
+                              updated[gIdx] = { ...updated[gIdx], category: editingCategoryName.trim() };
+                              saveSelectionOptions(updated);
+                              setEditingCategoryIdx(null);
+                            }}
+                            className="btn-ink shrink-0 px-3 py-1.5"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingCategoryIdx(null)}
+                            className="btn-quiet shrink-0"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                          <span className="truncate font-mono text-[10.5px] font-medium uppercase tracking-architect text-obsidian-900">{group.category}</span>
+                          {chosen && (
+                            <span className="badge badge-approved shrink-0">
+                              <span className="badge-dot bg-patina-500" />
+                              {chosen}
+                            </span>
+                          )}
+                          {!chosen && (
+                            <span className="badge badge-pending shrink-0">
+                              <span className="badge-dot bg-brass-400" />
+                              Awaiting Selection
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {editingCategoryIdx !== gIdx && (
+                        <div className="flex shrink-0 items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => { setEditingCategoryIdx(gIdx); setEditingCategoryName(group.category); }}
+                            className="btn-quiet font-mono text-[10px] uppercase tracking-architect"
+                          >
+                            Rename
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!confirm(`Delete "${group.category}" and all its options?`)) return;
+                              const updated = project.homeowner_options.filter((_: any, i: number) => i !== gIdx);
+                              const clearedSelections = { ...(project.homeowner_selections || {}) };
+                              delete clearedSelections[group.category];
+                              saveSelectionOptions(updated, clearedSelections);
+                            }}
+                            className="btn-quiet font-mono text-[10px] uppercase tracking-architect hover:bg-clay-50 hover:text-clay-600"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Choices Grid */}
+                    <div className="pb-4">
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                        {group.choices.map((choice: any, cIdx: number) => {
+                          const choiceLabel = typeof choice === "string" ? choice : choice.label;
+                          const imageUrl = typeof choice === "string" ? undefined : choice.image_url;
+                          const productUrl = typeof choice === "string" ? undefined : choice.product_url;
+                          const isChosen = chosen === choiceLabel;
+                          return (
+                            <div
+                              key={cIdx}
+                              className={`group/choice relative overflow-hidden rounded-edge border transition-all duration-300 ease-architect ${
+                                isChosen
+                                  ? 'border-obsidian-900 bg-obsidian-900 text-bone-50'
+                                  : 'border-obsidian-900/[0.12] bg-white text-graphite-700 hover:border-obsidian-900/35'
+                              } ${imageUrl ? 'sm:w-[148px]' : ''}`}
                             >
-                              Save
+                              {imageUrl && (
+                                <a href={productUrl || imageUrl} target="_blank" rel="noopener noreferrer" className="block">
+                                  <img src={imageUrl} alt={choiceLabel} className="h-[86px] w-full object-cover" />
+                                </a>
+                              )}
+                              <div className="flex items-center gap-1.5 px-3 py-2">
+                                {isChosen && (
+                                  <svg aria-hidden className="h-3 w-3 shrink-0 text-brass-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                  </svg>
+                                )}
+                                <span className="truncate text-[12px] font-medium">{choiceLabel}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!confirm(`Remove "${choiceLabel}" from ${group.category}?`)) return;
+                                    const updated = [...project.homeowner_options];
+                                    updated[gIdx] = {
+                                      ...updated[gIdx],
+                                      choices: updated[gIdx].choices.filter((_: any, ci: number) => ci !== cIdx)
+                                    };
+                                    if (isChosen) {
+                                      const clearedSelections = { ...(project.homeowner_selections || {}) };
+                                      delete clearedSelections[group.category];
+                                      saveSelectionOptions(updated, clearedSelections);
+                                    } else {
+                                      saveSelectionOptions(updated);
+                                    }
+                                  }}
+                                  title={`Remove ${choiceLabel}`}
+                                  className={`ml-auto shrink-0 transition-opacity duration-200 ease-architect focus-visible:opacity-100 sm:opacity-0 sm:group-hover/choice:opacity-100 ${
+                                    isChosen ? 'text-bone-100/50 hover:text-bone-50' : 'text-graphite-300 hover:text-clay-600'
+                                  }`}
+                                >
+                                  <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                              {productUrl && (
+                                <a href={productUrl} target="_blank" rel="noopener noreferrer" className={`block px-3 pb-2 font-mono text-[9.5px] uppercase tracking-architect underline-offset-2 hover:underline ${isChosen ? 'text-brass-300' : 'text-brass-600'}`}>
+                                  Product link
+                                </a>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Add Choice Input */}
+                      {addingChoiceIdx === gIdx ? (
+                        <div className="mt-3 space-y-2 border-t border-obsidian-900/[0.07] pt-3">
+                          {newChoiceImageUrl && (
+                            <div className="flex items-start gap-3">
+                              <img src={newChoiceImageUrl} alt="Sample preview" className="h-20 w-20 rounded-edge border border-obsidian-900/10 object-cover" />
+                              <div className="min-w-0 flex-1">
+                                <p className="eyebrow text-patina-600">Photo attached</p>
+                                <p className="mt-1 truncate font-mono text-[10px] text-graphite-400">{newChoiceImageUrl.split('/').pop()}</p>
+                              </div>
+                            </div>
+                          )}
+                          <input
+                            type="text"
+                            value={newChoiceText}
+                            onChange={(e) => setNewChoiceText(e.target.value)}
+                            autoFocus
+                            placeholder="Option name (required)"
+                            title="Option name"
+                            className="field"
+                          />
+                          <input
+                            type="url"
+                            value={newChoiceImageUrl}
+                            onChange={(e) => setNewChoiceImageUrl(e.target.value)}
+                            placeholder="Image URL (optional — paste manufacturer image link)"
+                            title="Image URL"
+                            className="field-sunken text-[12px]"
+                          />
+                          <input
+                            type="url"
+                            value={newChoiceProductUrl}
+                            onChange={(e) => setNewChoiceProductUrl(e.target.value)}
+                            placeholder="Product page URL (optional — link to manufacturer page)"
+                            title="Product page URL"
+                            className="field-sunken text-[12px]"
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!newChoiceText.trim()) return;
+                                const updated = [...project.homeowner_options];
+                                const newChoice = (newChoiceImageUrl.trim() || newChoiceProductUrl.trim())
+                                  ? { label: newChoiceText.trim(), ...(newChoiceImageUrl.trim() && { image_url: newChoiceImageUrl.trim() }), ...(newChoiceProductUrl.trim() && { product_url: newChoiceProductUrl.trim() }) }
+                                  : newChoiceText.trim();
+                                updated[gIdx] = {
+                                  ...updated[gIdx],
+                                  choices: [...updated[gIdx].choices, newChoice]
+                                };
+                                saveSelectionOptions(updated);
+                                setNewChoiceText("");
+                                setNewChoiceImageUrl("");
+                                setNewChoiceProductUrl("");
+                                setAddingChoiceIdx(null);
+                              }}
+                              disabled={!newChoiceText.trim()}
+                              className="btn-ink shrink-0"
+                            >
+                              Add Option
                             </button>
                             <button
                               type="button"
-                              onClick={() => setEditingCategoryIdx(null)}
-                              className="text-[9px] font-black text-slate-400 hover:text-slate-600 px-2 py-1.5 transition"
+                              onClick={() => { setAddingChoiceIdx(null); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
+                              className="btn-quiet"
                             >
                               Cancel
                             </button>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="w-2 h-2 rounded-full bg-slate-400 shrink-0" />
-                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wide truncate">{group.category}</span>
-                            {chosen && (
-                              <span className="text-[8px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
-                                Selected: {chosen}
-                              </span>
-                            )}
-                            {!chosen && (
-                              <span className="text-[8px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
-                                Awaiting Selection
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {editingCategoryIdx !== gIdx && (
-                          <div className="flex items-center gap-1 shrink-0">
+                        </div>
+                      ) : (
+                        <div className="mt-3">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                             <button
                               type="button"
-                              onClick={() => { setEditingCategoryIdx(gIdx); setEditingCategoryName(group.category); }}
-                              className="text-[9px] font-black text-slate-400 hover:text-slate-700 px-2 py-1 rounded-lg hover:bg-slate-100 transition"
+                              onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
+                              className="inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-500 transition-colors duration-200 ease-architect hover:text-obsidian-900"
                             >
-                              Rename
+                              <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                              Add Option
+                            </button>
+                            <span aria-hidden className="h-3 w-px bg-obsidian-900/10" />
+                            <button
+                              type="button"
+                              disabled={scanningIdx === gIdx}
+                              onClick={() => startScan(gIdx)}
+                              className="inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-architect text-brass-600 transition-colors duration-200 ease-architect hover:text-brass-500 disabled:opacity-40"
+                            >
+                              <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                              {scanningIdx === gIdx ? "Analyzing..." : "Upload / Scan"}
+                            </button>
+                            <span aria-hidden className="h-3 w-px bg-obsidian-900/10" />
+                            <button
+                              type="button"
+                              onClick={() => { setLibrarySearchIdx(librarySearchIdx === gIdx ? null : gIdx); setLibraryQuery(""); setLibraryResults([]); }}
+                              className={`inline-flex items-center gap-1.5 font-mono text-[10px] font-medium uppercase tracking-architect transition-colors duration-200 ease-architect ${librarySearchIdx === gIdx ? 'text-obsidian-900' : 'text-graphite-500 hover:text-obsidian-900'}`}
+                            >
+                              <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                              Reuse From Library
+                            </button>
+                          </div>
+                          <p className="mt-2 text-[11.5px] leading-relaxed text-graphite-400">Upload a photo of a sample — add the back/label photo too so the scan can read the product name.</p>
+                        </div>
+                      )}
+
+                      {/* Scan step: staged photos before submitting to AI */}
+                      {scanStep?.gIdx === gIdx && scanStep.files.length > 0 && (
+                        <div className="mt-3 border-l-2 border-brass-400 bg-brass-50/50 px-4 py-3.5">
+                          <p className="eyebrow text-brass-600">Photos staged for scan</p>
+                          <div className="mt-2.5 flex flex-wrap gap-2">
+                            {scanStep.files.map((f, fIdx) => (
+                              <div key={fIdx} className="relative">
+                                <img
+                                  src={URL.createObjectURL(f)}
+                                  alt={`Photo ${fIdx + 1}`}
+                                  className="h-16 w-16 rounded-edge border border-brass-200 object-cover"
+                                />
+                                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-obsidian-900 font-mono text-[8px] tabular-nums text-bone-50">
+                                  {fIdx + 1}
+                                </span>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={addSecondPhoto}
+                              title="Add another photo"
+                              className="flex h-16 w-16 flex-col items-center justify-center gap-1 rounded-edge border border-dashed border-brass-300 text-brass-500 transition-colors duration-200 ease-architect hover:border-brass-500 hover:text-brass-600"
+                            >
+                              <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                              <span className="font-mono text-[7.5px] uppercase tracking-architect">Add</span>
+                            </button>
+                          </div>
+                          <p className="mt-2.5 text-[11.5px] leading-relaxed text-graphite-500">
+                            {scanStep.files.length === 1 ? "Have a back/label photo? Tap + to add it so the scan can read the product name." : `${scanStep.files.length} photos ready — labels are read from all of them.`}
+                          </p>
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={submitScan}
+                              className="btn-brass"
+                            >
+                              Scan Photos
                             </button>
                             <button
                               type="button"
-                              onClick={() => {
-                                if (!confirm(`Delete "${group.category}" and all its options?`)) return;
-                                const updated = project.homeowner_options.filter((_: any, i: number) => i !== gIdx);
-                                const clearedSelections = { ...(project.homeowner_selections || {}) };
-                                delete clearedSelections[group.category];
-                                saveSelectionOptions(updated, clearedSelections);
+                              onClick={() => setScanStep(null)}
+                              className="btn-quiet"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Library Search Panel */}
+                      {librarySearchIdx === gIdx && (
+                        <div className="mt-3 border-l-2 border-obsidian-900/25 bg-bone-100/70 px-4 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={libraryQuery}
+                              onChange={(e) => searchLibrary(e.target.value)}
+                              autoFocus
+                              placeholder="Search past selections... (e.g. NeoMatte, quartz, grey)"
+                              title="Search the selection library"
+                              className="field min-w-0 flex-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => { setLibrarySearchIdx(null); setLibraryQuery(""); setLibraryResults([]); }}
+                              title="Close library search"
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-edge text-graphite-400 transition-colors duration-200 ease-architect hover:bg-bone-200 hover:text-obsidian-900"
+                            >
+                              <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                          {libraryLoading && <p className="mt-2.5 font-mono text-[10px] uppercase tracking-architect text-graphite-400">Searching...</p>}
+                          {!libraryLoading && libraryQuery && libraryResults.length === 0 && (
+                            <p className="mt-2.5 font-mono text-[10px] uppercase tracking-architect text-graphite-400">No matches in past projects</p>
+                          )}
+                          {libraryResults.length > 0 && (
+                            <div className="mt-2.5 max-h-52 overflow-y-auto scrollbar-none">
+                              {libraryResults.map((item: any, rIdx: number) => (
+                                <button
+                                  key={rIdx}
+                                  type="button"
+                                  onClick={() => addFromLibrary(gIdx, item)}
+                                  className="flex w-full items-center gap-3 border-b border-obsidian-900/[0.07] bg-white px-3 py-2.5 text-left transition-colors duration-200 ease-architect last:border-b-0 hover:bg-bone-50"
+                                >
+                                  {item.image_url && (
+                                    <img src={item.image_url} alt={item.label} className="h-10 w-10 shrink-0 rounded-edge border border-obsidian-900/10 object-cover" />
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-[12.5px] font-medium text-obsidian-900">{item.label}</p>
+                                    <p className="mt-0.5 truncate font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                                      {item.source_category} &middot; {item.source_project}
+                                    </p>
+                                  </div>
+                                  <span className="badge badge-neutral shrink-0">Add</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {(!project?.homeowner_options || project.homeowner_options.length === 0) && (
+            <div className="blueprint-grid mt-5 border border-obsidian-900/10 px-6 py-14 text-center">
+              <p className="display-sm">No selection categories yet</p>
+              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                Add categories below for your client to choose finishes, materials and hardware.
+              </p>
+            </div>
+          )}
+
+          {/* Add New Category */}
+          <div className="mt-6 border-t border-obsidian-900/10 pt-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1">
+                <label htmlFor="new-selection-category" className="field-label">New Selection Category</label>
+                <input
+                  id="new-selection-category"
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newCategoryName.trim()) {
+                      const current = Array.isArray(project?.homeowner_options) ? [...project.homeowner_options] : [];
+                      const duplicate = current.some((g: any) => g.category.toLowerCase() === newCategoryName.trim().toLowerCase());
+                      if (duplicate) return toast("Category already exists.", "info");
+                      const updated = [...current, { category: newCategoryName.trim(), choices: [] }];
+                      saveSelectionOptions(updated);
+                      setNewCategoryName("");
+                      toast(`"${newCategoryName.trim()}" added — now add options for the homeowner to choose from.`, "success");
+                    }
+                  }}
+                  placeholder="e.g. Backsplash Tile, Cabinet Hardware, Countertop Material, Paint Color"
+                  className="field"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={!newCategoryName.trim()}
+                onClick={() => {
+                  if (!newCategoryName.trim()) return;
+                  const current = Array.isArray(project?.homeowner_options) ? [...project.homeowner_options] : [];
+                  const duplicate = current.some((g: any) => g.category.toLowerCase() === newCategoryName.trim().toLowerCase());
+                  if (duplicate) return toast("Category already exists.", "info");
+                  const updated = [...current, { category: newCategoryName.trim(), choices: [] }];
+                  saveSelectionOptions(updated);
+                  setNewCategoryName("");
+                  toast(`"${newCategoryName.trim()}" added — now add options for the homeowner to choose from.`, "success");
+                }}
+                className="btn-ink shrink-0"
+              >
+                Add Category
+              </button>
+            </div>
+          </div>
+
+          {/* Summary row + Send Reminder */}
+          {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
+            <div className="mt-5">
+              <div className="grid grid-cols-2 gap-px border border-obsidian-900/10 bg-obsidian-900/10 sm:grid-cols-4">
+                <div className="bg-white px-4 py-3">
+                  <p className="eyebrow">Categories</p>
+                  <p className="figure mt-1 text-[15px]">{project.homeowner_options.length}</p>
+                </div>
+                <div className="bg-white px-4 py-3">
+                  <p className="eyebrow">Options</p>
+                  <p className="figure mt-1 text-[15px]">{project.homeowner_options.reduce((s: number, g: any) => s + (g.choices?.length || 0), 0)}</p>
+                </div>
+                <div className="bg-white px-4 py-3">
+                  <p className="eyebrow">Selected</p>
+                  <p className="figure mt-1 text-[15px] text-patina-600">
+                    {Object.keys(project?.homeowner_selections || {}).length}
+                  </p>
+                </div>
+                <div className="bg-white px-4 py-3">
+                  <p className="eyebrow">Pending</p>
+                  <p className="figure mt-1 text-[15px] text-brass-500">
+                    {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length}
+                  </p>
+                </div>
+              </div>
+              {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length > 0 && (
+                <button
+                  type="button"
+                  disabled={isSendingSelectionReminder}
+                  onClick={async () => {
+                    if (!project?.homeowner_email) return toast("No email on file for this client.", "error");
+                    setIsSendingSelectionReminder(true);
+                    try {
+                      const res = await fetch("/api/send-selection-reminder", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          invoice_id: projectId,
+                          base_url: window.location.origin,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || "Failed");
+                      toast(`Selection reminder sent to ${data.sent_to} — ${data.pending_count} pending ${data.pending_count === 1 ? 'category' : 'categories'}`, "success");
+                    } catch (err: any) {
+                      toast("Failed to send reminder: " + err.message, "error");
+                    } finally {
+                      setIsSendingSelectionReminder(false);
+                    }
+                  }}
+                  className="btn-outline mt-3 w-full border-brass-200 text-brass-600 hover:border-brass-400 hover:bg-brass-50"
+                >
+                  <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  {isSendingSelectionReminder ? "Sending..." : "Send Selection Reminder"}
+                </button>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* FIELD OPERATIONS DAILY LOG WORKBENCH WITH CAMERA ATTACHMENTS RESTORED */}
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">07</span>
+            <h2 className="display-sm">Field Log</h2>
+          </div>
+          <span className="eyebrow hidden sm:block">Site Record</span>
+        </div>
+
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+          Record site progress and capture photographs straight from the device camera into the client portal.
+        </p>
+
+        <form onSubmit={submitDailyOperationsLog} className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-8">
+          <div className="panel-sunken flex flex-col gap-4 p-4">
+            <div>
+              <label htmlFor="daily-log-notes" className="field-label">Site Progress Notes</label>
+              <textarea
+                id="daily-log-notes"
+                value={dailyNotes}
+                onChange={(e) => setDailyNotes(e.target.value)}
+                placeholder="Describe trade workflow status..."
+                className="field min-h-[96px] resize-y leading-relaxed"
+              />
+
+              {/* IMAGE DROPZONE FIELD INPUT SYSTEM */}
+              <label className="mt-2.5 flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-edge border border-dashed border-obsidian-900/20 px-3 py-2.5 text-center font-mono text-[10px] uppercase tracking-architect text-graphite-500 transition-colors duration-200 ease-architect hover:border-obsidian-900/45 hover:text-obsidian-900">
+                <svg aria-hidden className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" /></svg>
+                <span className="truncate">{attachedPhotoName ? `${attachedPhotoName.slice(0, 20)}...` : "Capture Site Photo"}</span>
+                <input type="file" accept="image/*" capture="environment" onChange={handleDailyLogPhotoLoad} className="hidden" />
+              </label>
+            </div>
+            <button
+              type="submit"
+              disabled={isLogging || (!dailyNotes.trim() && !attachedPhotoBase64)}
+              className="btn-ink w-full py-3"
+            >
+              {isLogging ? "Saving Log..." : "Save Log"}
+            </button>
+          </div>
+
+          <div className="max-h-[320px] overflow-y-auto border-t border-obsidian-900/10 pr-1 scrollbar-none">
+            {Array.isArray(project?.daily_logs) && project.daily_logs.map((log: any, i: number) => (
+              <div key={i} className="border-b border-obsidian-900/[0.07] py-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                  <span className="font-mono text-[10px] font-medium uppercase tracking-architect text-graphite-600">{log.author || "Site Superintendent"}</span>
+                  <span className="font-mono text-[10px] tabular-nums text-graphite-400">{new Date(log.timestamp).toLocaleString()}</span>
+                </div>
+                <div className="mt-2 space-y-3">
+                  {log.notes && <p className="text-[12.5px] leading-relaxed text-graphite-700">{log.notes}</p>}
+                  {log.photo && (
+                    <div className="max-w-xs overflow-hidden rounded-edge border border-obsidian-900/10 bg-white">
+                      <img src={log.photo} alt="Site progress attachment" className="h-auto max-h-44 w-full object-cover" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            {(!project?.daily_logs || project.daily_logs.length === 0) && (
+              <div className="blueprint-grid px-6 py-14 text-center">
+                <p className="display-sm">No field records yet</p>
+                <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                  Entries you save here appear on the homeowner portal timeline.
+                </p>
+              </div>
+            )}
+          </div>
+        </form>
+      </section>
+
+      {/* CONTRACTOR NOTES */}
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">08</span>
+            <h2 className="display-sm">Contractor Notes</h2>
+          </div>
+          <span className="eyebrow hidden sm:block">Internal</span>
+        </div>
+
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+          Private notes for your own reference. Toggle a note visible to share it with the homeowner.
+        </p>
+
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="min-w-0 flex-1">
+            <label htmlFor="new-contractor-note" className="sr-only">New note</label>
+            <textarea
+              id="new-contractor-note"
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              placeholder="Add a note..."
+              rows={2}
+              className="field resize-none leading-relaxed"
+            />
+          </div>
+          <button
+            type="button"
+            disabled={isSavingNote || !newNote.trim()}
+            onClick={async () => {
+              if (!newNote.trim()) return;
+              setIsSavingNote(true);
+              try {
+                const note = { text: newNote.trim(), timestamp: new Date().toISOString(), visible: false };
+                const current = Array.isArray(project?.contractor_notes) ? [...project.contractor_notes] : [];
+                const updated = [note, ...current];
+                const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
+                if (error) throw error;
+                setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
+                setNewNote("");
+                toast("Note saved", "success");
+              } catch (err: any) {
+                toast("Failed to save note: " + err.message, "error");
+              } finally {
+                setIsSavingNote(false);
+              }
+            }}
+            className="btn-ink shrink-0 py-3"
+          >
+            {isSavingNote ? "Saving..." : "Save"}
+          </button>
+        </div>
+
+        <div className="mt-5 max-h-[340px] overflow-y-auto border-t border-obsidian-900/10 scrollbar-none">
+          {Array.isArray(project?.contractor_notes) && project.contractor_notes.map((note: any, i: number) => (
+            <div key={i} className="group relative border-b border-obsidian-900/[0.07] py-3.5 transition-colors duration-300 ease-architect hover:bg-white">
+              <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:gap-4 sm:pl-3">
+                <div className="min-w-0 flex-1">
+                  <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-graphite-700">{note.text}</p>
+                  <p className="mt-1.5 font-mono text-[10px] tabular-nums text-graphite-400">
+                    {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const updated = [...project.contractor_notes];
+                      updated[i] = { ...updated[i], visible: !updated[i].visible };
+                      const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
+                      if (error) { toast("Failed to update visibility", "error"); return; }
+                      setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
+                    }}
+                    className={`badge transition-colors duration-200 ease-architect ${
+                      note.visible
+                        ? "badge-approved hover:bg-patina-100"
+                        : "badge-neutral hover:bg-bone-200"
+                    }`}
+                  >
+                    <svg aria-hidden className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      {note.visible
+                        ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        : <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      }
+                    </svg>
+                    {note.visible ? "Visible" : "Hidden"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm("Delete this note?")) return;
+                      const updated = project.contractor_notes.filter((_: any, idx: number) => idx !== i);
+                      const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
+                      if (error) { toast("Failed to delete note", "error"); return; }
+                      setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
+                    }}
+                    title="Delete note"
+                    className="flex h-7 w-7 items-center justify-center rounded-edge text-graphite-300 transition-all duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                  >
+                    <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {(!project?.contractor_notes || project.contractor_notes.length === 0) && (
+            <div className="blueprint-grid px-6 py-12 text-center">
+              <p className="display-sm">No notes yet</p>
+              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                Keep internal observations about this project here.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Q&A COMMUNICATION THREAD */}
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">09</span>
+            <h2 className="display-sm">Messages</h2>
+          </div>
+          <span className="eyebrow hidden sm:block">Client Thread</span>
+        </div>
+
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+          Messages sent here appear on the homeowner portal — use the thread to answer questions and move toward approval.
+        </p>
+
+        <div className="panel-sunken mt-4 max-h-[340px] space-y-3 overflow-y-auto p-3 scrollbar-none sm:p-4">
+          {Array.isArray(project?.questions) && project.questions.length > 0 ? (
+            project.questions.map((msg: any, i: number) => (
+              <div key={i} className={`flex ${msg.author === "contractor" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[88%] rounded-edge text-[12.5px] leading-relaxed sm:max-w-[75%] ${
+                  msg.author === "contractor"
+                    ? "bg-obsidian-900 text-bone-100"
+                    : "border border-obsidian-900/10 bg-white text-graphite-700"
+                }`}>
+                  {editingQaIndex === i ? (
+                    <div className="space-y-2 px-3.5 py-2.5">
+                      <label htmlFor={`qa-edit-${i}`} className="sr-only">Edit message</label>
+                      <textarea
+                        id={`qa-edit-${i}`}
+                        value={editingQaText}
+                        onChange={(e) => setEditingQaText(e.target.value)}
+                        className="min-h-[52px] w-full rounded-edge border border-white/15 bg-obsidian-800 p-2.5 text-[12.5px] leading-relaxed text-bone-100 outline-none transition-colors duration-200 ease-architect focus:border-white/40"
+                        rows={2}
+                      />
+                      <div className="flex justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingQaIndex(null)}
+                          className="rounded-edge px-2 py-1 font-mono text-[10px] uppercase tracking-architect text-bone-100/50 transition-colors duration-200 ease-architect hover:text-bone-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!editingQaText.trim()) return;
+                            const currentMessages = [...(project?.questions || [])];
+                            currentMessages[i] = { ...currentMessages[i], text: editingQaText.trim(), edited: true };
+                            try {
+                              const { error } = await supabase.from("invoices").update({ questions: currentMessages }).eq("id", projectId);
+                              if (error) throw error;
+                              setProject((prev: any) => ({ ...prev, questions: currentMessages }));
+                              setEditingQaIndex(null);
+                            } catch (err: any) {
+                              toast("Failed to update message: " + err.message, "error");
+                            }
+                          }}
+                          className="rounded-edge border border-white/20 px-2.5 py-1 font-mono text-[10px] uppercase tracking-architect text-brass-300 transition-colors duration-200 ease-architect hover:border-white/45 hover:text-brass-200"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="px-3.5 py-2.5">
+                      {msg.image_url && (
+                        <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="mb-2 block">
+                          <img src={msg.image_url} alt="Attachment" className="max-h-48 max-w-full rounded-edge border border-white/10" />
+                        </a>
+                      )}
+                      {msg.text && <p>{msg.text}{msg.edited && <span className="ml-1.5 font-mono text-[9px] uppercase tracking-architect opacity-50">edited</span>}</p>}
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                        <p className={`font-mono text-[9.5px] uppercase tracking-architect ${msg.author === "contractor" ? "text-bone-100/45" : "text-graphite-400"}`}>
+                          {msg.author === "contractor" ? "You" : project?.homeowner_name || "Homeowner"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                        {msg.author === "contractor" && (
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { setEditingQaIndex(i); setEditingQaText(msg.text); }}
+                              className="font-mono text-[9.5px] uppercase tracking-architect text-bone-100/45 transition-colors duration-200 ease-architect hover:text-bone-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!confirm("Delete this message?")) return;
+                                const currentMessages = [...(project?.questions || [])];
+                                currentMessages.splice(i, 1);
+                                try {
+                                  const { error } = await supabase.from("invoices").update({ questions: currentMessages }).eq("id", projectId);
+                                  if (error) throw error;
+                                  setProject((prev: any) => ({ ...prev, questions: currentMessages }));
+                                } catch (err: any) {
+                                  toast("Failed to delete message: " + err.message, "error");
+                                }
                               }}
-                              className="text-[9px] font-black text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition"
+                              className="font-mono text-[9.5px] uppercase tracking-architect text-clay-200/70 transition-colors duration-200 ease-architect hover:text-clay-100"
                             >
                               Delete
                             </button>
                           </div>
                         )}
                       </div>
-
-                      {/* Choices Grid */}
-                      <div className="px-4 py-3 space-y-2">
-                        <div className="flex flex-wrap gap-2">
-                          {group.choices.map((choice: any, cIdx: number) => {
-                            const choiceLabel = typeof choice === "string" ? choice : choice.label;
-                            const imageUrl = typeof choice === "string" ? undefined : choice.image_url;
-                            const productUrl = typeof choice === "string" ? undefined : choice.product_url;
-                            const isChosen = chosen === choiceLabel;
-                            return (
-                              <div
-                                key={cIdx}
-                                className={`relative rounded-xl border transition-all group/choice overflow-hidden ${
-                                  isChosen
-                                    ? 'bg-slate-900 border-slate-900 text-white'
-                                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                                } ${imageUrl ? 'w-[140px]' : ''}`}
-                              >
-                                {imageUrl && (
-                                  <a href={productUrl || imageUrl} target="_blank" rel="noopener noreferrer" className="block">
-                                    <img src={imageUrl} alt={choiceLabel} className="w-full h-[80px] object-cover" />
-                                  </a>
-                                )}
-                                <div className="flex items-center gap-1.5 px-3 py-2">
-                                  {isChosen && <span className="text-emerald-400 text-[10px]">✓</span>}
-                                  <span className="text-xs font-bold truncate">{choiceLabel}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (!confirm(`Remove "${choiceLabel}" from ${group.category}?`)) return;
-                                      const updated = [...project.homeowner_options];
-                                      updated[gIdx] = {
-                                        ...updated[gIdx],
-                                        choices: updated[gIdx].choices.filter((_: any, ci: number) => ci !== cIdx)
-                                      };
-                                      if (isChosen) {
-                                        const clearedSelections = { ...(project.homeowner_selections || {}) };
-                                        delete clearedSelections[group.category];
-                                        saveSelectionOptions(updated, clearedSelections);
-                                      } else {
-                                        saveSelectionOptions(updated);
-                                      }
-                                    }}
-                                    className={`ml-auto text-[10px] font-black transition opacity-0 group-hover/choice:opacity-100 shrink-0 ${
-                                      isChosen ? 'text-white/50 hover:text-white' : 'text-slate-300 hover:text-red-500'
-                                    }`}
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                                {productUrl && (
-                                  <a href={productUrl} target="_blank" rel="noopener noreferrer" className={`block px-3 pb-2 text-[9px] font-bold underline ${isChosen ? 'text-blue-300' : 'text-blue-500'}`}>
-                                    Product link ↗
-                                  </a>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        {/* Add Choice Input */}
-                        {addingChoiceIdx === gIdx ? (
-                          <div className="space-y-2 pt-1 border-t border-slate-100 mt-1">
-                            {newChoiceImageUrl && (
-                              <div className="flex items-start gap-3">
-                                <img src={newChoiceImageUrl} alt="Sample preview" className="w-20 h-20 rounded-lg object-cover border border-slate-200" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-wide">Photo attached</p>
-                                  <p className="text-[10px] text-slate-400 mt-0.5 truncate">{newChoiceImageUrl.split('/').pop()}</p>
-                                </div>
-                              </div>
-                            )}
-                            <input
-                              type="text"
-                              value={newChoiceText}
-                              onChange={(e) => setNewChoiceText(e.target.value)}
-                              autoFocus
-                              placeholder="Option name (required)"
-                              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                            />
-                            <input
-                              type="url"
-                              value={newChoiceImageUrl}
-                              onChange={(e) => setNewChoiceImageUrl(e.target.value)}
-                              placeholder="Image URL (optional — paste manufacturer image link)"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[11px] text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                            />
-                            <input
-                              type="url"
-                              value={newChoiceProductUrl}
-                              onChange={(e) => setNewChoiceProductUrl(e.target.value)}
-                              placeholder="Product page URL (optional — link to manufacturer page)"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[11px] text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                            />
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (!newChoiceText.trim()) return;
-                                  const updated = [...project.homeowner_options];
-                                  const newChoice = (newChoiceImageUrl.trim() || newChoiceProductUrl.trim())
-                                    ? { label: newChoiceText.trim(), ...(newChoiceImageUrl.trim() && { image_url: newChoiceImageUrl.trim() }), ...(newChoiceProductUrl.trim() && { product_url: newChoiceProductUrl.trim() }) }
-                                    : newChoiceText.trim();
-                                  updated[gIdx] = {
-                                    ...updated[gIdx],
-                                    choices: [...updated[gIdx].choices, newChoice]
-                                  };
-                                  saveSelectionOptions(updated);
-                                  setNewChoiceText("");
-                                  setNewChoiceImageUrl("");
-                                  setNewChoiceProductUrl("");
-                                  setAddingChoiceIdx(null);
-                                }}
-                                disabled={!newChoiceText.trim()}
-                                className="bg-slate-900 text-white font-black text-[9px] px-4 py-2 rounded-lg uppercase tracking-wider transition hover:bg-slate-800 disabled:opacity-30 shrink-0"
-                              >
-                                Add Option
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => { setAddingChoiceIdx(null); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
-                                className="text-slate-400 hover:text-slate-600 font-black text-[10px] px-2 py-2 transition"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="pt-1 space-y-1">
-                            <div className="flex items-center gap-3">
-                              <button
-                                type="button"
-                                onClick={() => { setAddingChoiceIdx(gIdx); setNewChoiceText(""); setNewChoiceImageUrl(""); setNewChoiceProductUrl(""); }}
-                                className="text-[9px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition flex items-center gap-1"
-                              >
-                                <span className="text-[11px]">+</span> Add Option
-                              </button>
-                              <span className="text-slate-200">|</span>
-                              <button
-                                type="button"
-                                disabled={scanningIdx === gIdx}
-                                onClick={() => startScan(gIdx)}
-                                className="text-[9px] font-black text-amber-600 hover:text-amber-800 uppercase tracking-wider transition flex items-center gap-1 disabled:opacity-40"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                {scanningIdx === gIdx ? "Analyzing..." : "Upload / Scan"}
-                              </button>
-                              <span className="text-slate-200">|</span>
-                              <button
-                                type="button"
-                                onClick={() => { setLibrarySearchIdx(librarySearchIdx === gIdx ? null : gIdx); setLibraryQuery(""); setLibraryResults([]); }}
-                                className={`text-[9px] font-black uppercase tracking-wider transition flex items-center gap-1 ${librarySearchIdx === gIdx ? 'text-emerald-700' : 'text-emerald-500 hover:text-emerald-700'}`}
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                Reuse From Library
-                              </button>
-                            </div>
-                            <p className="text-[9px] text-slate-400 pl-0.5">Upload a photo of a sample — add the back/label photo too for AI to read the product name.</p>
-                          </div>
-                        )}
-
-                        {/* Scan step: staged photos before submitting to AI */}
-                        {scanStep?.gIdx === gIdx && scanStep.files.length > 0 && (
-                          <div className="mt-2 border border-amber-200 rounded-xl bg-amber-50/30 p-3 space-y-2">
-                            <p className="text-[9px] font-black text-amber-700 uppercase tracking-wider">Photos staged for AI scan</p>
-                            <div className="flex gap-2">
-                              {scanStep.files.map((f, fIdx) => (
-                                <div key={fIdx} className="relative">
-                                  <img
-                                    src={URL.createObjectURL(f)}
-                                    alt={`Photo ${fIdx + 1}`}
-                                    className="w-16 h-16 rounded-lg object-cover border border-amber-200"
-                                  />
-                                  <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                                    {fIdx + 1}
-                                  </span>
-                                </div>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={addSecondPhoto}
-                                className="w-16 h-16 rounded-lg border-2 border-dashed border-amber-300 flex flex-col items-center justify-center text-amber-500 hover:text-amber-700 hover:border-amber-400 transition"
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                                <span className="text-[7px] font-black uppercase mt-0.5">Add</span>
-                              </button>
-                            </div>
-                            <p className="text-[9px] text-slate-400">
-                              {scanStep.files.length === 1 ? "Have a back/label photo? Tap + to add it so AI can read the product name." : `${scanStep.files.length} photos ready — AI will read labels from all of them.`}
-                            </p>
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={submitScan}
-                                className="bg-amber-500 hover:bg-amber-600 text-white font-black text-[9px] px-4 py-2 rounded-lg uppercase tracking-wider transition"
-                              >
-                                Scan with AI
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setScanStep(null)}
-                                className="text-slate-400 hover:text-slate-600 font-black text-[10px] px-2 py-2 transition"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Library Search Panel */}
-                        {librarySearchIdx === gIdx && (
-                          <div className="mt-2 border border-emerald-200 rounded-xl bg-emerald-50/30 p-3 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={libraryQuery}
-                                onChange={(e) => searchLibrary(e.target.value)}
-                                autoFocus
-                                placeholder="Search past selections... (e.g. NeoMatte, quartz, grey)"
-                                className="flex-1 min-w-0 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => { setLibrarySearchIdx(null); setLibraryQuery(""); setLibraryResults([]); }}
-                                className="text-slate-400 hover:text-slate-600 font-black text-xs p-1 transition"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                            {libraryLoading && <p className="text-[10px] text-slate-400 font-bold">Searching...</p>}
-                            {!libraryLoading && libraryQuery && libraryResults.length === 0 && (
-                              <p className="text-[10px] text-slate-400 font-bold">No matches found in past projects</p>
-                            )}
-                            {libraryResults.length > 0 && (
-                              <div className="max-h-48 overflow-y-auto space-y-1">
-                                {libraryResults.map((item: any, rIdx: number) => (
-                                  <button
-                                    key={rIdx}
-                                    type="button"
-                                    onClick={() => addFromLibrary(gIdx, item)}
-                                    className="w-full flex items-center gap-3 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-lg px-3 py-2 text-left transition-all"
-                                  >
-                                    {item.image_url && (
-                                      <img src={item.image_url} alt={item.label} className="w-10 h-10 rounded-md object-cover border border-slate-200 shrink-0" />
-                                    )}
-                                    <div className="min-w-0 flex-1">
-                                      <p className="text-xs font-bold text-slate-900 truncate">{item.label}</p>
-                                      <p className="text-[9px] text-slate-400 truncate">
-                                        {item.source_category} &middot; {item.source_project}
-                                      </p>
-                                    </div>
-                                    <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md uppercase shrink-0">
-                                      + Add
-                                    </span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Empty State */}
-            {(!project?.homeowner_options || project.homeowner_options.length === 0) && (
-              <div className="text-center py-8 space-y-2">
-                <div className="w-12 h-12 rounded-full bg-slate-100 mx-auto flex items-center justify-center border border-slate-200">
-                  <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                  )}
                 </div>
-                <p className="text-xs font-bold text-slate-500">No selection categories yet</p>
-                <p className="text-[10px] text-slate-400">Add categories below for your client to choose finishes, materials, hardware, etc.</p>
               </div>
-            )}
-
-            {/* Add New Category */}
-            <div className="border-t border-slate-100 pt-4">
-              <div className="flex items-end gap-3">
-                <div className="flex-1 space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">New Selection Category</label>
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newCategoryName.trim()) {
-                        const current = Array.isArray(project?.homeowner_options) ? [...project.homeowner_options] : [];
-                        const duplicate = current.some((g: any) => g.category.toLowerCase() === newCategoryName.trim().toLowerCase());
-                        if (duplicate) return toast("Category already exists.", "info");
-                        const updated = [...current, { category: newCategoryName.trim(), choices: [] }];
-                        saveSelectionOptions(updated);
-                        setNewCategoryName("");
-                        toast(`"${newCategoryName.trim()}" added — now add options for the homeowner to choose from.`, "success");
-                      }
-                    }}
-                    placeholder="e.g. Backsplash Tile, Cabinet Hardware, Countertop Material, Paint Color"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={!newCategoryName.trim()}
-                  onClick={() => {
-                    if (!newCategoryName.trim()) return;
-                    const current = Array.isArray(project?.homeowner_options) ? [...project.homeowner_options] : [];
-                    const duplicate = current.some((g: any) => g.category.toLowerCase() === newCategoryName.trim().toLowerCase());
-                    if (duplicate) return toast("Category already exists.", "info");
-                    const updated = [...current, { category: newCategoryName.trim(), choices: [] }];
-                    saveSelectionOptions(updated);
-                    setNewCategoryName("");
-                    toast(`"${newCategoryName.trim()}" added — now add options for the homeowner to choose from.`, "success");
-                  }}
-                  className="bg-slate-900 hover:bg-slate-800 disabled:opacity-30 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
-                >
-                  + Add Category
-                </button>
-              </div>
+            ))
+          ) : (
+            <div className="blueprint-grid px-6 py-12 text-center">
+              <p className="display-sm">No messages yet</p>
+              <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+                Open the conversation to guide your client toward approval.
+              </p>
             </div>
-
-            {/* Summary row + Send Reminder */}
-            {Array.isArray(project?.homeowner_options) && project.homeowner_options.length > 0 && (
-              <div className="space-y-2">
-                <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500">
-                    <span>{project.homeowner_options.length} {project.homeowner_options.length === 1 ? 'category' : 'categories'}</span>
-                    <span className="text-slate-300">|</span>
-                    <span>{project.homeowner_options.reduce((s: number, g: any) => s + (g.choices?.length || 0), 0)} total options</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-[10px] font-bold">
-                    <span className="text-emerald-600">
-                      {Object.keys(project?.homeowner_selections || {}).length} selected
-                    </span>
-                    <span className="text-amber-600">
-                      {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length} pending
-                    </span>
-                  </div>
-                </div>
-                {project.homeowner_options.length - Object.keys(project?.homeowner_selections || {}).length > 0 && (
-                  <button
-                    type="button"
-                    disabled={isSendingSelectionReminder}
-                    onClick={async () => {
-                      if (!project?.homeowner_email) return toast("No email on file for this client.", "error");
-                      setIsSendingSelectionReminder(true);
-                      try {
-                        const res = await fetch("/api/send-selection-reminder", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            invoice_id: projectId,
-                            base_url: window.location.origin,
-                          }),
-                        });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error || "Failed");
-                        toast(`Selection reminder sent to ${data.sent_to} — ${data.pending_count} pending ${data.pending_count === 1 ? 'category' : 'categories'}`, "success");
-                      } catch (err: any) {
-                        toast("Failed to send reminder: " + err.message, "error");
-                      } finally {
-                        setIsSendingSelectionReminder(false);
-                      }
-                    }}
-                    className="w-full flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-black text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 outline-none disabled:opacity-40"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                    {isSendingSelectionReminder ? "Sending..." : "Send Selection Reminder Email"}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
-      )}
 
-      {/* FIELD OPERATIONS DAILY LOG WORKBENCH WITH CAMERA ATTACHMENTS RESTORED */}
-      <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-6">
-          <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Daily Log</h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Record construction notes, site progress logs, and snap layout photos straight from your device camera into the client portal.</p>
-          </div>
-
-          <form onSubmit={submitDailyOperationsLog} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-slate-50 border p-4 rounded-2xl flex flex-col gap-4">
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">LOG SITE PROGRESS NOTES:</label>
-                <textarea 
-                  value={dailyNotes}
-                  onChange={(e) => setDailyNotes(e.target.value)}
-                  placeholder="Describe trade workflow status..." 
-                  className="w-full bg-white border py-3 px-4 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all min-h-[90px] shadow-sm mb-2"
-                />
-
-                {/* IMAGE DROPZONE FIELD INPUT SYSTEM */}
-                <label className="w-full block bg-white border border-slate-200 hover:border-slate-400 px-3 py-2.5 rounded-xl shadow-sm text-center font-bold text-[11px] text-slate-600 cursor-pointer transition-colors whitespace-nowrap overflow-hidden text-ellipsis">
-                  {attachedPhotoName ? `📷 ${attachedPhotoName.slice(0, 20)}...` : "📸 Capture Site Progress Photo"}
-                  <input type="file" accept="image/*" capture="environment" onChange={handleDailyLogPhotoLoad} className="hidden" />
-                </label>
-              </div>
-              <button 
-                type="submit"
-                disabled={isLogging || (!dailyNotes.trim() && !attachedPhotoBase64)}
-                className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition-all duration-200 hover:shadow-md shadow-sm"
-              >
-                {isLogging ? "SAVING LOG..." : "Save Log"}
-              </button>
-            </div>
-            
-            <div className="lg:col-span-2 border border-slate-100 rounded-2xl p-4 max-h-[250px] overflow-y-auto space-y-4 bg-white divide-y divide-slate-100">
-              {Array.isArray(project?.daily_logs) && project.daily_logs.map((log: any, i: number) => (
-                <div key={i} className="text-xs pt-3 first:pt-0">
-                  <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1.5">
-                    <span>👷‍♂️ {log.author || "Site Superintendent"}</span>
-                    <span>{new Date(log.timestamp).toLocaleString()}</span>
-                  </div>
-                  <div className="bg-slate-50/50 p-3 rounded-xl border border-slate-100 space-y-3">
-                    {log.notes && <p className="text-slate-700 font-medium leading-relaxed">{log.notes}</p>}
-                    {log.photo && (
-                      <div className="max-w-xs border rounded-lg overflow-hidden bg-white shadow-sm">
-                        <img src={log.photo} alt="Site Progress attachment data stream" className="w-full h-auto object-cover max-h-40" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {(!project?.daily_logs || project.daily_logs.length === 0) && (
-                <p className="text-center italic text-slate-400 text-xs pt-16">No field records submitted to the ledger index timeline yet.</p>
-              )}
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* CONTRACTOR NOTES */}
-      <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
-          <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Contractor Notes</h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Private notes for your reference. Toggle visibility per note to share with the homeowner.</p>
-          </div>
-
-          <div className="flex gap-2">
-            <textarea
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Add a note..."
-              rows={2}
-              className="flex-1 min-w-0 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm resize-none"
-            />
+        {qaAttachment && (
+          <div className="mt-3 flex items-center gap-3 rounded-edge border border-obsidian-900/10 bg-white px-3 py-2">
+            <img src={qaAttachment.preview} alt="Attached" className="h-12 w-12 rounded-edge border border-obsidian-900/10 object-cover" />
+            <span className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-graphite-600">{qaAttachment.file.name}</span>
             <button
               type="button"
-              disabled={isSavingNote || !newNote.trim()}
-              onClick={async () => {
-                if (!newNote.trim()) return;
-                setIsSavingNote(true);
-                try {
-                  const note = { text: newNote.trim(), timestamp: new Date().toISOString(), visible: false };
-                  const current = Array.isArray(project?.contractor_notes) ? [...project.contractor_notes] : [];
-                  const updated = [note, ...current];
-                  const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
-                  if (error) throw error;
-                  setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
-                  setNewNote("");
-                  toast("Note saved", "success");
-                } catch (err: any) {
-                  toast("Failed to save note: " + err.message, "error");
-                } finally {
-                  setIsSavingNote(false);
-                }
-              }}
-              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0 self-end"
+              onClick={() => { URL.revokeObjectURL(qaAttachment.preview); setQaAttachment(null); }}
+              title="Remove attachment"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-graphite-300 transition-colors duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600"
             >
-              {isSavingNote ? "Saving..." : "Save"}
+              <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
+        )}
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!qaMessage.trim() && !qaAttachment) return;
+            setIsSendingQa(true);
+            try {
+              let imageUrl = "";
+              if (qaAttachment) {
+                const file = qaAttachment.file;
+                const arrayBuffer = await file.arrayBuffer();
+                const filePath = `messages/${projectId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                const { error: uploadErr } = await supabase.storage
+                  .from("project-photos")
+                  .upload(filePath, new Uint8Array(arrayBuffer), { contentType: file.type || "image/jpeg" });
+                if (!uploadErr) {
+                  const { data: urlData } = supabase.storage.from("project-photos").getPublicUrl(filePath);
+                  imageUrl = urlData.publicUrl;
+                } else {
+                  console.error("Message photo upload failed:", uploadErr.message);
+                }
+                URL.revokeObjectURL(qaAttachment.preview);
+                setQaAttachment(null);
+              }
+              const newMsg: any = { text: qaMessage.trim(), author: "contractor", timestamp: new Date().toISOString() };
+              if (imageUrl) newMsg.image_url = imageUrl;
+              const currentMessages = Array.isArray(project?.questions) ? [...project.questions] : [];
+              const updated = [...currentMessages, newMsg];
+              const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", projectId);
+              if (error) throw error;
+              setProject((prev: any) => ({ ...prev, questions: updated }));
+              if (project?.homeowner_email) {
+                fetch("/api/send-message-notification", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    homeowner_name: project.homeowner_name,
+                    homeowner_email: project.homeowner_email,
+                    project_title: project.project_title,
+                    job_address: project.job_address,
+                    message_text: newMsg.text || "Sent a photo",
+                    portal_url: `${window.location.origin}/invoice/${projectId}`,
+                  }),
+                }).catch(() => {});
+              }
+              setQaMessage("");
+            } catch (err: any) {
+              toast("Failed to send message: " + err.message, "error");
+            } finally {
+              setIsSendingQa(false);
+            }
+          }}
+          className="mt-3 flex items-center gap-2"
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const input = document.createElement("input");
+              input.type = "file";
+              input.accept = "image/*";
+              input.onchange = (ev) => {
+                const f = (ev.target as HTMLInputElement).files?.[0];
+                if (f) {
+                  if (qaAttachment) URL.revokeObjectURL(qaAttachment.preview);
+                  setQaAttachment({ file: f, preview: URL.createObjectURL(f) });
+                }
+              };
+              input.click();
+            }}
+            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-edge border border-obsidian-900/15 bg-white text-graphite-500 transition-colors duration-200 ease-architect hover:border-obsidian-900/40 hover:bg-bone-50 hover:text-obsidian-900"
+            title="Attach photo"
+          >
+            <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          </button>
+          <label htmlFor="qa-message" className="sr-only">Reply to client</label>
+          <input
+            id="qa-message"
+            type="text"
+            value={qaMessage}
+            onChange={(e) => setQaMessage(e.target.value)}
+            placeholder="Type a reply to your client..."
+            className="field min-w-0 flex-1"
+          />
+          <button
+            type="submit"
+            disabled={isSendingQa || (!qaMessage.trim() && !qaAttachment)}
+            className="btn-ink shrink-0 px-4"
+          >
+            {isSendingQa ? "Sending..." : "Send"}
+          </button>
+        </form>
+      </section>
 
-          <div className="space-y-2 max-h-[320px] overflow-y-auto">
-            {Array.isArray(project?.contractor_notes) && project.contractor_notes.map((note: any, i: number) => (
-              <div key={i} className="bg-slate-50/50 border border-slate-100 rounded-xl p-3 group">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">{note.text}</p>
-                    <p className="text-[9px] font-bold text-slate-400 mt-1.5">
-                      {new Date(note.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+      {/* PROJECT DOCUMENTS UPLOAD */}
+      <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+        <div className="title-block">
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">10</span>
+            <h2 className="display-sm">Documents</h2>
+          </div>
+          <span className="eyebrow hidden sm:block">Drawing Set</span>
+        </div>
+
+        <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+          Contracts, permits and plans uploaded here appear in the homeowner&apos;s Docs tab.
+        </p>
+
+        <label className={`mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-edge border border-dashed border-obsidian-900/20 py-5 transition-colors duration-200 ease-architect hover:border-obsidian-900/45 ${isUploadingDoc ? 'pointer-events-none opacity-50' : ''}`}>
+          <svg aria-hidden className="h-4 w-4 text-graphite-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /></svg>
+          <span className="font-mono text-[10px] uppercase tracking-architect text-graphite-500">{isUploadingDoc ? "Uploading..." : "Upload Document"}</span>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.heic"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setIsUploadingDoc(true);
+              try {
+                const filePath = `project-docs/${projectId}/${Date.now()}-${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                  .from("project-photos")
+                  .upload(filePath, file);
+                if (uploadError) throw uploadError;
+                const { data: urlData } = supabase.storage
+                  .from("project-photos")
+                  .getPublicUrl(filePath);
+                const docEntry = {
+                  name: file.name,
+                  url: urlData.publicUrl,
+                  uploaded_at: new Date().toISOString(),
+                  size: file.size
+                };
+                const currentDocs = Array.isArray(project?.documents) ? [...project.documents] : [];
+                const updatedDocs = [...currentDocs, docEntry];
+                const { error } = await supabase.from("invoices").update({ documents: updatedDocs }).eq("id", projectId);
+                if (error) throw error;
+                setProject((prev: any) => ({ ...prev, documents: updatedDocs }));
+                toast("Document uploaded", "success");
+              } catch (err: any) {
+                toast("Upload failed: " + err.message, "error");
+              } finally {
+                setIsUploadingDoc(false);
+                e.target.value = "";
+              }
+            }}
+          />
+        </label>
+
+        {Array.isArray(project?.documents) && project.documents.length > 0 ? (
+          <div className="mt-5 border-t border-obsidian-900/10">
+            {project.documents.map((doc: any, i: number) => (
+              <div key={i} className="group relative flex items-center justify-between gap-3 border-b border-obsidian-900/[0.07] py-3 transition-colors duration-300 ease-architect hover:bg-white">
+                <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                <div className="flex min-w-0 items-center gap-3 sm:pl-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-edge border border-obsidian-900/[0.12] bg-bone-100 font-mono text-[9px] uppercase tracking-architect text-graphite-500">{doc.name?.split('.').pop()?.slice(0, 4)}</span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[12.5px] font-medium text-obsidian-900">{doc.name}</p>
+                    <p className="mt-0.5 font-mono text-[9.5px] uppercase tracking-architect text-graphite-400">
+                      {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const updated = [...project.contractor_notes];
-                        updated[i] = { ...updated[i], visible: !updated[i].visible };
-                        const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
-                        if (error) { toast("Failed to update visibility", "error"); return; }
-                        setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
-                      }}
-                      className={`flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-lg border transition-all ${
-                        note.visible
-                          ? "bg-sage-50 text-sage-700 border-sage-200 hover:bg-sage-100"
-                          : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
-                      }`}
-                    >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        {note.visible
-                          ? <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          : <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        }
-                      </svg>
-                      {note.visible ? "Visible" : "Hidden"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!confirm("Delete this note?")) return;
-                        const updated = project.contractor_notes.filter((_: any, idx: number) => idx !== i);
-                        const { error } = await supabase.from("invoices").update({ contractor_notes: updated }).eq("id", projectId);
-                        if (error) { toast("Failed to delete note", "error"); return; }
-                        setProject((prev: any) => ({ ...prev, contractor_notes: updated }));
-                      }}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-[9px] font-black px-1.5 py-1 transition-all"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <a
+                    href={doc.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-outline px-3 py-1.5 font-mono text-[10px] uppercase tracking-architect"
+                  >
+                    View
+                  </a>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm(`Remove "${doc.name}"?`)) return;
+                      const updatedDocs = project.documents.filter((_: any, idx: number) => idx !== i);
+                      setProject((prev: any) => ({ ...prev, documents: updatedDocs }));
+                      const { error } = await supabase.from("invoices").update({ documents: updatedDocs }).eq("id", projectId);
+                      if (error) toast("Failed to remove: " + error.message, "error");
+                    }}
+                    title={`Remove ${doc.name}`}
+                    className="flex h-7 w-7 items-center justify-center rounded-edge text-graphite-300 transition-all duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                  >
+                    <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             ))}
-            {(!project?.contractor_notes || project.contractor_notes.length === 0) && (
-              <p className="text-center italic text-slate-400 text-xs py-8">No notes yet. Add internal notes about this project.</p>
-            )}
           </div>
-        </div>
-      </div>
-
-      {/* Q&A COMMUNICATION THREAD */}
-      <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
-          <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Messages</h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Messages sent here appear on the homeowner portal. Use this to answer questions and drive toward proposal approval.</p>
+        ) : (
+          <div className="blueprint-grid mt-5 border border-obsidian-900/10 px-6 py-12 text-center">
+            <p className="display-sm">No documents yet</p>
+            <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-graphite-500">
+              Upload contracts, permits and plan sets for the client record.
+            </p>
           </div>
-
-          <div className="border border-slate-100 rounded-2xl max-h-[320px] overflow-y-auto p-4 space-y-3 bg-slate-50/30">
-            {Array.isArray(project?.questions) && project.questions.length > 0 ? (
-              project.questions.map((msg: any, i: number) => (
-                <div key={i} className={`flex ${msg.author === "contractor" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
-                    msg.author === "contractor"
-                      ? "bg-slate-900 text-white rounded-br-md"
-                      : "bg-white border border-slate-200 text-slate-800 rounded-bl-md"
-                  }`}>
-                    {editingQaIndex === i ? (
-                      <div className="px-4 py-2.5 space-y-2">
-                        <textarea
-                          value={editingQaText}
-                          onChange={(e) => setEditingQaText(e.target.value)}
-                          className="w-full bg-slate-800 text-white border border-slate-700 p-2 rounded-lg text-xs font-bold outline-none focus:border-slate-500 min-h-[48px]"
-                          rows={2}
-                        />
-                        <div className="flex gap-1.5 justify-end">
-                          <button
-                            type="button"
-                            onClick={() => setEditingQaIndex(null)}
-                            className="text-[9px] font-black text-slate-400 hover:text-slate-300 px-2 py-1 rounded transition"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (!editingQaText.trim()) return;
-                              const currentMessages = [...(project?.questions || [])];
-                              currentMessages[i] = { ...currentMessages[i], text: editingQaText.trim(), edited: true };
-                              try {
-                                const { error } = await supabase.from("invoices").update({ questions: currentMessages }).eq("id", projectId);
-                                if (error) throw error;
-                                setProject((prev: any) => ({ ...prev, questions: currentMessages }));
-                                setEditingQaIndex(null);
-                              } catch (err: any) {
-                                toast("Failed to update message: " + err.message, "error");
-                              }
-                            }}
-                            className="text-[9px] font-black text-emerald-400 hover:text-emerald-300 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg transition"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="px-4 py-2.5">
-                        {msg.image_url && (
-                          <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="block mb-2">
-                            <img src={msg.image_url} alt="Attachment" className="max-w-full max-h-48 rounded-lg border border-white/10" />
-                          </a>
-                        )}
-                        {msg.text && <p>{msg.text}{msg.edited && <span className="text-[8px] ml-1 opacity-50">(edited)</span>}</p>}
-                        <div className="flex items-center justify-between mt-1.5">
-                          <p className={`text-[9px] font-bold ${msg.author === "contractor" ? "text-slate-400" : "text-slate-400"}`}>
-                            {msg.author === "contractor" ? "You" : project?.homeowner_name || "Homeowner"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                          </p>
-                          {msg.author === "contractor" && (
-                            <div className="flex gap-1.5 ml-3">
-                              <button
-                                type="button"
-                                onClick={() => { setEditingQaIndex(i); setEditingQaText(msg.text); }}
-                                className="text-[9px] font-bold text-slate-500 hover:text-white transition"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={async () => {
-                                  if (!confirm("Delete this message?")) return;
-                                  const currentMessages = [...(project?.questions || [])];
-                                  currentMessages.splice(i, 1);
-                                  try {
-                                    const { error } = await supabase.from("invoices").update({ questions: currentMessages }).eq("id", projectId);
-                                    if (error) throw error;
-                                    setProject((prev: any) => ({ ...prev, questions: currentMessages }));
-                                  } catch (err: any) {
-                                    toast("Failed to delete message: " + err.message, "error");
-                                  }
-                                }}
-                                className="text-[9px] font-bold text-red-400/60 hover:text-red-400 transition"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center italic text-slate-400 text-xs py-8">No messages yet. Start the conversation to guide your client toward approval.</p>
-            )}
-          </div>
-
-          {qaAttachment && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
-              <img src={qaAttachment.preview} alt="Attached" className="w-12 h-12 object-cover rounded-lg border border-slate-200" />
-              <span className="text-[10px] font-bold text-slate-600 truncate flex-1">{qaAttachment.file.name}</span>
-              <button type="button" onClick={() => { URL.revokeObjectURL(qaAttachment.preview); setQaAttachment(null); }} className="text-red-400 hover:text-red-600 text-xs font-black">✕</button>
-            </div>
-          )}
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!qaMessage.trim() && !qaAttachment) return;
-              setIsSendingQa(true);
-              try {
-                let imageUrl = "";
-                if (qaAttachment) {
-                  const file = qaAttachment.file;
-                  const arrayBuffer = await file.arrayBuffer();
-                  const filePath = `messages/${projectId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-                  const { error: uploadErr } = await supabase.storage
-                    .from("project-photos")
-                    .upload(filePath, new Uint8Array(arrayBuffer), { contentType: file.type || "image/jpeg" });
-                  if (!uploadErr) {
-                    const { data: urlData } = supabase.storage.from("project-photos").getPublicUrl(filePath);
-                    imageUrl = urlData.publicUrl;
-                  } else {
-                    console.error("Message photo upload failed:", uploadErr.message);
-                  }
-                  URL.revokeObjectURL(qaAttachment.preview);
-                  setQaAttachment(null);
-                }
-                const newMsg: any = { text: qaMessage.trim(), author: "contractor", timestamp: new Date().toISOString() };
-                if (imageUrl) newMsg.image_url = imageUrl;
-                const currentMessages = Array.isArray(project?.questions) ? [...project.questions] : [];
-                const updated = [...currentMessages, newMsg];
-                const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", projectId);
-                if (error) throw error;
-                setProject((prev: any) => ({ ...prev, questions: updated }));
-                if (project?.homeowner_email) {
-                  fetch("/api/send-message-notification", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      homeowner_name: project.homeowner_name,
-                      homeowner_email: project.homeowner_email,
-                      project_title: project.project_title,
-                      job_address: project.job_address,
-                      message_text: newMsg.text || "Sent a photo",
-                      portal_url: `${window.location.origin}/invoice/${projectId}`,
-                    }),
-                  }).catch(() => {});
-                }
-                setQaMessage("");
-              } catch (err: any) {
-                toast("Failed to send message: " + err.message, "error");
-              } finally {
-                setIsSendingQa(false);
-              }
-            }}
-            className="flex gap-2 items-end"
-          >
-            <button
-              type="button"
-              onClick={() => {
-                const input = document.createElement("input");
-                input.type = "file";
-                input.accept = "image/*";
-                input.onchange = (ev) => {
-                  const f = (ev.target as HTMLInputElement).files?.[0];
-                  if (f) {
-                    if (qaAttachment) URL.revokeObjectURL(qaAttachment.preview);
-                    setQaAttachment({ file: f, preview: URL.createObjectURL(f) });
-                  }
-                };
-                input.click();
-              }}
-              className="bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-500 hover:text-slate-700 p-3 rounded-xl transition-all shrink-0"
-              title="Attach photo"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            </button>
-            <input
-              type="text"
-              value={qaMessage}
-              onChange={(e) => setQaMessage(e.target.value)}
-              placeholder="Type a reply to your client..."
-              className="flex-1 min-w-0 py-3 px-4 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all shadow-sm"
-            />
-            <button
-              type="submit"
-              disabled={isSendingQa || (!qaMessage.trim() && !qaAttachment)}
-              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-5 py-3 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm shrink-0"
-            >
-              {isSendingQa ? "Sending..." : "Send"}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      {/* PROJECT DOCUMENTS UPLOAD */}
-      <div className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
-          <div className="border-b pb-3 border-slate-100">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Documents</h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">Upload contracts, permits, plans, and other project documents. These appear in the homeowner's Docs tab.</p>
-          </div>
-
-          <label className={`flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-xl py-4 cursor-pointer transition-all ${isUploadingDoc ? 'opacity-50 pointer-events-none' : ''}`}>
-            <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 0l-3 3m3-3l3 3M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /></svg>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{isUploadingDoc ? "Uploading..." : "Upload Document"}</span>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.heic"
-              className="hidden"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setIsUploadingDoc(true);
-                try {
-                  const filePath = `project-docs/${projectId}/${Date.now()}-${file.name}`;
-                  const { error: uploadError } = await supabase.storage
-                    .from("project-photos")
-                    .upload(filePath, file);
-                  if (uploadError) throw uploadError;
-                  const { data: urlData } = supabase.storage
-                    .from("project-photos")
-                    .getPublicUrl(filePath);
-                  const docEntry = {
-                    name: file.name,
-                    url: urlData.publicUrl,
-                    uploaded_at: new Date().toISOString(),
-                    size: file.size
-                  };
-                  const currentDocs = Array.isArray(project?.documents) ? [...project.documents] : [];
-                  const updatedDocs = [...currentDocs, docEntry];
-                  const { error } = await supabase.from("invoices").update({ documents: updatedDocs }).eq("id", projectId);
-                  if (error) throw error;
-                  setProject((prev: any) => ({ ...prev, documents: updatedDocs }));
-                  toast("Document uploaded", "success");
-                } catch (err: any) {
-                  toast("Upload failed: " + err.message, "error");
-                } finally {
-                  setIsUploadingDoc(false);
-                  e.target.value = "";
-                }
-              }}
-            />
-          </label>
-
-          {Array.isArray(project?.documents) && project.documents.length > 0 ? (
-            <div className="divide-y divide-slate-100">
-              {project.documents.map((doc: any, i: number) => (
-                <div key={i} className="flex items-center justify-between py-2.5 group">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center shrink-0">
-                      <span className="text-[9px] font-black text-slate-500 uppercase">{doc.name?.split('.').pop()?.slice(0, 4)}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-800 truncate">{doc.name}</p>
-                      <p className="text-[9px] text-slate-400 font-medium">
-                        {new Date(doc.uploaded_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        {doc.size && ` · ${(doc.size / 1024).toFixed(0)} KB`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[9px] px-2.5 py-1 rounded-lg uppercase tracking-wider transition outline-none"
-                    >
-                      View
-                    </a>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!confirm(`Remove "${doc.name}"?`)) return;
-                        const updatedDocs = project.documents.filter((_: any, idx: number) => idx !== i);
-                        setProject((prev: any) => ({ ...prev, documents: updatedDocs }));
-                        const { error } = await supabase.from("invoices").update({ documents: updatedDocs }).eq("id", projectId);
-                        if (error) toast("Failed to remove: " + error.message, "error");
-                      }}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 text-xs font-black transition-all p-1"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center italic text-slate-400 text-xs py-4">No documents uploaded yet.</p>
-          )}
-        </div>
-      </div>
+        )}
+      </section>
 
       {/* CHANGE ORDERS — only post-approval */}
       {project?.status === "approved" && (
-        <div className="max-w-7xl mx-auto px-4 pt-6">
-          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.03)] space-y-5">
-            <div className="border-b pb-3 border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Change Orders</h3>
-              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Create scope modifications with AI-generated line items. Deployed change orders appear on the homeowner portal for approval.</p>
+        <section className="mx-auto max-w-6xl px-4 pt-9 sm:px-8">
+          <div className="title-block">
+            <div className="flex items-baseline gap-3">
+              <span className="font-mono text-[10px] font-medium tracking-architect text-brass-500">11</span>
+              <h2 className="display-sm">Change Orders</h2>
             </div>
+            <span className="eyebrow hidden sm:block">Post-Contract</span>
+          </div>
 
-            {/* Existing Change Orders */}
-            {changeOrders.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Deployed Change Orders</p>
-                {changeOrders.map((co: any) => (
-                  <div key={co.id} className="flex items-center justify-between bg-slate-50/50 border border-slate-200/60 rounded-xl p-3 text-xs">
-                    <div className="space-y-0.5 min-w-0">
-                      {co.proposal_number && (
-                        <p className="font-mono text-[9px] font-black text-slate-400 tracking-widest">{co.proposal_number}</p>
-                      )}
-                      <p className="font-bold text-slate-800 truncate">{co.description || co.project_title || "Change Order"}</p>
-                      <div className="flex gap-1.5">
-                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md border ${co.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'}`}>
-                          {co.status === 'approved' ? 'Approved' : 'Pending'}
+          <p className="max-w-2xl text-[12.5px] leading-relaxed text-graphite-500">
+            Draft scope modifications with AI-generated line items. Deployed change orders appear on the homeowner portal for approval.
+          </p>
+
+          {/* Existing Change Orders */}
+          {changeOrders.length > 0 && (
+            <div className="mt-5">
+              <p className="eyebrow border-b border-obsidian-900/10 pb-2.5">Deployed Change Orders</p>
+              {changeOrders.map((co: any) => (
+                <div key={co.id} className="group relative flex items-start justify-between gap-4 border-b border-obsidian-900/[0.07] py-3.5 transition-colors duration-300 ease-architect hover:bg-white">
+                  <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-brass-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
+                  <div className="min-w-0 sm:pl-3">
+                    {co.proposal_number && (
+                      <p className="font-mono text-[10px] tracking-architect text-graphite-300">{co.proposal_number}</p>
+                    )}
+                    <p className="mt-1 truncate text-[13px] font-medium text-obsidian-900">{co.description || co.project_title || "Change Order"}</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      <span className={`badge ${co.status === 'approved' ? 'badge-approved' : 'badge-pending'}`}>
+                        <span className={`badge-dot ${co.status === 'approved' ? 'bg-patina-500' : 'bg-brass-400'}`} />
+                        {co.status === 'approved' ? 'Approved' : 'Pending'}
+                      </span>
+                      {co.status === 'approved' && (
+                        <span className={`badge ${co.deposit_cleared ? 'badge-neutral' : 'badge-declined'}`}>
+                          {co.deposit_cleared ? 'Paid' : 'Unpaid'}
                         </span>
-                        {co.status === 'approved' && (
-                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md border ${co.deposit_cleared ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
-                            {co.deposit_cleared ? 'Paid' : 'Unpaid'}
-                          </span>
-                        )}
-                      </div>
+                      )}
                     </div>
-                    <span className="font-mono font-black text-slate-900 shrink-0" style={{fontVariantNumeric:'tabular-nums'}}>
-                      ${toNum(co.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  <span className="figure shrink-0 text-[14px]">
+                    ${toNum(co.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
 
-            {/* Create New Change Order */}
-            <div className="border border-blue-100 bg-blue-50/20 rounded-2xl p-5 space-y-4">
-              <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-wider">+ Create Change Order</h4>
-              <div className="space-y-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Describe the additional scope</label>
-                <textarea
-                  value={coDescription}
-                  onChange={(e) => setCoDescription(e.target.value)}
-                  placeholder="e.g. Add recessed lighting to living room, 6 cans on dimmers, patch and paint ceiling..."
-                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm min-h-[80px]"
-                  rows={3}
-                />
-              </div>
-              <button
-                type="button"
-                disabled={isGeneratingCo || !coDescription.trim()}
-                onClick={async () => {
-                  setIsGeneratingCo(true);
-                  setCoItems([]);
-                  try {
-                    const res = await fetch("/api/generate-scope", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        prompt: coDescription,
-                        address: project?.job_address || "",
-                        zipcode: "Omaha",
-                      }),
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || "Generation failed");
-                    setCoItems(data.items || []);
-                  } catch (err: any) {
-                    toast("AI generation failed: " + err.message, "error");
-                  } finally {
-                    setIsGeneratingCo(false);
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none flex items-center gap-1.5"
-              >
-                {isGeneratingCo ? (
-                  <>
-                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
-                    Generate Line Items with AI
-                  </>
-                )}
-              </button>
+          {/* Create New Change Order */}
+          <div className="panel-sunken mt-6 p-4 sm:p-5">
+            <p className="eyebrow-ink">Create Change Order</p>
+            <div className="mt-3.5">
+              <label htmlFor="co-description" className="field-label">Describe the additional scope</label>
+              <textarea
+                id="co-description"
+                value={coDescription}
+                onChange={(e) => setCoDescription(e.target.value)}
+                placeholder="e.g. Add recessed lighting to living room, 6 cans on dimmers, patch and paint ceiling..."
+                className="field min-h-[84px] resize-y leading-relaxed"
+                rows={3}
+              />
+            </div>
+            <button
+              type="button"
+              disabled={isGeneratingCo || !coDescription.trim()}
+              onClick={async () => {
+                setIsGeneratingCo(true);
+                setCoItems([]);
+                try {
+                  const res = await fetch("/api/generate-scope", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      prompt: coDescription,
+                      address: project?.job_address || "",
+                      zipcode: "Omaha",
+                    }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error || "Generation failed");
+                  setCoItems(data.items || []);
+                } catch (err: any) {
+                  toast("AI generation failed: " + err.message, "error");
+                } finally {
+                  setIsGeneratingCo(false);
+                }
+              }}
+              className="btn-ink mt-4"
+            >
+              {isGeneratingCo ? (
+                <>
+                  <span className="h-3 w-3 animate-spin rounded-full border border-bone-50/40 border-t-bone-50" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                  Generate Line Items
+                </>
+              )}
+            </button>
 
-              {/* Generated Items Preview */}
-              {coItems.length > 0 && (
-                <div className="space-y-3 pt-2 border-t border-blue-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Generated Items — edit costs before deploying</p>
+            {/* Generated Items Preview */}
+            {coItems.length > 0 && (
+              <div className="mt-5 border-t border-obsidian-900/10 pt-4">
+                <p className="eyebrow">Generated Items — edit costs before deploying</p>
+                <div className="mt-2">
                   {coItems.map((item: any, idx: number) => (
-                    <div key={idx} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+                    <div key={idx} className="border-b border-obsidian-900/[0.07] py-3">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           type="text"
@@ -2905,10 +3131,11 @@ export default function ProjectWorkspaceControlHub() {
                             updated[idx] = { ...updated[idx], title: e.target.value };
                             setCoItems(updated);
                           }}
-                          className="flex-1 min-w-0 text-xs font-bold text-slate-900 bg-transparent outline-none"
+                          title="Change order line title"
+                          className="min-w-0 flex-1 border-0 border-b border-transparent bg-transparent py-1 text-[13px] font-medium text-obsidian-900 outline-none transition-colors duration-200 ease-architect hover:border-obsidian-900/15 focus:border-obsidian-900/45"
                         />
-                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 gap-1 shrink-0">
-                          <span className="text-[10px] font-bold text-slate-400">$</span>
+                        <div className="flex shrink-0 items-center gap-1 rounded-edge border border-obsidian-900/10 bg-white px-2 transition-colors duration-200 ease-architect focus-within:border-obsidian-900/45">
+                          <span className="font-mono text-[10px] text-graphite-300">$</span>
                           <input
                             type="number"
                             value={item.mid_cost || ""}
@@ -2917,161 +3144,177 @@ export default function ProjectWorkspaceControlHub() {
                               updated[idx] = { ...updated[idx], mid_cost: toNum(e.target.value) };
                               setCoItems(updated);
                             }}
-                            className="w-20 bg-transparent py-1.5 text-xs font-black text-slate-900 outline-none text-right"
+                            title="Change order line cost"
+                            className="no-spin tnum w-20 bg-transparent py-1.5 text-right text-[12.5px] font-medium text-obsidian-900 outline-none"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={() => setCoItems(coItems.filter((_, i) => i !== idx))}
-                          className="text-red-400 hover:text-red-600 text-xs font-black transition p-1"
+                          title="Remove line"
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-graphite-300 transition-colors duration-200 ease-architect hover:bg-clay-50 hover:text-clay-600"
                         >
-                          ✕
+                          <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
                         </button>
                       </div>
-                      <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{item.mid_description}</p>
+                      <p className="mt-1.5 text-[11.5px] leading-relaxed text-graphite-500">{item.mid_description}</p>
                     </div>
                   ))}
-
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="text-xs font-bold text-slate-600">
-                      Total: <span className="font-black text-slate-900" style={{fontVariantNumeric:'tabular-nums'}}>
-                        ${coItems.reduce((s, i) => s + toNum(i.mid_cost), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={isDeployingCo || coItems.length === 0}
-                      onClick={async () => {
-                        if (!confirm("Deploy this change order to the homeowner portal?")) return;
-                        setIsDeployingCo(true);
-                        try {
-                          const finalItems = coItems.map((item) => ({
-                            title: item.title,
-                            description: item.mid_description,
-                            cost: toNum(item.mid_cost),
-                          }));
-                          const totalAmount = finalItems.reduce((s, i) => s + i.cost, 0);
-                          // A change order hangs off the proposal's number
-                          // instead of taking one of its own: PRO-2026-0007-CO1.
-                          const coNumber = project?.proposal_number
-                            ? formatChangeOrderNumber(project.proposal_number, changeOrders.length + 1)
-                            : null;
-                          const { error } = await supabase.from("invoices").insert({
-                            parent_id: projectId,
-                            ...(coNumber
-                              ? {
-                                  proposal_number: coNumber,
-                                  sequence_year: project?.sequence_year ?? null,
-                                  sequence_no: project?.sequence_no ?? null,
-                                  estimate_number: project?.estimate_number ?? null,
-                                }
-                              : {}),
-                            homeowner_name: project?.homeowner_name,
-                            homeowner_email: project?.homeowner_email,
-                            job_address: project?.job_address,
-                            project_title: project?.project_title,
-                            description: coDescription,
-                            items: finalItems,
-                            amount: totalAmount,
-                            status: "pending",
-                            deposit_percentage: 0,
-                            payment_phases: [{ name: "Full Payment", percentage: 100 }],
-                          });
-                          if (error) throw error;
-                          toast("Change order deployed", "success");
-                          setCoDescription("");
-                          setCoItems([]);
-                          fetchComprehensiveProjectData();
-                        } catch (err: any) {
-                          toast("Failed to deploy: " + err.message, "error");
-                        } finally {
-                          setIsDeployingCo(false);
-                        }
-                      }}
-                      className="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-black text-[10px] px-6 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-sm outline-none flex items-center gap-1.5"
-                    >
-                      {isDeployingCo ? "Deploying..." : "Deploy Change Order"}
-                    </button>
-                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className="mt-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="eyebrow">Total</span>
+                    <span className="figure text-[17px]">
+                      ${coItems.reduce((s, i) => s + toNum(i.mid_cost), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isDeployingCo || coItems.length === 0}
+                    onClick={async () => {
+                      if (!confirm("Deploy this change order to the homeowner portal?")) return;
+                      setIsDeployingCo(true);
+                      try {
+                        const finalItems = coItems.map((item) => ({
+                          title: item.title,
+                          description: item.mid_description,
+                          cost: toNum(item.mid_cost),
+                        }));
+                        const totalAmount = finalItems.reduce((s, i) => s + i.cost, 0);
+                        // A change order hangs off the proposal's number
+                        // instead of taking one of its own: PRO-2026-0007-CO1.
+                        const coNumber = project?.proposal_number
+                          ? formatChangeOrderNumber(project.proposal_number, changeOrders.length + 1)
+                          : null;
+                        const { error } = await supabase.from("invoices").insert({
+                          parent_id: projectId,
+                          ...(coNumber
+                            ? {
+                                proposal_number: coNumber,
+                                sequence_year: project?.sequence_year ?? null,
+                                sequence_no: project?.sequence_no ?? null,
+                                estimate_number: project?.estimate_number ?? null,
+                              }
+                            : {}),
+                          homeowner_name: project?.homeowner_name,
+                          homeowner_email: project?.homeowner_email,
+                          job_address: project?.job_address,
+                          project_title: project?.project_title,
+                          description: coDescription,
+                          items: finalItems,
+                          amount: totalAmount,
+                          status: "pending",
+                          deposit_percentage: 0,
+                          payment_phases: [{ name: "Full Payment", percentage: 100 }],
+                        });
+                        if (error) throw error;
+                        toast("Change order deployed", "success");
+                        setCoDescription("");
+                        setCoItems([]);
+                        fetchComprehensiveProjectData();
+                      } catch (err: any) {
+                        toast("Failed to deploy: " + err.message, "error");
+                      } finally {
+                        setIsDeployingCo(false);
+                      }
+                    }}
+                    className="btn-ink shrink-0"
+                  >
+                    {isDeployingCo ? "Deploying..." : "Deploy Change Order"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        </section>
       )}
 
       {/* CLIENT SPEC PROFILE INTERACTION MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl text-left">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Edit Client Profile</h3>
-              <p className="text-[11px] text-slate-400 font-medium">Updates made here instantly sync to the homeowner client portal and downstream data tables.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-obsidian-950/55 p-3 backdrop-blur-[3px] sm:p-6">
+          <div className="w-full max-w-lg animate-rise overflow-hidden rounded-sheet border border-obsidian-900/15 bg-white text-left shadow-lift">
+            <div className="border-b border-obsidian-900/10 bg-obsidian-950 px-5 py-4 text-bone-100 sm:px-6">
+              <p className="eyebrow-invert">Record</p>
+              <h3 className="mt-1.5 font-display text-[1.35rem] leading-none tracking-[-0.01em]">Client Profile</h3>
             </div>
-            
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Homeowner Name</label>
-                <input 
-                  type="text" 
-                  value={editName} 
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Email Address Channel</label>
-                <input
-                  type="email"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  inputMode="tel"
-                  value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-mono font-bold outline-none text-slate-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Target Project Site Address</label>
-                <input
-                  type="text"
-                  value={editAddress}
-                  onChange={(e) => setEditAddress(e.target.value)}
-                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase block mb-1">Project Title</label>
-                <input
-                  type="text"
-                  value={editProjectTitle}
-                  onChange={(e) => setEditProjectTitle(e.target.value)}
-                  placeholder="e.g. Bath Remodel, Basement Finish, Kitchen Remodel"
-                  className="w-full py-3 px-4 bg-slate-50 border rounded-xl font-bold outline-none text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-                />
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-5 sm:px-6">
+              <p className="text-[12px] leading-relaxed text-graphite-500">
+                Updates sync instantly to the homeowner portal and the downstream document set.
+              </p>
+
+              <div className="mt-4 grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label htmlFor="edit-client-name" className="field-label">Homeowner Name</label>
+                  <input
+                    id="edit-client-name"
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="field"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-client-email" className="field-label">Email Address</label>
+                  <input
+                    id="edit-client-email"
+                    type="email"
+                    value={editEmail}
+                    onChange={(e) => setEditEmail(e.target.value)}
+                    className="field font-mono text-[12px]"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-client-phone" className="field-label">Phone Number</label>
+                  <input
+                    id="edit-client-phone"
+                    type="tel"
+                    inputMode="tel"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="field font-mono text-[12px]"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="edit-client-address" className="field-label">Project Site Address</label>
+                  <input
+                    id="edit-client-address"
+                    type="text"
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                    className="field"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label htmlFor="edit-project-title" className="field-label">Project Title</label>
+                  <input
+                    id="edit-project-title"
+                    type="text"
+                    value={editProjectTitle}
+                    onChange={(e) => setEditProjectTitle(e.target.value)}
+                    placeholder="e.g. Bath Remodel, Basement Finish, Kitchen Remodel"
+                    className="field"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button 
-                type="button" 
+            <div className="flex items-center justify-end gap-2 border-t border-obsidian-900/10 bg-bone-50 px-5 py-4 sm:px-6">
+              <button
+                type="button"
                 onClick={() => setIsEditModalOpen(false)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition"
+                className="btn-outline"
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={saveClientProfileModifications}
                 disabled={isSaving}
-                className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-md"
+                className="btn-ink"
               >
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>
@@ -3082,31 +3325,43 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* Deposit Email Preview Modal */}
       {depositPreviewHtml && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDepositPreviewHtml(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
-              <div>
-                <h3 className="font-black text-sm text-slate-900 uppercase tracking-wide">Deposit Email Preview</h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">Review before sending to <strong>{project?.homeowner_email}</strong></p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-obsidian-950/60 p-3 backdrop-blur-[3px] sm:p-6" onClick={() => setDepositPreviewHtml(null)}>
+          <div className="flex max-h-[90vh] w-full max-w-2xl animate-rise flex-col overflow-hidden rounded-sheet border border-obsidian-900/15 bg-white shadow-lift" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4 border-b border-obsidian-900/10 bg-obsidian-950 px-5 py-4 text-bone-100 sm:px-6">
+              <div className="min-w-0">
+                <p className="eyebrow-invert">Preview</p>
+                <h3 className="mt-1.5 font-display text-[1.35rem] leading-none tracking-[-0.01em]">Deposit Email</h3>
+                <p className="mt-2 truncate font-mono text-[10.5px] text-bone-100/55">{project?.homeowner_email}</p>
               </div>
-              <button onClick={() => setDepositPreviewHtml(null)} className="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+              <button
+                type="button"
+                onClick={() => setDepositPreviewHtml(null)}
+                title="Close preview"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-edge text-bone-100/55 transition-colors duration-200 ease-architect hover:bg-white/10 hover:text-bone-50"
+              >
+                <svg aria-hidden className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-1 bg-slate-50">
+            <div className="flex-1 overflow-y-auto bg-bone-100 p-1">
               <iframe
                 srcDoc={depositPreviewHtml}
-                className="w-full border-0 rounded-lg"
+                className="w-full rounded-edge border-0"
                 style={{ minHeight: "600px" }}
                 title="Deposit email preview"
               />
             </div>
-            <div className="flex items-center justify-end gap-3 p-4 border-t border-slate-200">
+            <div className="flex items-center justify-end gap-2 border-t border-obsidian-900/10 bg-bone-50 px-5 py-4 sm:px-6">
               <button
+                type="button"
                 onClick={() => setDepositPreviewHtml(null)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[10px] px-4 py-2.5 rounded-xl uppercase tracking-wider transition"
+                className="btn-outline"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 disabled={isSendingDeposit}
                 onClick={async () => {
                   setIsSendingDeposit(true);
@@ -3126,9 +3381,9 @@ export default function ProjectWorkspaceControlHub() {
                     setIsSendingDeposit(false);
                   }
                 }}
-                className="bg-sage-600 hover:bg-sage-700 disabled:opacity-50 text-white font-black text-[10px] px-5 py-2.5 rounded-xl uppercase tracking-wider transition-all duration-200 hover:shadow-md shadow-md flex items-center gap-1.5"
+                className="btn-ink"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 {isSendingDeposit ? "Sending..." : "Send to Client"}
               </button>
             </div>
