@@ -89,7 +89,7 @@ export default function HomeownerPortalClient({
 
   useEffect(() => {
     if (!hasExpiration || isExpired) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
+    const interval = setInterval(() => setNow(Date.now()), 60000);
     return () => clearInterval(interval);
   }, [hasExpiration, isExpired]);
 
@@ -421,6 +421,47 @@ export default function HomeownerPortalClient({
         </div>
       </div>
 
+      {/* Proposal hold — rides at the top of the package. A stated date, not a
+          ticking clock: the countdown is deliberately gone, the deadline is not. */}
+      {hasExpiration && !isLocked && (() => {
+        const expiryDate = new Date(expiresAt);
+        const daysLeft = Math.ceil((expiryDate.getTime() - now) / 86400000);
+        const dateLong = expiryDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        if (isExpired) {
+          return (
+            <div className="border-b border-brick-200 bg-brick-50">
+              <div className="mx-auto max-w-5xl border-l-2 border-brick-600 px-5 py-5 sm:px-8">
+                <p className="spec-label text-brick-600">Proposal hold ended</p>
+                <p className="mt-2 text-[17px] font-semibold leading-snug tracking-[-0.01em] text-brick-700 sm:text-[19px]">
+                  Pricing and schedule were held through {dateLong}
+                </p>
+                <p className="mt-2 max-w-prose text-[14px] leading-relaxed text-brick-700">
+                  That date has passed, so this proposal can no longer be signed as priced. Call{" "}
+                  <a href="tel:4028198558" className="font-medium underline underline-offset-2 tnum">402-819-8558</a>{" "}
+                  and Skyler will confirm current availability and reissue it.
+                </p>
+              </div>
+            </div>
+          );
+        }
+        const closing = daysLeft <= 2;
+        return (
+          <div className={`border-b ${closing ? 'border-dust-200 bg-dust-50' : 'border-rule-300 bg-paper-50'}`}>
+            <div className={`mx-auto max-w-5xl border-l-2 px-5 py-5 sm:px-8 ${closing ? 'border-dust-600' : 'border-bronze-500'}`}>
+              <p className={`spec-label ${closing ? 'text-dust-600' : 'text-bronze-500'}`}>Proposal hold</p>
+              <p className="mt-2 text-[17px] font-semibold leading-snug tracking-[-0.01em] text-ink-900 sm:text-[19px]">
+                Pricing and schedule held through {dateLong}
+              </p>
+              <p className="mt-2 max-w-prose text-[14px] leading-relaxed text-ink-500">
+                {closing
+                  ? "This is the last of the hold period. Approving on or before this date keeps both the pricing above and your place on the build calendar."
+                  : "Approving on or before this date holds the pricing above and your place on the build calendar. After it passes, material costs and scheduling are re-quoted."}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Identity block — the spec sheet that opens the package */}
       <div className="border-b border-rule-300 bg-paper-50">
         <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-10">
@@ -493,20 +534,7 @@ export default function HomeownerPortalClient({
 
           <p className="mt-5 border-t border-rule-200 pt-4 text-[13px] leading-relaxed text-ink-500">
             Start date subject to permits and material lead times.
-            {hasExpiration && !isLocked && (
-              <>
-                {" "}Pricing held through{" "}
-                <span className="font-medium text-ink-900">
-                  {new Date(expiresAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                </span>.
-              </>
-            )}
           </p>
-          {isExpired && (
-            <p className="mt-3 text-[13px] leading-relaxed text-brick-700">
-              This pricing period has passed. Call 402-819-8558 for current availability and an updated proposal.
-            </p>
-          )}
         </div>
       </div>
 
