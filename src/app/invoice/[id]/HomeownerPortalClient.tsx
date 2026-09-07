@@ -9,6 +9,7 @@ import { generateProposalPdf } from "@/lib/generate-pdf";
 import { categoryOf } from "@/lib/scope-amendment";
 import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phasePercentOf } from "@/lib/payment-schedule";
 import { TERMS_AND_CONDITIONS } from "@/lib/terms";
+import { isReceiptTracked, isUnreadFromContractor } from "@/lib/messages";
 
 interface HomeownerPortalProps {
   id: string;
@@ -46,24 +47,11 @@ export default function HomeownerPortalClient({
   const [isSendingQa, setIsSendingQa] = useState(false);
   const [activeTab, setActiveTab] = useState("proposal");
   const [now, setNow] = useState(Date.now());
-  const [lastSeenMessages, setLastSeenMessages] = useState<string | null>(null);
   const [pendingSelection, setPendingSelection] = useState<{ category: string; value: string } | null>(null);
   const [pendingRemoveIdx, setPendingRemoveIdx] = useState<number | null>(null);
 
-  // Load last-seen timestamp from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(`wdo_msgs_seen_${id}`);
-    setLastSeenMessages(stored);
-  }, [id]);
-
-  // Mark messages as seen when Messages tab is active
-  useEffect(() => {
-    if (activeTab === "messages") {
-      const ts = new Date().toISOString();
-      localStorage.setItem(`wdo_msgs_seen_${id}`, ts);
-      setLastSeenMessages(ts);
-    }
-  }, [activeTab, id]);
+  // Read state used to live in localStorage, which meant it was per-device and
+  // invisible to the contractor. It is now read_at on the message itself.
 
   // Read receipt. Stamps every unstamped contractor message the moment the
   // homeowner opens Messages, so the contractor can see it landed.
@@ -71,12 +59,12 @@ export default function HomeownerPortalClient({
   useEffect(() => {
     if (activeTab !== "messages" || !id) return;
     const msgs = Array.isArray((invoice as any)?.questions) ? (invoice as any).questions : [];
-    const needsStamp = msgs.some((m: any) => m.author === "contractor" && !m.read_at);
+    const needsStamp = msgs.some((m: any) => isUnreadFromContractor(m));
     if (!needsStamp || markingReadRef.current) return;
     markingReadRef.current = true;
     const readAt = new Date().toISOString();
     const updated = msgs.map((m: any) =>
-      m.author === "contractor" && !m.read_at ? { ...m, read_at: readAt } : m
+      isUnreadFromContractor(m) ? { ...m, read_at: readAt } : m
     );
     (async () => {
       const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", id);
@@ -224,8 +212,6 @@ export default function HomeownerPortalClient({
   const masterItems = invoice?.items || [];
 
   const threadMessages: any[] = Array.isArray((invoice as any)?.questions) ? (invoice as any).questions : [];
-  const isUnreadFromContractor = (m: any) =>
-    m.author === "contractor" && !m.read_at && (!lastSeenMessages || new Date(m.timestamp) > new Date(lastSeenMessages));
   const unreadFromContractor = threadMessages.filter(isUnreadFromContractor).length;
   const latestContractorMessage = [...threadMessages].reverse().find((m: any) => m.author === "contractor");
 

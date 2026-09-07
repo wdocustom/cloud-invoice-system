@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { isReceiptTracked } from "@/lib/messages";
 import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { describeDbError, updateTolerant } from "@/lib/db";
@@ -123,8 +124,10 @@ export default function ProjectWorkspaceControlHub() {
     }
   }, [projectId]);
 
+  // Polls the thread so replies and read receipts land without a reload.
+  // Paused mid-edit so the array cannot shift under an open editor.
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId || editingQaIndex !== null) return;
     const interval = setInterval(async () => {
       const { data } = await supabase
         .from("invoices")
@@ -136,7 +139,7 @@ export default function ProjectWorkspaceControlHub() {
       }
     }, 15000);
     return () => clearInterval(interval);
-  }, [projectId]);
+  }, [projectId, editingQaIndex]);
 
   async function fetchComprehensiveProjectData() {
     setLoading(true);
@@ -2758,9 +2761,9 @@ export default function ProjectWorkspaceControlHub() {
                               <span className="text-forest-600">
                                 Read {new Date(msg.read_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                               </span>
-                            ) : (
+                            ) : isReceiptTracked(msg) ? (
                               <span className="text-ink-400">Sent · not yet read</span>
-                            )
+                            ) : null
                           )}
                         </p>
                         {msg.author === "contractor" && (
