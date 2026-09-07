@@ -65,6 +65,43 @@ export default function HomeownerPortalClient({
     }
   }, [activeTab, id]);
 
+  // Read receipt. Stamps every unstamped contractor message the moment the
+  // homeowner opens Messages, so the contractor can see it landed.
+  const markingReadRef = useRef(false);
+  useEffect(() => {
+    if (activeTab !== "messages" || !id) return;
+    const msgs = Array.isArray((invoice as any)?.questions) ? (invoice as any).questions : [];
+    const needsStamp = msgs.some((m: any) => m.author === "contractor" && !m.read_at);
+    if (!needsStamp || markingReadRef.current) return;
+    markingReadRef.current = true;
+    const readAt = new Date().toISOString();
+    const updated = msgs.map((m: any) =>
+      m.author === "contractor" && !m.read_at ? { ...m, read_at: readAt } : m
+    );
+    (async () => {
+      const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", id);
+      if (!error) setInvoice((prev: any) => (prev ? { ...prev, questions: updated } : prev));
+      markingReadRef.current = false;
+    })();
+  }, [activeTab, id, invoice]);
+
+  // Open the thread on the latest message rather than the oldest.
+  const threadEndRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (activeTab !== "messages") return;
+    const el = threadEndRef.current;
+    if (!el) return;
+    const t = setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "end" }), 60);
+    return () => clearTimeout(t);
+  }, [activeTab, (invoice as any)?.questions?.length]);
+
+  const openMessagesAtLatest = () => {
+    setActiveTab("messages");
+    setTimeout(() => {
+      document.getElementById("messages-thread")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
+
   useEffect(() => {
     if (activeTab !== "messages" || !id) return;
     const interval = setInterval(async () => {
@@ -185,6 +222,12 @@ export default function HomeownerPortalClient({
 
   const isLocked = invoice?.status === "approved";
   const masterItems = invoice?.items || [];
+
+  const threadMessages: any[] = Array.isArray((invoice as any)?.questions) ? (invoice as any).questions : [];
+  const isUnreadFromContractor = (m: any) =>
+    m.author === "contractor" && !m.read_at && (!lastSeenMessages || new Date(m.timestamp) > new Date(lastSeenMessages));
+  const unreadFromContractor = threadMessages.filter(isUnreadFromContractor).length;
+  const latestContractorMessage = [...threadMessages].reverse().find((m: any) => m.author === "contractor");
 
   const baseTotal = isLocked
     ? toNum(invoice.amount)
@@ -559,6 +602,28 @@ export default function HomeownerPortalClient({
           </div>
         )}
 
+        {/* A waiting message is the one thing that should interrupt the read */}
+        {unreadFromContractor > 0 && activeTab !== "messages" && (
+          <button
+            type="button"
+            onClick={openMessagesAtLatest}
+            className="mb-6 flex w-full items-center justify-between gap-4 rounded-edge border border-bronze-200 bg-bronze-50 px-4 py-3.5 text-left transition-colors duration-150 ease-architect hover:border-bronze-400"
+          >
+            <span className="flex min-w-0 items-start gap-3">
+              <span aria-hidden className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-bronze-500" />
+              <span className="min-w-0">
+                <span className="block text-[14px] font-semibold text-ink-900">
+                  {unreadFromContractor === 1 ? "New message from Skyler" : `${unreadFromContractor} new messages from Skyler`}
+                </span>
+                {latestContractorMessage?.text && (
+                  <span className="mt-0.5 block truncate text-[13px] text-ink-500">{latestContractorMessage.text}</span>
+                )}
+              </span>
+            </span>
+            <span className="shrink-0 text-[13px] font-medium text-bronze-600 underline underline-offset-2">Read</span>
+          </button>
+        )}
+
         {/* Tab Navigation — job-binder index tabs, each carrying its own count */}
         <div className="mb-8 flex items-stretch gap-1.5 overflow-x-auto border-b border-rule-300 pb-0 scrollbar-none">
           {(isLocked
@@ -581,8 +646,8 @@ export default function HomeownerPortalClient({
           ).map((tab) => {
             const tabKey = tab.key;
             const isTabActive = activeTab === tabKey || (!isLocked && activeTab === "overview" && tabKey === "proposal") || (isLocked && activeTab === "proposal" && tabKey === "overview");
-            const messages = Array.isArray((invoice as any).questions) ? (invoice as any).questions : [];
-            const unreadCount = tabKey === "messages" ? messages.filter((m: any) => m.author === "contractor" && (!lastSeenMessages || new Date(m.timestamp) > new Date(lastSeenMessages))).length : 0;
+            const messages = threadMessages;
+            const unreadCount = tabKey === "messages" ? unreadFromContractor : 0;
             const hasUnread = tabKey === "messages" && unreadCount > 0 && activeTab !== "messages";
             const documents = Array.isArray((invoice as any).documents) ? (invoice as any).documents : [];
             // A count only appears where it tells the homeowner something.
@@ -1196,21 +1261,25 @@ export default function HomeownerPortalClient({
 
         {/* ── MESSAGES TAB (both pre and post approval) ── */}
         {activeTab === "messages" && (
-          <div className="mx-auto max-w-3xl animate-rise">
+          <div id="messages-thread" className="mx-auto max-w-3xl animate-rise scroll-mt-20">
             <div className="title-block">
               <h2 className="display-sm">Messages</h2>
               <span className="eyebrow hidden sm:block">Messages go straight to Skyler</span>
             </div>
 
             <div className="panel overflow-hidden">
-              <div className="max-h-[440px] space-y-4 overflow-y-auto bg-paper-50/40 p-5 sm:p-7">
-                {Array.isArray((invoice as any).questions) && (invoice as any).questions.length > 0 ? (
-                  (invoice as any).questions.map((msg: any, i: number) => (
+              <div className="max-h-[60vh] min-h-[240px] space-y-4 overflow-y-auto bg-paper-50/40 p-5 sm:p-7">
+                {threadMessages.length > 0 ? (
+                  threadMessages.map((msg: any, i: number) => {
+                    const isNew = isUnreadFromContractor(msg);
+                    return (
                     <div key={i} className={`flex ${msg.author === "homeowner" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[86%] px-5 py-4 text-[13px] leading-relaxed sm:max-w-[76%] ${
                         msg.author === "homeowner"
                           ? "border border-rule-300 bg-paper-50 text-ink-900"
-                          : "border border-rule-300/70 bg-paper-50 text-ink-500"
+                          : isNew
+                            ? "border-l-2 border-bronze-500 border-y border-r border-y-bronze-200 border-r-bronze-200 bg-bronze-50 text-ink-900"
+                            : "border border-rule-300/70 bg-paper-50 text-ink-500"
                       }`}>
                         {msg.image_url && (
                           <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="mb-2.5 block">
@@ -1218,12 +1287,18 @@ export default function HomeownerPortalClient({
                           </a>
                         )}
                         {msg.text && <p>{msg.text}</p>}
-                        <p className={`mt-2.5 font-sans text-[13px] tracking-architect ${msg.author === "homeowner" ? "text-ink-900/45" : "text-ink-500"}`}>
-                          {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        <p className={`mt-2.5 flex flex-wrap items-center gap-x-2 font-sans text-[13px] tracking-architect ${msg.author === "homeowner" ? "text-ink-900/45" : "text-ink-500"}`}>
+                          <span>
+                            {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          </span>
+                          {isNew && (
+                            <span className="rounded-edge bg-bronze-500 px-1.5 py-0.5 text-[11px] font-semibold text-paper-50">New</span>
+                          )}
                         </p>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="blueprint-grid px-6 py-16 text-center">
                     <p className="display-sm">No messages on this job yet</p>
@@ -1232,6 +1307,7 @@ export default function HomeownerPortalClient({
                     </p>
                   </div>
                 )}
+                <div ref={threadEndRef} />
               </div>
 
               <form
