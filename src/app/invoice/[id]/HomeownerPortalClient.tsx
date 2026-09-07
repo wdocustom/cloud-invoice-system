@@ -48,6 +48,7 @@ export default function HomeownerPortalClient({
   const [now, setNow] = useState(Date.now());
   const [lastSeenMessages, setLastSeenMessages] = useState<string | null>(null);
   const [pendingSelection, setPendingSelection] = useState<{ category: string; value: string } | null>(null);
+  const [pendingRemoveIdx, setPendingRemoveIdx] = useState<number | null>(null);
 
   // Load last-seen timestamp from localStorage on mount
   useEffect(() => {
@@ -558,8 +559,8 @@ export default function HomeownerPortalClient({
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="tabstrip mb-7">
+        {/* Tab Navigation — job-binder index tabs, each carrying its own count */}
+        <div className="mb-8 flex items-stretch gap-1.5 overflow-x-auto border-b border-rule-300 pb-0 scrollbar-none">
           {(isLocked
             ? [
                 { key: "overview", label: "Proposal" },
@@ -583,26 +584,41 @@ export default function HomeownerPortalClient({
             const messages = Array.isArray((invoice as any).questions) ? (invoice as any).questions : [];
             const unreadCount = tabKey === "messages" ? messages.filter((m: any) => m.author === "contractor" && (!lastSeenMessages || new Date(m.timestamp) > new Date(lastSeenMessages))).length : 0;
             const hasUnread = tabKey === "messages" && unreadCount > 0 && activeTab !== "messages";
+            const documents = Array.isArray((invoice as any).documents) ? (invoice as any).documents : [];
+            // A count only appears where it tells the homeowner something.
+            const count =
+              tabKey === "messages" ? messages.length
+              : tabKey === "docs" ? documents.length
+              : tabKey === "schedule" || tabKey === "payments" ? (invoice.payment_phases?.length || 0)
+              : tabKey === "selections" ? ((invoice.homeowner_options || []).length)
+              : tabKey === "proposal" || tabKey === "overview" ? masterItems.length
+              : 0;
             return (
               <button
                 key={tabKey}
                 type="button"
                 onClick={() => setActiveTab(tabKey)}
-                className={`tab flex items-center gap-1.5 ${isTabActive ? "tab-active" : ""} ${hasUnread ? "text-bronze-600" : ""}`}
+                aria-current={isTabActive ? "page" : undefined}
+                className={`relative flex min-h-[52px] shrink-0 items-center gap-2 rounded-t-edge border border-b-0 px-3.5 pb-2.5 pt-3 text-[14px] transition-colors duration-150 ease-architect sm:px-4 ${
+                  isTabActive
+                    ? "border-rule-300 bg-paper-50 font-semibold text-ink-900"
+                    : "border-transparent font-medium text-ink-500 hover:bg-paper-200/60 hover:text-ink-900"
+                }`}
               >
+                {isTabActive && (
+                  <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] rounded-t-edge bg-bronze-500" />
+                )}
                 {tab.label}
-                {hasUnread && (
-                  <span className="flex items-center gap-1">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bronze-400 opacity-75" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-bronze-500" />
-                    </span>
-                    <span className="text-[9px] leading-none tabular-nums text-bronze-600">{unreadCount}</span>
+                {count > 0 && (
+                  <span className={`rounded-edge px-1.5 py-0.5 text-[12px] font-medium tabular-nums ${
+                    isTabActive ? "bg-paper-200 text-ink-700" : "bg-paper-200/70 text-ink-400"
+                  }`}>
+                    {count}
                   </span>
                 )}
-                {tabKey === "messages" && !hasUnread && messages.length > 0 && (
-                  <span className="text-[9px] leading-none tabular-nums text-ink-400">
-                    {messages.length}
+                {hasUnread && (
+                  <span className="flex items-center gap-1 rounded-edge bg-bronze-500 px-1.5 py-0.5 text-[12px] font-semibold tabular-nums text-paper-50">
+                    {unreadCount} new
                   </span>
                 )}
               </button>
@@ -733,7 +749,8 @@ export default function HomeownerPortalClient({
                 </div>
               )}
 
-              {/* Scope of work */}
+              {/* Scope of work — included lines first, anything the homeowner
+                  set aside collects at the bottom and can be reinstated. */}
               <div>
                 <div className="title-block">
                   <h2 className="display-lg">Scope of work</h2>
@@ -745,68 +762,115 @@ export default function HomeownerPortalClient({
                 </div>
 
                 <div className="border-t border-rule-300">
-                  {masterItems.map((item: any, idx: number) => {
-                    const isItemActive = activeIndices.includes(idx);
-                    const isExpanded = expandedIndices.includes(idx);
-                    const category = categoryOf(item);
-                    const startsCategory = idx === 0 || categoryOf(masterItems[idx - 1]) !== category;
-                    const body = tier === 'mid' ? item.mid_description : item.high_description;
-                    return (
-                      <div key={idx}>
-                        {startsCategory && (
-                          <p className="spec-label bg-paper-200/70 px-4 py-2">{category}</p>
-                        )}
-                        <div className={`border-b border-rule-200 px-1 py-5 sm:px-2 ${isItemActive ? '' : 'bg-paper-200/40'}`}>
+                  {masterItems
+                    .map((item: any, idx: number) => ({ item, idx }))
+                    .filter(({ idx }: any) => activeIndices.includes(idx))
+                    .map(({ item, idx }: any, position: number, included: any[]) => {
+                      const isExpanded = expandedIndices.includes(idx);
+                      const category = categoryOf(item);
+                      const startsCategory = position === 0 || categoryOf(included[position - 1].item) !== category;
+                      const body = tier === 'mid' ? item.mid_description : item.high_description;
+                      const isConfirming = pendingRemoveIdx === idx;
+                      return (
+                        <div key={idx}>
+                          {startsCategory && (
+                            <p className="spec-label bg-paper-200/70 px-4 py-2">{category}</p>
+                          )}
+                          <div className="border-b border-rule-200 px-1 py-5 sm:px-2">
+                            <div className="flex items-baseline justify-between gap-4">
+                              <div className="flex min-w-0 gap-3 sm:gap-4">
+                                <span className="w-6 shrink-0 pt-px text-[13px] text-ink-300 tnum">
+                                  {String(idx + 1).padStart(2, "0")}
+                                </span>
+                                <h3 className="min-w-0 text-[15px] font-medium leading-snug text-ink-900">
+                                  {tier === 'mid' ? item.title : item.high_title}
+                                </h3>
+                              </div>
+                              <span className="figure shrink-0 text-[15px]">
+                                ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+
+                            <div className="mt-2 pl-9 sm:pl-10">
+                              {body && (
+                                <ScopeDescription
+                                  text={String(body)}
+                                  expanded={isExpanded}
+                                  onToggle={() => toggleExpandDescription(idx)}
+                                />
+                              )}
+                              {isConfirming ? (
+                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-l-2 border-rule-400 bg-paper-200/50 px-3 py-2.5">
+                                  <span className="text-[13px] text-ink-700">Set this line aside?</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => { handleRemoveIndex(idx); setPendingRemoveIdx(null); }}
+                                    className="min-h-[32px] text-[13px] font-medium text-brick-600 underline underline-offset-2"
+                                  >
+                                    Yes, remove it
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPendingRemoveIdx(null)}
+                                    className="min-h-[32px] text-[13px] text-ink-500 underline underline-offset-2"
+                                  >
+                                    Keep it
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setPendingRemoveIdx(idx)}
+                                  className="mt-2 min-h-[32px] text-[13px] text-ink-400 underline underline-offset-2 transition-colors duration-150 hover:text-brick-600"
+                                >
+                                  Remove from proposal
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Set aside — still on the page, still reversible, not counted */}
+                {activeIndices.length < masterItems.length && (
+                  <div className="mt-8">
+                    <p className="spec-label border-b border-rule-300 pb-2">Set aside — not included in this proposal</p>
+                    {masterItems
+                      .map((item: any, idx: number) => ({ item, idx }))
+                      .filter(({ idx }: any) => !activeIndices.includes(idx))
+                      .map(({ item, idx }: any) => (
+                        <div key={idx} className="border-b border-rule-200 bg-paper-200/40 px-1 py-4 sm:px-2">
                           <div className="flex items-baseline justify-between gap-4">
                             <div className="flex min-w-0 gap-3 sm:gap-4">
                               <span className="w-6 shrink-0 pt-px text-[13px] text-ink-300 tnum">
                                 {String(idx + 1).padStart(2, "0")}
                               </span>
-                              <h3 className={`min-w-0 text-[15px] font-medium leading-snug ${isItemActive ? 'text-ink-900' : 'text-ink-400 line-through decoration-ink-300'}`}>
+                              <h3 className="min-w-0 text-[15px] font-medium leading-snug text-ink-400 line-through decoration-ink-300">
                                 {tier === 'mid' ? item.title : item.high_title}
                               </h3>
                             </div>
-                            <span className={`figure shrink-0 text-[15px] ${isItemActive ? '' : 'text-ink-300 line-through'}`}>
+                            <span className="figure shrink-0 text-[15px] text-ink-300 line-through">
                               ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
-
-                          <div className="mt-2 pl-9 sm:pl-10">
-                            {isItemActive ? (
-                              <>
-                                {body && (
-                                  <ScopeDescription
-                                    text={String(body)}
-                                    expanded={isExpanded}
-                                    onToggle={() => toggleExpandDescription(idx)}
-                                  />
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveIndex(idx)}
-                                  className="mt-2 min-h-[32px] text-[13px] text-ink-400 underline underline-offset-2 transition-colors duration-150 hover:text-brick-600"
-                                >
-                                  Remove from proposal
-                                </button>
-                              </>
-                            ) : (
-                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                <span className="text-[13px] text-ink-400">Not included in this proposal.</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleReinstateIndex(idx)}
-                                  className="min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
-                                >
-                                  Add back
-                                </button>
-                              </div>
-                            )}
+                          <div className="mt-1.5 pl-9 sm:pl-10">
+                            <button
+                              type="button"
+                              onClick={() => handleReinstateIndex(idx)}
+                              className="min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+                            >
+                              Add this back
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      ))}
+                    <p className="mt-3 text-[13px] leading-relaxed text-ink-500">
+                      Set-aside lines stay on the proposal and are not part of the contract total. Add any of them back before signing, or ask Skyler about them in Messages.
+                    </p>
+                  </div>
+                )}
 
                 {/* Last page of the estimate */}
                 <dl className="mt-8 border-t-2 border-ink-900">
