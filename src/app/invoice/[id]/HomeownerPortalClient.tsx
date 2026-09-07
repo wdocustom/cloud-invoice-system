@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { generateProposalPdf } from "@/lib/generate-pdf";
 import { categoryOf } from "@/lib/scope-amendment";
 import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phasePercentOf } from "@/lib/payment-schedule";
 import { TERMS_AND_CONDITIONS } from "@/lib/terms";
+import { isReceiptTracked, isUnreadFromContractor } from "@/lib/messages";
 
 interface HomeownerPortalProps {
   id: string;
@@ -46,23 +47,48 @@ export default function HomeownerPortalClient({
   const [isSendingQa, setIsSendingQa] = useState(false);
   const [activeTab, setActiveTab] = useState("proposal");
   const [now, setNow] = useState(Date.now());
-  const [lastSeenMessages, setLastSeenMessages] = useState<string | null>(null);
   const [pendingSelection, setPendingSelection] = useState<{ category: string; value: string } | null>(null);
+  const [pendingRemoveIdx, setPendingRemoveIdx] = useState<number | null>(null);
 
-  // Load last-seen timestamp from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(`wdo_msgs_seen_${id}`);
-    setLastSeenMessages(stored);
-  }, [id]);
+  // Read state used to live in localStorage, which meant it was per-device and
+  // invisible to the contractor. It is now read_at on the message itself.
 
-  // Mark messages as seen when Messages tab is active
+  // Read receipt. Stamps every unstamped contractor message the moment the
+  // homeowner opens Messages, so the contractor can see it landed.
+  const markingReadRef = useRef(false);
   useEffect(() => {
-    if (activeTab === "messages") {
-      const ts = new Date().toISOString();
-      localStorage.setItem(`wdo_msgs_seen_${id}`, ts);
-      setLastSeenMessages(ts);
-    }
-  }, [activeTab, id]);
+    if (activeTab !== "messages" || !id) return;
+    const msgs = Array.isArray((invoice as any)?.questions) ? (invoice as any).questions : [];
+    const needsStamp = msgs.some((m: any) => isUnreadFromContractor(m));
+    if (!needsStamp || markingReadRef.current) return;
+    markingReadRef.current = true;
+    const readAt = new Date().toISOString();
+    const updated = msgs.map((m: any) =>
+      isUnreadFromContractor(m) ? { ...m, read_at: readAt } : m
+    );
+    (async () => {
+      const { error } = await supabase.from("invoices").update({ questions: updated }).eq("id", id);
+      if (!error) setInvoice((prev: any) => (prev ? { ...prev, questions: updated } : prev));
+      markingReadRef.current = false;
+    })();
+  }, [activeTab, id, invoice]);
+
+  // Open the thread on the latest message rather than the oldest.
+  const threadEndRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (activeTab !== "messages") return;
+    const el = threadEndRef.current;
+    if (!el) return;
+    const t = setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "end" }), 60);
+    return () => clearTimeout(t);
+  }, [activeTab, (invoice as any)?.questions?.length]);
+
+  const openMessagesAtLatest = () => {
+    setActiveTab("messages");
+    setTimeout(() => {
+      document.getElementById("messages-thread")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
 
   useEffect(() => {
     if (activeTab !== "messages" || !id) return;
@@ -184,6 +210,10 @@ export default function HomeownerPortalClient({
 
   const isLocked = invoice?.status === "approved";
   const masterItems = invoice?.items || [];
+
+  const threadMessages: any[] = Array.isArray((invoice as any)?.questions) ? (invoice as any).questions : [];
+  const unreadFromContractor = threadMessages.filter(isUnreadFromContractor).length;
+  const latestContractorMessage = [...threadMessages].reverse().find((m: any) => m.author === "contractor");
 
   const baseTotal = isLocked
     ? toNum(invoice.amount)
@@ -558,8 +588,30 @@ export default function HomeownerPortalClient({
           </div>
         )}
 
-        {/* Tab Navigation */}
-        <div className="tabstrip mb-7">
+        {/* A waiting message is the one thing that should interrupt the read */}
+        {unreadFromContractor > 0 && activeTab !== "messages" && (
+          <button
+            type="button"
+            onClick={openMessagesAtLatest}
+            className="mb-6 flex w-full items-center justify-between gap-4 rounded-edge border border-bronze-200 bg-bronze-50 px-4 py-3.5 text-left transition-colors duration-150 ease-architect hover:border-bronze-400"
+          >
+            <span className="flex min-w-0 items-start gap-3">
+              <span aria-hidden className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-bronze-500" />
+              <span className="min-w-0">
+                <span className="block text-[14px] font-semibold text-ink-900">
+                  {unreadFromContractor === 1 ? "New message from Skyler" : `${unreadFromContractor} new messages from Skyler`}
+                </span>
+                {latestContractorMessage?.text && (
+                  <span className="mt-0.5 block truncate text-[13px] text-ink-500">{latestContractorMessage.text}</span>
+                )}
+              </span>
+            </span>
+            <span className="shrink-0 text-[13px] font-medium text-bronze-600 underline underline-offset-2">Read</span>
+          </button>
+        )}
+
+        {/* Tab Navigation — job-binder index tabs, each carrying its own count */}
+        <div className="mb-8 flex items-stretch gap-1.5 overflow-x-auto border-b border-rule-300 pb-0 scrollbar-none">
           {(isLocked
             ? [
                 { key: "overview", label: "Proposal" },
@@ -580,29 +632,44 @@ export default function HomeownerPortalClient({
           ).map((tab) => {
             const tabKey = tab.key;
             const isTabActive = activeTab === tabKey || (!isLocked && activeTab === "overview" && tabKey === "proposal") || (isLocked && activeTab === "proposal" && tabKey === "overview");
-            const messages = Array.isArray((invoice as any).questions) ? (invoice as any).questions : [];
-            const unreadCount = tabKey === "messages" ? messages.filter((m: any) => m.author === "contractor" && (!lastSeenMessages || new Date(m.timestamp) > new Date(lastSeenMessages))).length : 0;
+            const messages = threadMessages;
+            const unreadCount = tabKey === "messages" ? unreadFromContractor : 0;
             const hasUnread = tabKey === "messages" && unreadCount > 0 && activeTab !== "messages";
+            const documents = Array.isArray((invoice as any).documents) ? (invoice as any).documents : [];
+            // A count only appears where it tells the homeowner something.
+            const count =
+              tabKey === "messages" ? messages.length
+              : tabKey === "docs" ? documents.length
+              : tabKey === "schedule" || tabKey === "payments" ? (invoice.payment_phases?.length || 0)
+              : tabKey === "selections" ? ((invoice.homeowner_options || []).length)
+              : tabKey === "proposal" || tabKey === "overview" ? masterItems.length
+              : 0;
             return (
               <button
                 key={tabKey}
                 type="button"
                 onClick={() => setActiveTab(tabKey)}
-                className={`tab flex items-center gap-1.5 ${isTabActive ? "tab-active" : ""} ${hasUnread ? "text-bronze-600" : ""}`}
+                aria-current={isTabActive ? "page" : undefined}
+                className={`relative flex min-h-[52px] shrink-0 items-center gap-2 rounded-t-edge border border-b-0 px-3.5 pb-2.5 pt-3 text-[14px] transition-colors duration-150 ease-architect sm:px-4 ${
+                  isTabActive
+                    ? "border-rule-300 bg-paper-50 font-semibold text-ink-900"
+                    : "border-transparent font-medium text-ink-500 hover:bg-paper-200/60 hover:text-ink-900"
+                }`}
               >
+                {isTabActive && (
+                  <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] rounded-t-edge bg-bronze-500" />
+                )}
                 {tab.label}
-                {hasUnread && (
-                  <span className="flex items-center gap-1">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bronze-400 opacity-75" />
-                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-bronze-500" />
-                    </span>
-                    <span className="text-[9px] leading-none tabular-nums text-bronze-600">{unreadCount}</span>
+                {count > 0 && (
+                  <span className={`rounded-edge px-1.5 py-0.5 text-[12px] font-medium tabular-nums ${
+                    isTabActive ? "bg-paper-200 text-ink-700" : "bg-paper-200/70 text-ink-400"
+                  }`}>
+                    {count}
                   </span>
                 )}
-                {tabKey === "messages" && !hasUnread && messages.length > 0 && (
-                  <span className="text-[9px] leading-none tabular-nums text-ink-400">
-                    {messages.length}
+                {hasUnread && (
+                  <span className="flex items-center gap-1 rounded-edge bg-bronze-500 px-1.5 py-0.5 text-[12px] font-semibold tabular-nums text-paper-50">
+                    {unreadCount} new
                   </span>
                 )}
               </button>
@@ -733,61 +800,128 @@ export default function HomeownerPortalClient({
                 </div>
               )}
 
-              {/* Scope of work */}
+              {/* Scope of work — included lines first, anything the homeowner
+                  set aside collects at the bottom and can be reinstated. */}
               <div>
                 <div className="title-block">
                   <h2 className="display-lg">Scope of work</h2>
-                  <span className="eyebrow">{masterItems.length} items</span>
+                  <span className="eyebrow">
+                    {activeIndices.length < masterItems.length
+                      ? `${activeIndices.length} of ${masterItems.length} included`
+                      : `${masterItems.length} items`}
+                  </span>
                 </div>
 
                 <div className="border-t border-rule-300">
-                  {masterItems.map((item: any, idx: number) => {
-                    const isExpanded = expandedIndices.includes(idx);
-                    const category = categoryOf(item);
-                    const startsCategory = idx === 0 || categoryOf(masterItems[idx - 1]) !== category;
-                    const body = tier === 'mid' ? item.mid_description : item.high_description;
-                    return (
-                      <div key={idx}>
-                        {startsCategory && (
-                          <p className="spec-label bg-paper-200/70 px-4 py-2">{category}</p>
-                        )}
-                        <div className="border-b border-rule-200 px-1 py-5 sm:px-2">
+                  {masterItems
+                    .map((item: any, idx: number) => ({ item, idx }))
+                    .filter(({ idx }: any) => activeIndices.includes(idx))
+                    .map(({ item, idx }: any, position: number, included: any[]) => {
+                      const isExpanded = expandedIndices.includes(idx);
+                      const category = categoryOf(item);
+                      const startsCategory = position === 0 || categoryOf(included[position - 1].item) !== category;
+                      const body = tier === 'mid' ? item.mid_description : item.high_description;
+                      const isConfirming = pendingRemoveIdx === idx;
+                      return (
+                        <div key={idx}>
+                          {startsCategory && (
+                            <p className="spec-label bg-paper-200/70 px-4 py-2">{category}</p>
+                          )}
+                          <div className="border-b border-rule-200 px-1 py-5 sm:px-2">
+                            <div className="flex items-baseline justify-between gap-4">
+                              <div className="flex min-w-0 gap-3 sm:gap-4">
+                                <span className="w-6 shrink-0 pt-px text-[13px] text-ink-300 tnum">
+                                  {String(idx + 1).padStart(2, "0")}
+                                </span>
+                                <h3 className="min-w-0 text-[15px] font-medium leading-snug text-ink-900">
+                                  {tier === 'mid' ? item.title : item.high_title}
+                                </h3>
+                              </div>
+                              <span className="figure shrink-0 text-[15px]">
+                                ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            </div>
+
+                            <div className="mt-2 pl-9 sm:pl-10">
+                              {body && (
+                                <ScopeDescription
+                                  text={String(body)}
+                                  expanded={isExpanded}
+                                  onToggle={() => toggleExpandDescription(idx)}
+                                />
+                              )}
+                              {isConfirming ? (
+                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-l-2 border-rule-400 bg-paper-200/50 px-3 py-2.5">
+                                  <span className="text-[13px] text-ink-700">Set this line aside?</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => { handleRemoveIndex(idx); setPendingRemoveIdx(null); }}
+                                    className="min-h-[32px] text-[13px] font-medium text-brick-600 underline underline-offset-2"
+                                  >
+                                    Yes, remove it
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPendingRemoveIdx(null)}
+                                    className="min-h-[32px] text-[13px] text-ink-500 underline underline-offset-2"
+                                  >
+                                    Keep it
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setPendingRemoveIdx(idx)}
+                                  className="mt-2 min-h-[32px] text-[13px] text-ink-400 underline underline-offset-2 transition-colors duration-150 hover:text-brick-600"
+                                >
+                                  Remove from proposal
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Set aside — still on the page, still reversible, not counted */}
+                {activeIndices.length < masterItems.length && (
+                  <div className="mt-8">
+                    <p className="spec-label border-b border-rule-300 pb-2">Set aside — not included in this proposal</p>
+                    {masterItems
+                      .map((item: any, idx: number) => ({ item, idx }))
+                      .filter(({ idx }: any) => !activeIndices.includes(idx))
+                      .map(({ item, idx }: any) => (
+                        <div key={idx} className="border-b border-rule-200 bg-paper-200/40 px-1 py-4 sm:px-2">
                           <div className="flex items-baseline justify-between gap-4">
                             <div className="flex min-w-0 gap-3 sm:gap-4">
                               <span className="w-6 shrink-0 pt-px text-[13px] text-ink-300 tnum">
                                 {String(idx + 1).padStart(2, "0")}
                               </span>
-                              <h3 className="min-w-0 text-[15px] font-medium leading-snug text-ink-900">
+                              <h3 className="min-w-0 text-[15px] font-medium leading-snug text-ink-400 line-through decoration-ink-300">
                                 {tier === 'mid' ? item.title : item.high_title}
                               </h3>
                             </div>
-                            <span className="figure shrink-0 text-[15px]">
+                            <span className="figure shrink-0 text-[15px] text-ink-300 line-through">
                               ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
-
-                          {body && (
-                            <div className="mt-2 pl-9 sm:pl-10">
-                              <p className={`max-w-2xl text-[14px] leading-relaxed text-ink-500 ${isExpanded ? '' : 'line-clamp-3'}`}>
-                                {body}
-                              </p>
-                              {String(body).length > 220 && (
-                                <button
-                                  type="button"
-                                  onClick={() => toggleExpandDescription(idx)}
-                                  aria-expanded={isExpanded}
-                                  className="mt-1.5 text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
-                                >
-                                  {isExpanded ? "Show less" : "Read full specification"}
-                                </button>
-                              )}
-                            </div>
-                          )}
+                          <div className="mt-1.5 pl-9 sm:pl-10">
+                            <button
+                              type="button"
+                              onClick={() => handleReinstateIndex(idx)}
+                              className="min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+                            >
+                              Add this back
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      ))}
+                    <p className="mt-3 text-[13px] leading-relaxed text-ink-500">
+                      Set-aside lines stay on the proposal and are not part of the contract total. Add any of them back before signing, or ask Skyler about them in Messages.
+                    </p>
+                  </div>
+                )}
 
                 {/* Last page of the estimate */}
                 <dl className="mt-8 border-t-2 border-ink-900">
@@ -1009,17 +1143,10 @@ export default function HomeownerPortalClient({
                           <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
                           <div className="flex items-start justify-between gap-3 sm:gap-5">
                             <div className="flex min-w-0 flex-1 items-start gap-3">
-                              <button
-                                type="button"
-                                onClick={() => toggleExpandDescription(idx)}
-                                aria-expanded={isExpanded}
-                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-rule-300/70 text-ink-500 transition-all duration-200 ease-architect hover:border-rule-400 hover:text-ink-900"
-                              >
-                                <svg className={`h-2.5 w-2.5 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-                                </svg>
-                              </button>
-                              <h4 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-ink-900">{item.title}</h4>
+                              <span className="w-6 shrink-0 pt-px text-[13px] text-ink-300 tnum">
+                                {String(idx + 1).padStart(2, "0")}
+                              </span>
+                              <h4 className="min-w-0 text-[15px] font-medium leading-snug text-ink-900">{item.title}</h4>
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1">
                               <div className="flex items-baseline gap-2.5">
@@ -1039,9 +1166,13 @@ export default function HomeownerPortalClient({
                               )}
                             </div>
                           </div>
-                          {isExpanded && (
-                            <div className="mt-3 max-w-2xl animate-rise border-t border-rule-300/50 pl-8 pt-3">
-                              <p className="text-[12.5px] leading-relaxed text-ink-500">{item.description}</p>
+                          {item.description && (
+                            <div className="mt-2 pl-9 sm:pl-10">
+                              <ScopeDescription
+                                text={String(item.description)}
+                                expanded={isExpanded}
+                                onToggle={() => toggleExpandDescription(idx)}
+                              />
                             </div>
                           )}
                         </div>
@@ -1116,21 +1247,25 @@ export default function HomeownerPortalClient({
 
         {/* ── MESSAGES TAB (both pre and post approval) ── */}
         {activeTab === "messages" && (
-          <div className="mx-auto max-w-3xl animate-rise">
+          <div id="messages-thread" className="mx-auto max-w-3xl animate-rise scroll-mt-20">
             <div className="title-block">
               <h2 className="display-sm">Messages</h2>
               <span className="eyebrow hidden sm:block">Messages go straight to Skyler</span>
             </div>
 
             <div className="panel overflow-hidden">
-              <div className="max-h-[440px] space-y-4 overflow-y-auto bg-paper-50/40 p-5 sm:p-7">
-                {Array.isArray((invoice as any).questions) && (invoice as any).questions.length > 0 ? (
-                  (invoice as any).questions.map((msg: any, i: number) => (
+              <div className="max-h-[60vh] min-h-[240px] space-y-4 overflow-y-auto bg-paper-50/40 p-5 sm:p-7">
+                {threadMessages.length > 0 ? (
+                  threadMessages.map((msg: any, i: number) => {
+                    const isNew = isUnreadFromContractor(msg);
+                    return (
                     <div key={i} className={`flex ${msg.author === "homeowner" ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[86%] px-5 py-4 text-[13px] leading-relaxed sm:max-w-[76%] ${
                         msg.author === "homeowner"
                           ? "border border-rule-300 bg-paper-50 text-ink-900"
-                          : "border border-rule-300/70 bg-paper-50 text-ink-500"
+                          : isNew
+                            ? "border-l-2 border-bronze-500 border-y border-r border-y-bronze-200 border-r-bronze-200 bg-bronze-50 text-ink-900"
+                            : "border border-rule-300/70 bg-paper-50 text-ink-500"
                       }`}>
                         {msg.image_url && (
                           <a href={msg.image_url} target="_blank" rel="noopener noreferrer" className="mb-2.5 block">
@@ -1138,12 +1273,18 @@ export default function HomeownerPortalClient({
                           </a>
                         )}
                         {msg.text && <p>{msg.text}</p>}
-                        <p className={`mt-2.5 font-sans text-[13px] tracking-architect ${msg.author === "homeowner" ? "text-ink-900/45" : "text-ink-500"}`}>
-                          {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        <p className={`mt-2.5 flex flex-wrap items-center gap-x-2 font-sans text-[13px] tracking-architect ${msg.author === "homeowner" ? "text-ink-900/45" : "text-ink-500"}`}>
+                          <span>
+                            {msg.author === "homeowner" ? "You" : "Skyler · WDO Custom"} · {new Date(msg.timestamp).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          </span>
+                          {isNew && (
+                            <span className="rounded-edge bg-bronze-500 px-1.5 py-0.5 text-[11px] font-semibold text-paper-50">New</span>
+                          )}
                         </p>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="blueprint-grid px-6 py-16 text-center">
                     <p className="display-sm">No messages on this job yet</p>
@@ -1152,6 +1293,7 @@ export default function HomeownerPortalClient({
                     </p>
                   </div>
                 )}
+                <div ref={threadEndRef} />
               </div>
 
               <form
@@ -1704,5 +1846,56 @@ export default function HomeownerPortalClient({
 
       </div>
     </div>
+  );
+}
+
+function ScopeDescription({
+  text,
+  expanded,
+  onToggle,
+}: {
+  text: string;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const ref = useRef<HTMLParagraphElement | null>(null);
+  const [isClipped, setIsClipped] = useState(false);
+
+  useEffect(() => {
+    // Only meaningful while collapsed; when expanded the box grows to fit and
+    // the last measurement is what keeps "Show less" on screen.
+    if (expanded) return;
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setIsClipped(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    observer?.observe(el);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [text, expanded]);
+
+  return (
+    <>
+      <p
+        ref={ref}
+        className={`max-w-2xl text-[14px] leading-relaxed text-ink-500 ${expanded ? "" : "line-clamp-3"}`}
+      >
+        {text}
+      </p>
+      {(isClipped || expanded) && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          className="mt-1.5 min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+        >
+          {expanded ? "Show less" : "Read full specification"}
+        </button>
+      )}
+    </>
   );
 }
