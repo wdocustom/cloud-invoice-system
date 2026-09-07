@@ -851,31 +851,33 @@ export default function HomeownerPortalClient({
                                 />
                               )}
                               {isConfirming ? (
-                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-l-2 border-rule-400 bg-paper-200/50 px-3 py-2.5">
+                                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-l-2 border-rule-400 bg-paper-200/50 px-3 py-3">
                                   <span className="text-[13px] text-ink-700">Set this line aside?</span>
                                   <button
                                     type="button"
                                     onClick={() => { handleRemoveIndex(idx); setPendingRemoveIdx(null); }}
-                                    className="min-h-[32px] text-[13px] font-medium text-brick-600 underline underline-offset-2"
+                                    className="min-h-[40px] py-1 text-[13px] font-medium text-brick-600 underline underline-offset-2"
                                   >
                                     Yes, remove it
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => setPendingRemoveIdx(null)}
-                                    className="min-h-[32px] text-[13px] text-ink-500 underline underline-offset-2"
+                                    className="min-h-[40px] py-1 text-[13px] text-ink-500 underline underline-offset-2"
                                   >
                                     Keep it
                                   </button>
                                 </div>
                               ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setPendingRemoveIdx(idx)}
-                                  className="mt-2 min-h-[32px] text-[13px] text-ink-400 underline underline-offset-2 transition-colors duration-150 hover:text-brick-600"
-                                >
-                                  Remove from proposal
-                                </button>
+                                <div className="mt-4 border-t border-rule-200 pt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setPendingRemoveIdx(idx)}
+                                    className="min-h-[40px] py-1 text-[13px] text-ink-400 underline underline-offset-2 transition-colors duration-150 hover:text-brick-600"
+                                  >
+                                    Remove from proposal
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -910,7 +912,7 @@ export default function HomeownerPortalClient({
                             <button
                               type="button"
                               onClick={() => handleReinstateIndex(idx)}
-                              className="min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+                              className="min-h-[40px] py-1 text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
                             >
                               Add this back
                             </button>
@@ -1891,7 +1893,7 @@ function ScopeDescription({
           type="button"
           onClick={onToggle}
           aria-expanded={expanded}
-          className="mt-1.5 min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+          className="mt-2 block min-h-[36px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
         >
           {expanded ? "Show less" : "Read full specification"}
         </button>
