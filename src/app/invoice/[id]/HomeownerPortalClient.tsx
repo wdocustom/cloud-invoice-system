@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
@@ -737,11 +737,16 @@ export default function HomeownerPortalClient({
               <div>
                 <div className="title-block">
                   <h2 className="display-lg">Scope of work</h2>
-                  <span className="eyebrow">{masterItems.length} items</span>
+                  <span className="eyebrow">
+                    {activeIndices.length < masterItems.length
+                      ? `${activeIndices.length} of ${masterItems.length} included`
+                      : `${masterItems.length} items`}
+                  </span>
                 </div>
 
                 <div className="border-t border-rule-300">
                   {masterItems.map((item: any, idx: number) => {
+                    const isItemActive = activeIndices.includes(idx);
                     const isExpanded = expandedIndices.includes(idx);
                     const category = categoryOf(item);
                     const startsCategory = idx === 0 || categoryOf(masterItems[idx - 1]) !== category;
@@ -751,38 +756,52 @@ export default function HomeownerPortalClient({
                         {startsCategory && (
                           <p className="spec-label bg-paper-200/70 px-4 py-2">{category}</p>
                         )}
-                        <div className="border-b border-rule-200 px-1 py-5 sm:px-2">
+                        <div className={`border-b border-rule-200 px-1 py-5 sm:px-2 ${isItemActive ? '' : 'bg-paper-200/40'}`}>
                           <div className="flex items-baseline justify-between gap-4">
                             <div className="flex min-w-0 gap-3 sm:gap-4">
                               <span className="w-6 shrink-0 pt-px text-[13px] text-ink-300 tnum">
                                 {String(idx + 1).padStart(2, "0")}
                               </span>
-                              <h3 className="min-w-0 text-[15px] font-medium leading-snug text-ink-900">
+                              <h3 className={`min-w-0 text-[15px] font-medium leading-snug ${isItemActive ? 'text-ink-900' : 'text-ink-400 line-through decoration-ink-300'}`}>
                                 {tier === 'mid' ? item.title : item.high_title}
                               </h3>
                             </div>
-                            <span className="figure shrink-0 text-[15px]">
+                            <span className={`figure shrink-0 text-[15px] ${isItemActive ? '' : 'text-ink-300 line-through'}`}>
                               ${(tier === 'mid' ? toNum(item.mid_cost) : toNum(item.high_cost)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
 
-                          {body && (
-                            <div className="mt-2 pl-9 sm:pl-10">
-                              <p className={`max-w-2xl text-[14px] leading-relaxed text-ink-500 ${isExpanded ? '' : 'line-clamp-3'}`}>
-                                {body}
-                              </p>
-                              {String(body).length > 220 && (
+                          <div className="mt-2 pl-9 sm:pl-10">
+                            {isItemActive ? (
+                              <>
+                                {body && (
+                                  <ScopeDescription
+                                    text={String(body)}
+                                    expanded={isExpanded}
+                                    onToggle={() => toggleExpandDescription(idx)}
+                                  />
+                                )}
                                 <button
                                   type="button"
-                                  onClick={() => toggleExpandDescription(idx)}
-                                  aria-expanded={isExpanded}
-                                  className="mt-1.5 text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+                                  onClick={() => handleRemoveIndex(idx)}
+                                  className="mt-2 min-h-[32px] text-[13px] text-ink-400 underline underline-offset-2 transition-colors duration-150 hover:text-brick-600"
                                 >
-                                  {isExpanded ? "Show less" : "Read full specification"}
+                                  Remove from proposal
                                 </button>
-                              )}
-                            </div>
-                          )}
+                              </>
+                            ) : (
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span className="text-[13px] text-ink-400">Not included in this proposal.</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleReinstateIndex(idx)}
+                                  className="min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+                                >
+                                  Add back
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -1009,17 +1028,10 @@ export default function HomeownerPortalClient({
                           <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
                           <div className="flex items-start justify-between gap-3 sm:gap-5">
                             <div className="flex min-w-0 flex-1 items-start gap-3">
-                              <button
-                                type="button"
-                                onClick={() => toggleExpandDescription(idx)}
-                                aria-expanded={isExpanded}
-                                className="mt-[1px] flex h-5 w-5 shrink-0 items-center justify-center border border-rule-300/70 text-ink-500 transition-all duration-200 ease-architect hover:border-rule-400 hover:text-ink-900"
-                              >
-                                <svg className={`h-2.5 w-2.5 transition-transform duration-300 ease-architect ${isExpanded ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" d="M12 5v14M5 12h14" />
-                                </svg>
-                              </button>
-                              <h4 className="min-w-0 text-[13.5px] font-medium leading-snug tracking-[-0.01em] text-ink-900">{item.title}</h4>
+                              <span className="w-6 shrink-0 pt-px text-[13px] text-ink-300 tnum">
+                                {String(idx + 1).padStart(2, "0")}
+                              </span>
+                              <h4 className="min-w-0 text-[15px] font-medium leading-snug text-ink-900">{item.title}</h4>
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1">
                               <div className="flex items-baseline gap-2.5">
@@ -1039,9 +1051,13 @@ export default function HomeownerPortalClient({
                               )}
                             </div>
                           </div>
-                          {isExpanded && (
-                            <div className="mt-3 max-w-2xl animate-rise border-t border-rule-300/50 pl-8 pt-3">
-                              <p className="text-[12.5px] leading-relaxed text-ink-500">{item.description}</p>
+                          {item.description && (
+                            <div className="mt-2 pl-9 sm:pl-10">
+                              <ScopeDescription
+                                text={String(item.description)}
+                                expanded={isExpanded}
+                                onToggle={() => toggleExpandDescription(idx)}
+                              />
                             </div>
                           )}
                         </div>
@@ -1704,5 +1720,56 @@ export default function HomeownerPortalClient({
 
       </div>
     </div>
+  );
+}
+
+function ScopeDescription({
+  text,
+  expanded,
+  onToggle,
+}: {
+  text: string;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const ref = useRef<HTMLParagraphElement | null>(null);
+  const [isClipped, setIsClipped] = useState(false);
+
+  useEffect(() => {
+    // Only meaningful while collapsed; when expanded the box grows to fit and
+    // the last measurement is what keeps "Show less" on screen.
+    if (expanded) return;
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setIsClipped(el.scrollHeight > el.clientHeight + 1);
+    measure();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    observer?.observe(el);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [text, expanded]);
+
+  return (
+    <>
+      <p
+        ref={ref}
+        className={`max-w-2xl text-[14px] leading-relaxed text-ink-500 ${expanded ? "" : "line-clamp-3"}`}
+      >
+        {text}
+      </p>
+      {(isClipped || expanded) && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          className="mt-1.5 min-h-[32px] text-[13px] font-medium text-bronze-500 underline underline-offset-2 transition-colors duration-150 hover:text-bronze-600"
+        >
+          {expanded ? "Show less" : "Read full specification"}
+        </button>
+      )}
+    </>
   );
 }
