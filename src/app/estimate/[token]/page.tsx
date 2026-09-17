@@ -35,6 +35,9 @@ interface Estimate {
   scope_level: string;
   size: string | null;
   zip: string | null;
+  intake_timeline: string | null;
+  intake_budget_fit: string | null;
+  intake_ownership: string | null;
   description: string;
   estimate_data: EstimateData;
   status: string;
@@ -141,6 +144,11 @@ export default function PublicEstimatePage() {
         estimateHigh: result.total_projected_high?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
         timeline: result.timeline_weeks ? `${result.timeline_weeks} weeks` : "",
         token: token || "",
+        // Any qualification already on the lead, so the band in the subject
+        // line matches the score stored on the row.
+        intakeTimeline: estimate.intake_timeline || "",
+        budgetFit: estimate.intake_budget_fit || "",
+        ownership: estimate.intake_ownership || "",
       }),
     }).catch(() => {});
   }

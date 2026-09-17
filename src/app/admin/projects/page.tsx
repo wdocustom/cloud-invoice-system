@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
 import { findPartnerById } from "@/lib/referral-partners";
+import { BAND_LABELS, FLAG_LABELS, effectiveBand, effectiveScore, type LeadFlag } from "@/lib/lead-score";
 
 export default function ProjectsIndexLedger() {
   const router = useRouter();
@@ -12,6 +13,10 @@ export default function ProjectsIndexLedger() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"projects" | "leads">("projects");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Triage controls. Sort defaults to score, but stays switchable: quietly
+  // reordering a list someone reads chronologically is disorienting.
+  const [leadSort, setLeadSort] = useState<"score" | "newest" | "value">("score");
+  const [leadFilter, setLeadFilter] = useState<"all" | "call" | "hot" | "attention">("all");
 
   async function deleteLead(id: string) {
     if (!confirm("Delete this lead permanently? This cannot be undone.")) return;
@@ -63,7 +68,41 @@ export default function ProjectsIndexLedger() {
   const totalValue = projects.reduce((s, p) => s + toNum(p.amount), 0);
   const approvedCount = projects.filter(p => p.status === "approved").length;
   const newLeads = estimates.filter(e => e.status === "new").length;
-  const unconvertedEstimates = estimates.filter(e => !e.converted_to_invoice_id);
+  // Referred leads were never WDO's to convert, so counting them here would let
+  // the "not yet converted" figure fill up with work that was handed off.
+  const unconvertedEstimates = estimates.filter(
+    e => !e.converted_to_invoice_id && e.status !== "referred"
+  );
+
+  const leadFlags = (lead: any): string[] => (Array.isArray(lead.lead_flags) ? lead.lead_flags : []);
+  /** Flags that mean "look at this before calling", as opposed to merely informative. */
+  const needsAttention = (lead: any) =>
+    leadFlags(lead).some(f => ["no_contact", "out_of_area", "not_owner", "site_risk"].includes(f));
+
+  const visibleLeads = estimates
+    .filter(lead => {
+      if (leadFilter === "call") return lead.status === "new";
+      if (leadFilter === "hot") return effectiveBand(lead) === "A" && lead.status !== "converted";
+      if (leadFilter === "attention") return needsAttention(lead);
+      return true;
+    })
+    .sort((a, b) => {
+      if (leadSort === "newest") {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      if (leadSort === "value") {
+        const value = (l: any) => toNum(l.estimate_data?.total_projected_high);
+        return value(b) - value(a);
+      }
+      // Score: highest first, then most recent as the tiebreak.
+      const diff = effectiveScore(b) - effectiveScore(a);
+      if (diff !== 0) return diff;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+  const hotLeads = estimates.filter(
+    e => effectiveBand(e) === "A" && e.status !== "converted" && e.status !== "referred"
+  ).length;
 
   if (loading) return (
     <div className="flex min-h-[60vh] items-center justify-center">
@@ -248,9 +287,12 @@ export default function ProjectsIndexLedger() {
         {tab === "leads" && (
           <>
             {/* One spec line — the next action matters more than the count */}
-            <p className="mb-7 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[14px] text-ink-500">
+            <p className="mb-5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[14px] text-ink-500">
               <span className="font-medium text-ink-900 tnum">{estimates.length}</span>
               <span>{estimates.length === 1 ? "inquiry" : "inquiries"}</span>
+              <span aria-hidden className="text-ink-300">·</span>
+              <span className="font-medium text-ink-900 tnum">{hotLeads}</span>
+              <span>worth calling today</span>
               <span aria-hidden className="text-ink-300">·</span>
               <span className="font-medium text-ink-900 tnum">{newLeads}</span>
               <span>need a first call</span>
@@ -259,11 +301,70 @@ export default function ProjectsIndexLedger() {
               <span>not yet converted</span>
             </p>
 
+            {/* Triage controls */}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {([
+                  ["all", "All", estimates.length],
+                  ["call", "Need a call", newLeads],
+                  ["hot", "Hot", hotLeads],
+                  ["attention", "Needs a look", estimates.filter(needsAttention).length],
+                ] as const).map(([key, label, count]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setLeadFilter(key)}
+                    className={`rounded-edge border px-2.5 py-1 text-[12px] transition-colors duration-200 ${
+                      leadFilter === key
+                        ? "border-ink-900 bg-ink-900 text-paper-50"
+                        : "border-rule-300 text-ink-500 hover:border-ink-400 hover:text-ink-900"
+                    }`}
+                  >
+                    {label}
+                    <span className="ml-1.5 tabular-nums opacity-60">{count}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1.5 text-[12px] text-ink-400">
+                <span className="hidden sm:inline">Sort</span>
+                {([
+                  ["score", "Score"],
+                  ["newest", "Newest"],
+                  ["value", "Value"],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setLeadSort(key)}
+                    className={`rounded-edge px-2 py-1 transition-colors duration-200 ${
+                      leadSort === key ? "bg-paper-50 text-ink-900" : "text-ink-400 hover:text-ink-900"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {visibleLeads.length === 0 && (
+              <p className="border-t border-rule-300/70 py-10 text-center text-[14px] text-ink-400">
+                Nothing matches this filter.
+              </p>
+            )}
+
             {/* Lead ledger */}
             <div className="border-t border-rule-300/70">
-              {estimates.map((est) => {
+              {visibleLeads.map((est) => {
                 const ed = est.estimate_data || {};
                 const isConverted = !!est.converted_to_invoice_id;
+                const score = effectiveScore(est);
+                const band = effectiveBand(est);
+                const hasScore = typeof est.lead_score === "number" || typeof est.lead_score_override === "number";
+                const flags: LeadFlag[] = leadFlags(est) as LeadFlag[];
+                // 'referral' already shows as the status badge; repeating it here
+                // would just crowd the row.
+                const shownFlags = flags.filter((f) => f !== "referral");
                 const statusClasses: Record<string, string> = {
                   new: "badge-ink",
                   contacted: "badge-pending",
@@ -317,7 +418,38 @@ export default function ProjectsIndexLedger() {
                             <span className={`badge-dot ${statusDots[est.status] || statusDots.new}`} />
                             {statusLabels[est.status] || "New Lead"}
                           </span>
+                          {hasScore && !isConverted && (
+                            <span
+                              title={`${score}/100 — ${BAND_LABELS[band]}`}
+                              className={`badge ${
+                                band === "A" ? "badge-approved" : band === "B" ? "badge-pending" : "badge-neutral"
+                              }`}
+                            >
+                              <span className="tabular-nums">{score}</span>
+                              <span className="opacity-60">{band}</span>
+                            </span>
+                          )}
+                          {est.lead_score_override != null && (
+                            <span className="text-[10px] tracking-architect text-ink-400" title="Score set by hand">
+                              OVERRIDE
+                            </span>
+                          )}
                         </div>
+
+                        {shownFlags.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            {shownFlags.map((flag) => (
+                              <span
+                                key={flag}
+                                className={`text-[11px] ${
+                                  flag === "no_contact" || flag === "out_of_area" ? "text-brick-600" : "text-ink-400"
+                                }`}
+                              >
+                                {FLAG_LABELS[flag] || flag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <p className="mt-1 truncate display-sm">
                           {est.name || "No name on file"}
                         </p>

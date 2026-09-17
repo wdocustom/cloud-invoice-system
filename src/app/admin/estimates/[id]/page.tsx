@@ -3,6 +3,15 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/lib/toast";
+import {
+  BAND_LABELS,
+  FLAG_LABELS,
+  effectiveBand,
+  effectiveScore,
+  type LeadFlag,
+} from "@/lib/lead-score";
+import { describeAnswers } from "@/lib/intake-questions";
+import { findPartnerById } from "@/lib/referral-partners";
 
 function fmt(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -36,6 +45,8 @@ export default function EstimateDetailPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [savingLead, setSavingLead] = useState(false);
   const [form, setForm] = useState<LeadForm>(EMPTY_FORM);
+  const [overrideInput, setOverrideInput] = useState("");
+  const [savingOverride, setSavingOverride] = useState(false);
 
   useEffect(() => {
     if (estimateId) fetchEstimate();
@@ -54,6 +65,7 @@ export default function EstimateDetailPage() {
       return;
     }
     setEstimate(data);
+    setOverrideInput(data.lead_score_override == null ? "" : String(data.lead_score_override));
 
     if (data.converted_to_invoice_id) {
       const { data: proposal } = await supabase
@@ -152,6 +164,27 @@ export default function EstimateDetailPage() {
     await supabase.from("estimates").update({ status }).eq("id", estimateId);
     setEstimate((prev: any) => ({ ...prev, status }));
     toast(`Status updated to ${status.replace("_", " ")}`, "success");
+  }
+
+  /**
+   * Set or clear a manual score. Passing null restores the computed score —
+   * an override you can't undo is worse than none.
+   */
+  async function saveScoreOverride(value: number | null) {
+    setSavingOverride(true);
+    const { error } = await supabase
+      .from("estimates")
+      .update({ lead_score_override: value })
+      .eq("id", estimateId);
+    setSavingOverride(false);
+
+    if (error) {
+      toast("Could not save that score", "error");
+      return;
+    }
+    setEstimate((prev: any) => ({ ...prev, lead_score_override: value }));
+    setOverrideInput(value === null ? "" : String(value));
+    toast(value === null ? "Override cleared" : `Score set to ${value}`, "success");
   }
 
   if (loading) {
@@ -427,6 +460,136 @@ export default function EstimateDetailPage() {
             </p>
           </div>
         </section>
+
+        {/* Qualification — why this lead scored what it scored */}
+        {(typeof estimate.lead_score === "number" || estimate.lead_score_override != null) && (() => {
+          const score = effectiveScore(estimate);
+          const band = effectiveBand(estimate);
+          const components = Array.isArray(estimate.qualification?.components)
+            ? estimate.qualification.components
+            : [];
+          const flags: LeadFlag[] = Array.isArray(estimate.lead_flags) ? estimate.lead_flags : [];
+          const branch = describeAnswers(estimate.project_type, estimate.intake_answers);
+          const partner = findPartnerById(estimate.referred_partner_id);
+          const overridden = estimate.lead_score_override != null;
+
+          return (
+            <section className="animate-rise">
+              <div className="title-block">
+                <h2 className="display-sm">Qualification</h2>
+                <span className="eyebrow hidden sm:block">
+                  {overridden ? "Set by hand" : `Scored v${estimate.lead_score_version ?? 1}`}
+                </span>
+              </div>
+
+              <div className="panel overflow-hidden">
+                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-rule-300/70 bg-paper-50 px-6 py-5">
+                  <span className="figure text-[28px] leading-none text-ink-900">{score}</span>
+                  <span className="text-[13px] text-ink-500">/ 100 · {BAND_LABELS[band]}</span>
+                  {overridden && (
+                    <span className="text-[12px] text-ink-400">
+                      (computed {typeof estimate.lead_score === "number" ? estimate.lead_score : "—"})
+                    </span>
+                  )}
+                  {partner && (
+                    <span className="ml-auto text-[13px] text-ink-500">Referred to {partner.company}</span>
+                  )}
+                </div>
+
+                {flags.length > 0 && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-rule-300/55 px-6 py-3">
+                    {flags.map((flag) => (
+                      <span
+                        key={flag}
+                        className={`text-[12.5px] ${
+                          flag === "no_contact" || flag === "out_of_area" ? "text-brick-600" : "text-ink-500"
+                        }`}
+                      >
+                        {FLAG_LABELS[flag] || flag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {components.length > 0 && (
+                  <dl className="px-6 py-2">
+                    {components.map((c: any) => (
+                      <div
+                        key={c.key}
+                        className="flex flex-col gap-0.5 border-b border-rule-300/40 py-2.5 last:border-b-0 sm:flex-row sm:items-baseline sm:gap-6"
+                      >
+                        <dt className="eyebrow sm:w-40 sm:shrink-0">{c.label}</dt>
+                        <dd className="min-w-0 flex-1 text-[13px] text-ink-500">{c.detail}</dd>
+                        <dd className="shrink-0 text-[13px] tabular-nums text-ink-900">
+                          {c.points}
+                          <span className="text-ink-400">/{c.max}</span>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </div>
+
+              {branch.length > 0 && (
+                <div className="mt-5">
+                  <p className="eyebrow">What they told us</p>
+                  <dl className="mt-2 border-t border-rule-300/70">
+                    {branch.map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex flex-col gap-0.5 border-b border-rule-300/55 py-3 sm:flex-row sm:items-baseline sm:gap-6"
+                      >
+                        <dt className="eyebrow sm:w-64 sm:shrink-0">{item.label}</dt>
+                        <dd className="min-w-0 text-[13.5px] text-ink-900">{item.answer}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <label className="eyebrow" htmlFor="score-override">
+                  Set score by hand
+                </label>
+                <input
+                  id="score-override"
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={overrideInput}
+                  onChange={(e) => setOverrideInput(e.target.value)}
+                  placeholder="0–100"
+                  className="field w-28"
+                />
+                <button
+                  type="button"
+                  disabled={savingOverride || overrideInput.trim() === ""}
+                  onClick={() => {
+                    const parsed = Number(overrideInput);
+                    if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) {
+                      toast("Enter a number between 0 and 100", "error");
+                      return;
+                    }
+                    saveScoreOverride(Math.round(parsed));
+                  }}
+                  className="btn-outline px-4"
+                >
+                  Save
+                </button>
+                {overridden && (
+                  <button
+                    type="button"
+                    disabled={savingOverride}
+                    onClick={() => saveScoreOverride(null)}
+                    className="text-[13px] text-ink-400 underline-offset-4 hover:text-ink-900 hover:underline"
+                  >
+                    Restore computed score
+                  </button>
+                )}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Schedule of values */}
         <section className="animate-rise">

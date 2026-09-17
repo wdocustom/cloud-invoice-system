@@ -1,11 +1,10 @@
 /**
  * Lead scoring — deterministic triage for instant-estimate leads.
  *
- * Every lead currently lands in the ledger with the same weight and the list is
- * ordered by recency alone, so a ready-to-build basement sits below someone
- * pricing a spare bedroom for next spring. This module turns the signals the
- * estimator *already* collects into a 0-100 score so the ledger can be ordered
- * by something better than arrival time.
+ * Every lead used to land in the ledger with the same weight, ordered by
+ * arrival time, so a ready-to-build basement sat below someone pricing a spare
+ * bedroom for next spring. This module turns what the estimator knows about a
+ * lead into a 0-100 score so the ledger can be ordered by something better.
  *
  * Three rules this deliberately follows:
  *
@@ -15,21 +14,33 @@
  *  2. No outcome data feeds the score. It would be easy to award points for
  *     `status = 'converted'`, and it would make the backfill's calibration
  *     circular — a score that "predicts" conversion because it was told the
- *     answer. Scoring reads intake signals only; the ledger already shows
- *     status separately.
+ *     answer. Scoring reads intake signals only; the ledger shows status
+ *     separately.
  *  3. Nothing here rejects anyone. A low score changes the order Skyler works
  *     the list in. It never changes what the homeowner sees or receives.
  *
- * Version 1 scores the signals available without asking the homeowner anything
- * new, scaled so they use the full 0-100 range on their own. When the unlock
- * gate starts collecting timeline and budget fit, that becomes version 2 with
- * its own weights — which is why every stored score carries the version that
- * produced it.
+ * ── Versions ──
+ *
+ * v1 scored only what the form collected without asking anything extra. v2 adds
+ * the three questions the unlock gate now asks — timeline, budget fit against
+ * the range the homeowner just saw, and ownership — and reweights everything
+ * around them, because when someone tells you they want to start within a month
+ * that outranks any amount of inference from their ZIP code.
+ *
+ * Unanswered questions score neutral rather than falling back to a separate v1
+ * scale. One comparable scale keeps the ledger sortable as a single list, and
+ * neutral is the honest position: someone who skipped the question is a better
+ * prospect than someone who said "just researching" and a worse one than
+ * someone who said "as soon as possible".
  */
 
-export const LEAD_SCORE_VERSION = 1;
+export const LEAD_SCORE_VERSION = 2;
 
 export type LeadBand = "A" | "B" | "C";
+
+export type IntakeTimeline = "asap" | "1_3_months" | "3_6_months" | "researching";
+export type IntakeBudgetFit = "works" | "needs_options" | "higher_than_expected";
+export type IntakeOwnership = "own" | "buying" | "renting";
 
 /**
  * Non-scoring conditions worth surfacing on their own. These are deliberately
@@ -42,7 +53,11 @@ export type LeadFlag =
   | "no_zip"
   | "no_contact"
   | "vague_description"
-  | "referral";
+  | "referral"
+  | "not_owner"
+  | "budget_gap"
+  | "site_risk"
+  | "needs_design";
 
 export interface LeadScoreInput {
   projectType?: string | null;
@@ -56,6 +71,10 @@ export interface LeadScoreInput {
   /** Midpoint is taken from these; pass the raw numbers from estimate_data. */
   estimateLow?: number | null;
   estimateHigh?: number | null;
+  /** Tier B answers from the unlock gate. Absent on leads created before v2. */
+  timeline?: IntakeTimeline | string | null;
+  budgetFit?: IntakeBudgetFit | string | null;
+  ownership?: IntakeOwnership | string | null;
 }
 
 export interface ScoreComponent {
@@ -83,13 +102,13 @@ export interface LeadScore {
  * Nebraska prefixes.
  */
 const SERVICE_AREA: Record<string, { points: number; label: string }> = {
-  "680": { points: 20, label: "Omaha metro" },
-  "681": { points: 20, label: "Omaha metro" },
-  "682": { points: 20, label: "Omaha metro" },
-  "683": { points: 12, label: "Lincoln area" },
-  "684": { points: 12, label: "Greater Nebraska" },
-  "685": { points: 12, label: "Greater Nebraska" },
-  "515": { points: 14, label: "Council Bluffs / SW Iowa" },
+  "680": { points: 14, label: "Omaha metro" },
+  "681": { points: 14, label: "Omaha metro" },
+  "682": { points: 14, label: "Omaha metro" },
+  "683": { points: 8, label: "Lincoln area" },
+  "684": { points: 8, label: "Greater Nebraska" },
+  "685": { points: 8, label: "Greater Nebraska" },
+  "515": { points: 10, label: "Council Bluffs / SW Iowa" },
 };
 
 /**
@@ -115,12 +134,74 @@ function zipPrefix(zip?: string | null): string | null {
 }
 
 /**
+ * Timeline — the strongest single signal available, which is why it carries the
+ * most weight. Everything else is inference; this is the homeowner telling you
+ * directly when they intend to start.
+ */
+function scoreTimeline(input: LeadScoreInput): ScoreComponent {
+  const max = 22;
+  const table: Record<string, { points: number; detail: string }> = {
+    asap: { points: 22, detail: "Ready to start as soon as possible" },
+    "1_3_months": { points: 18, detail: "Starting in 1–3 months" },
+    "3_6_months": { points: 11, detail: "Starting in 3–6 months" },
+    researching: { points: 3, detail: "Still researching" },
+  };
+  const match = table[(input.timeline || "").trim()];
+  return {
+    key: "timeline",
+    label: "Timeline",
+    points: match?.points ?? 8,
+    max,
+    detail: match?.detail ?? "Not answered — scored neutral",
+  };
+}
+
+/**
+ * Budget fit, asked against the range the homeowner had just watched render.
+ * Asking "what's your budget?" cold produces noise; asking "does $92k–$118k
+ * work?" produces an answer you can act on — and "higher than I expected" is
+ * more useful than a yes, because it says walk in leading with phasing.
+ */
+function scoreBudgetFit(input: LeadScoreInput): { component: ScoreComponent; flags: LeadFlag[] } {
+  const max = 20;
+  const table: Record<string, { points: number; detail: string; flags: LeadFlag[] }> = {
+    works: { points: 20, detail: "Range works for their budget", flags: [] },
+    needs_options: { points: 11, detail: "Wants to see options at different levels", flags: [] },
+    higher_than_expected: {
+      points: 5,
+      detail: "Range is higher than they expected",
+      flags: ["budget_gap"],
+    },
+  };
+  const match = table[(input.budgetFit || "").trim()];
+  return {
+    component: {
+      key: "budget_fit",
+      label: "Budget fit",
+      points: match?.points ?? 8,
+      max,
+      detail: match?.detail ?? "Not answered — scored neutral",
+    },
+    flags: match?.flags ?? [],
+  };
+}
+
+/**
+ * Ownership is a flag, not points. A renter isn't a weak lead, they're usually
+ * the wrong person to be signing for the work at all, and burying that in a
+ * total loses it.
+ */
+function ownershipFlags(input: LeadScoreInput): LeadFlag[] {
+  return (input.ownership || "").trim() === "renting" ? ["not_owner"] : [];
+}
+
+/**
  * Project value, from the midpoint of the range the estimator quoted. Bands
  * rather than a linear scale: the difference between a $12k job and a $20k job
  * matters to the schedule, not to which lead gets called first.
  */
 function scoreProjectValue(input: LeadScoreInput): ScoreComponent {
-  const max = 30;
+  const max = 18;
   const low = typeof input.estimateLow === "number" ? input.estimateLow : null;
   const high = typeof input.estimateHigh === "number" ? input.estimateHigh : null;
 
@@ -128,7 +209,7 @@ function scoreProjectValue(input: LeadScoreInput): ScoreComponent {
     return {
       key: "project_value",
       label: "Project value",
-      points: 8,
+      points: 5,
       max,
       detail: "No estimate range on file — scored neutral",
     };
@@ -136,11 +217,11 @@ function scoreProjectValue(input: LeadScoreInput): ScoreComponent {
 
   const midpoint = low !== null && high !== null ? (low + high) / 2 : (low ?? high)!;
   const table: Array<[number, number, string]> = [
-    [150_000, 30, "$150k+"],
-    [75_000, 26, "$75k–$150k"],
-    [40_000, 21, "$40k–$75k"],
-    [20_000, 15, "$20k–$40k"],
-    [8_000, 9, "$8k–$20k"],
+    [150_000, 18, "$150k+"],
+    [75_000, 16, "$75k–$150k"],
+    [40_000, 13, "$40k–$75k"],
+    [20_000, 9, "$20k–$40k"],
+    [8_000, 5, "$8k–$20k"],
   ];
 
   for (const [threshold, points, label] of table) {
@@ -158,14 +239,14 @@ function scoreProjectValue(input: LeadScoreInput): ScoreComponent {
   return {
     key: "project_value",
     label: "Project value",
-    points: 4,
+    points: 2,
     max,
     detail: `Under $8k (midpoint $${Math.round(midpoint).toLocaleString("en-US")})`,
   };
 }
 
 function scoreServiceArea(input: LeadScoreInput): { component: ScoreComponent; flags: LeadFlag[] } {
-  const max = 20;
+  const max = 14;
   const prefix = zipPrefix(input.zip);
 
   if (!prefix) {
@@ -173,7 +254,7 @@ function scoreServiceArea(input: LeadScoreInput): { component: ScoreComponent; f
       component: {
         key: "service_area",
         label: "Service area",
-        points: 6,
+        points: 4,
         max,
         detail: "No ZIP provided — scored neutral",
       },
@@ -212,23 +293,23 @@ function scoreServiceArea(input: LeadScoreInput): { component: ScoreComponent; f
  * real materials and for giving any dimension or quantity.
  */
 function scoreDescription(input: LeadScoreInput): { component: ScoreComponent; flags: LeadFlag[] } {
-  const max = 20;
+  const max = 12;
   const text = (input.description || "").trim();
   const words = text ? text.split(/\s+/).length : 0;
 
   let points: number;
-  if (words >= 40) points = 12;
-  else if (words >= 20) points = 8;
-  else if (words >= 10) points = 5;
-  else points = 2;
+  if (words >= 40) points = 7;
+  else if (words >= 20) points = 5;
+  else if (words >= 10) points = 3;
+  else points = 1;
 
   const lower = text.toLowerCase();
   const termHits = SPECIFIC_TERMS.filter((term) => lower.includes(term));
-  if (termHits.length >= 2) points += 4;
-  else if (termHits.length === 1) points += 2;
+  if (termHits.length >= 2) points += 3;
+  else if (termHits.length === 1) points += 1;
 
   const hasMeasurement = /\d/.test(text);
-  if (hasMeasurement) points += 4;
+  if (hasMeasurement) points += 2;
 
   points = clamp(points, 0, max);
 
@@ -249,7 +330,7 @@ function scoreDescription(input: LeadScoreInput): { component: ScoreComponent; f
 }
 
 function scoreContact(input: LeadScoreInput): { component: ScoreComponent; flags: LeadFlag[] } {
-  const max = 15;
+  const max = 8;
   const hasEmail = !!(input.email || "").trim();
   const hasPhone = !!(input.phone || "").trim();
   const hasName = !!(input.name || "").trim();
@@ -270,10 +351,10 @@ function scoreContact(input: LeadScoreInput): { component: ScoreComponent; flags
   let points: number;
   let detail: string;
   if (hasEmail && hasPhone) {
-    points = hasName ? 15 : 13;
+    points = hasName ? 8 : 7;
     detail = hasName ? "Name, email and phone" : "Email and phone, no name";
   } else {
-    points = hasName ? 9 : 7;
+    points = hasName ? 5 : 4;
     detail = `${hasEmail ? "Email" : "Phone"} only${hasName ? ", with name" : ", no name"}`;
   }
 
@@ -284,35 +365,34 @@ function scoreContact(input: LeadScoreInput): { component: ScoreComponent; flags
 }
 
 /**
- * Finish level as a budget proxy. Someone choosing high-end has implicitly told
- * you their spending posture, which is the closest thing to a budget signal
- * available before the unlock gate starts asking outright.
+ * Finish level as a budget proxy. Weighted down in v2 now that budget fit is
+ * asked outright — inference only matters where the direct answer is missing.
  */
 function scoreFinishLevel(input: LeadScoreInput): ScoreComponent {
-  const max = 10;
+  const max = 4;
   const level = (input.scopeLevel || "").trim().toLowerCase();
   const table: Record<string, { points: number; detail: string }> = {
-    high: { points: 10, detail: "High-end / custom finishes" },
-    mid: { points: 6, detail: "Mid-range finishes" },
-    budget: { points: 3, detail: "Builder-grade finishes" },
+    high: { points: 4, detail: "High-end / custom finishes" },
+    mid: { points: 2, detail: "Mid-range finishes" },
+    budget: { points: 1, detail: "Builder-grade finishes" },
   };
   const match = table[level];
   return {
     key: "finish_level",
     label: "Finish level",
-    points: match?.points ?? 5,
+    points: match?.points ?? 2,
     max,
     detail: match?.detail ?? "Not specified — scored neutral",
   };
 }
 
 function scoreSize(input: LeadScoreInput): ScoreComponent {
-  const max = 5;
+  const max = 2;
   const provided = !!(input.size || "").trim();
   return {
     key: "size",
     label: "Size given",
-    points: provided ? 5 : 0,
+    points: provided ? 2 : 0,
     max,
     detail: provided ? `"${(input.size || "").trim()}"` : "No size or dimensions given",
   };
@@ -330,6 +410,18 @@ export const BAND_LABELS: Record<LeadBand, string> = {
   C: "Long-term",
 };
 
+export const FLAG_LABELS: Record<LeadFlag, string> = {
+  out_of_area: "Outside service area",
+  no_zip: "No ZIP given",
+  no_contact: "No contact method",
+  vague_description: "Vague description",
+  referral: "Referred out",
+  not_owner: "Renting — not the owner",
+  budget_gap: "Range above expectation",
+  site_risk: "Site condition to check first",
+  needs_design: "Needs drawings before pricing",
+};
+
 /**
  * Score a lead. Pure: same input, same output, no clock and no network.
  *
@@ -337,11 +429,14 @@ export const BAND_LABELS: Record<LeadBand, string> = {
  * — today that's only whether the lead was routed to a referral partner.
  */
 export function scoreLead(input: LeadScoreInput, extraFlags: LeadFlag[] = []): LeadScore {
+  const budgetFit = scoreBudgetFit(input);
   const serviceArea = scoreServiceArea(input);
   const description = scoreDescription(input);
   const contact = scoreContact(input);
 
   const components: ScoreComponent[] = [
+    scoreTimeline(input),
+    budgetFit.component,
     scoreProjectValue(input),
     serviceArea.component,
     description.component,
@@ -355,9 +450,11 @@ export function scoreLead(input: LeadScoreInput, extraFlags: LeadFlag[] = []): L
 
   const flags = Array.from(
     new Set<LeadFlag>([
+      ...budgetFit.flags,
       ...serviceArea.flags,
       ...description.flags,
       ...contact.flags,
+      ...ownershipFlags(input),
       ...extraFlags,
     ])
   );
@@ -405,7 +502,25 @@ export function scoreLeadRow(row: Record<string, any>, extraFlags: LeadFlag[] = 
       phone: row?.phone,
       estimateLow: typeof data.total_projected_low === "number" ? data.total_projected_low : null,
       estimateHigh: typeof data.total_projected_high === "number" ? data.total_projected_high : null,
+      timeline: row?.intake_timeline,
+      budgetFit: row?.intake_budget_fit,
+      ownership: row?.intake_ownership,
     },
     extraFlags
   );
+}
+
+/**
+ * The effective score for sorting, honouring a manual override. Skyler
+ * sometimes just knows, and a triage tool that can't be corrected is one people
+ * work around rather than with.
+ */
+export function effectiveScore(row: Record<string, any>): number {
+  const override = row?.lead_score_override;
+  if (typeof override === "number" && Number.isFinite(override)) return clamp(override, 0, 100);
+  return typeof row?.lead_score === "number" ? row.lead_score : 0;
+}
+
+export function effectiveBand(row: Record<string, any>): LeadBand {
+  return bandForScore(effectiveScore(row));
 }

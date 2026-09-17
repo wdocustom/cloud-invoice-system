@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import laborRates from "@/lib/labor-rates.json";
 import permitFees from "@/lib/permit-fees.json";
-import { insertTolerant } from "@/lib/db";
+import { insertTolerant, updateTolerant } from "@/lib/db";
 import { allocateDocumentNumber, estimateNumberFields } from "@/lib/document-numbers";
-import { leadScoreFields, scoreLead, type LeadFlag } from "@/lib/lead-score";
+import { leadScoreFields, scoreLead, scoreLeadRow, type LeadFlag } from "@/lib/lead-score";
 import { findPartnerForProjectType } from "@/lib/referral-partners";
+import { estimatorHintsFor, flagsForAnswers } from "@/lib/intake-questions";
 
 function getRegionalMultiplier(zip: string): number {
   if (!zip || zip.length < 3) return laborRates.regional_multipliers.other;
@@ -36,11 +37,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "AI service not configured." }, { status: 500 });
     }
 
-    const { projectType, scopeLevel, size, zip, description, name, email, phone } = await request.json();
+    const { projectType, scopeLevel, size, zip, description, name, email, phone, refineToken, answers } =
+      await request.json();
 
     if (!description || !projectType) {
       return NextResponse.json({ error: "Project type and description are required." }, { status: 400 });
     }
+
+    // A refinement re-prices an existing lead with its branch answers and
+    // updates that row. Without this the second pass would insert a duplicate
+    // lead for the same homeowner.
+    const isRefinement = !!refineToken;
+    const branchHints = estimatorHintsFor(projectType, answers);
 
     const scopeLabels: Record<string, string> = {
       budget: "Budget / Builder Grade — basic materials, cost-effective finishes",
@@ -75,7 +83,20 @@ ${ratesContext}
 
 PERMIT REFERENCE:
 ${permitContext}
+${
+  branchHints
+    ? `
+CONFIRMED SCOPE DETAILS (the homeowner answered these directly — treat them as
+authoritative and price to them, even where they contradict the free-text
+description above):
+${branchHints}
 
+Because these details are known, you can price more tightly than a blind
+estimate: narrow the spread between your low and high figures to reflect the
+reduced uncertainty.
+`
+    : ""
+}
 YOUR TASK:
 Generate a realistic rough estimate broken into line items. This is for initial budgeting only — not a binding quote.
 
@@ -151,6 +172,55 @@ Respond ONLY with raw JSON matching this exact schema:
     }
 
     const parsed = JSON.parse(rawText);
+
+    // ── Refinement: re-price an existing lead in place ──
+    if (isRefinement) {
+      let refinedNumber: string | null = null;
+      try {
+        const supabase = getSupabase();
+        const { data: existing } = await supabase
+          .from("estimates")
+          .select("*")
+          .eq("token", refineToken)
+          .maybeSingle();
+
+        if (!existing) {
+          return NextResponse.json({ error: "That estimate could not be found." }, { status: 404 });
+        }
+
+        const partner = findPartnerForProjectType(existing.project_type);
+        const extraFlags: LeadFlag[] = [
+          ...(partner ? (["referral"] as LeadFlag[]) : []),
+          ...flagsForAnswers(existing.project_type, answers),
+        ];
+        const scoreFields = leadScoreFields(
+          scoreLeadRow({ ...existing, estimate_data: parsed, intake_answers: answers }, extraFlags)
+        );
+
+        const { error: refineErr } = await updateTolerant(
+          supabase,
+          "estimates",
+          {
+            estimate_data: parsed,
+            // Keep the blind first pass exactly once, so the two are comparable.
+            initial_estimate_data: existing.initial_estimate_data ?? existing.estimate_data,
+            intake_answers: answers ?? null,
+            refined_at: new Date().toISOString(),
+            ...scoreFields,
+          },
+          (query) => query.eq("token", refineToken)
+        );
+
+        if (refineErr) {
+          console.error("Failed to save refinement (non-blocking):", refineErr);
+        }
+        refinedNumber = existing.estimate_number ?? null;
+      } catch (dbErr) {
+        console.error("Failed to save refinement (non-blocking):", dbErr);
+      }
+
+      return NextResponse.json({ ...parsed, token: refineToken, estimate_number: refinedNumber, refined: true });
+    }
 
     const token = generateToken();
 

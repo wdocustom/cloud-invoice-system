@@ -1,3 +1,26 @@
+/**
+ * Escape text before it lands in an email body.
+ *
+ * Every template here builds HTML by string interpolation, and much of what
+ * goes in is typed by a homeowner — project descriptions, names, free-text
+ * notes. Unescaped, a stray angle bracket breaks the layout and a deliberate
+ * one injects markup into a message someone trusts. That matters more now that
+ * these emails also go to referral partners rather than only to Skyler.
+ *
+ * Applied to plain field interpolations. Locally assembled HTML fragments
+ * (item rows, selection categories) are already-built markup and are
+ * interpolated as-is.
+ */
+function esc(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 interface ProposalEmailData {
   proposal_number?: string;
   homeowner_name: string;
@@ -105,7 +128,7 @@ export function buildProposalEmailHtml(data: ProposalEmailData): string {
         </td>
         <td align="right">
           <span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Proposal</span>
-          ${data.proposal_number ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.proposal_number}</span>` : ""}
+          ${data.proposal_number ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${esc(data.proposal_number)}</span>` : ""}
         </td>
       </tr>
     </table>
@@ -117,7 +140,7 @@ export function buildProposalEmailHtml(data: ProposalEmailData): string {
   <tr><td style="padding:36px 32px 0;">
 
     <!-- Greeting -->
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.homeowner_name},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.homeowner_name)},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 28px;">
       Thank you for the opportunity to work on your project. We've put together a detailed proposal for your review — take your time looking it over, and reach out with any questions.
     </p>
@@ -125,8 +148,8 @@ export function buildProposalEmailHtml(data: ProposalEmailData): string {
     <!-- Project Card -->
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #E8E4DF;border-radius:16px;overflow:hidden;">
       <tr><td style="padding:24px 28px;">
-        ${data.project_title ? `<p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#C4A265;margin:0 0 4px;">${data.project_title}</p>` : ""}
-        <p style="font-size:13px;color:#9C9590;margin:0 0 16px;">${data.job_address}</p>
+        ${data.project_title ? `<p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#C4A265;margin:0 0 4px;">${esc(data.project_title)}</p>` : ""}
+        <p style="font-size:13px;color:#9C9590;margin:0 0 16px;">${esc(data.job_address)}</p>
 
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
@@ -137,7 +160,7 @@ export function buildProposalEmailHtml(data: ProposalEmailData): string {
             <td width="50%">
               <table cellpadding="0" cellspacing="0">
                 ${startDate ? `<tr><td style="padding-bottom:6px;"><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;">Start Date</span><br><span style="font-size:13px;font-weight:600;color:#1A1A1A;">${startDate}</span></td></tr>` : ""}
-                ${data.project_length ? `<tr><td><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;">Timeline</span><br><span style="font-size:13px;font-weight:600;color:#1A1A1A;">${data.project_length}</span></td></tr>` : ""}
+                ${data.project_length ? `<tr><td><span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;">Timeline</span><br><span style="font-size:13px;font-weight:600;color:#1A1A1A;">${esc(data.project_length)}</span></td></tr>` : ""}
               </table>
             </td>
           </tr>
@@ -148,7 +171,7 @@ export function buildProposalEmailHtml(data: ProposalEmailData): string {
     <!-- CTA Button -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
           View Full Proposal
         </a>
       </td></tr>
@@ -217,7 +240,7 @@ export function buildReminderEmailHtml(data: ProposalEmailData & { days_remainin
 
   const urgencyText = data.days_remaining <= 1
     ? "expires tomorrow"
-    : `expires in ${data.days_remaining} days`;
+    : `expires in ${esc(data.days_remaining)} days`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -234,9 +257,9 @@ export function buildReminderEmailHtml(data: ProposalEmailData & { days_remainin
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.homeowner_name},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.homeowner_name)},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      Just a quick note — your proposal for <strong>${data.project_title || data.job_address}</strong> ${urgencyText} on <strong>${expiresDate}</strong>. We're still holding your schedule slot and pricing, but wanted to make sure this doesn't slip off your radar.
+      Just a quick note — your proposal for <strong>${esc(data.project_title || data.job_address)}</strong> ${urgencyText} on <strong>${expiresDate}</strong>. We're still holding your schedule slot and pricing, but wanted to make sure this doesn't slip off your radar.
     </p>
 
     <!-- Reminder Card -->
@@ -244,13 +267,13 @@ export function buildReminderEmailHtml(data: ProposalEmailData & { days_remainin
       <tr><td style="padding:20px 24px;text-align:center;">
         <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:${data.days_remaining <= 1 ? '#C53030' : '#8B6914'};margin:0 0 6px;">Your schedule hold ${urgencyText}</p>
         <p style="font-size:28px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$${formatMoney(data.amount)}</p>
-        <p style="font-size:12px;color:#9C9590;margin:4px 0 0;">${data.job_address}</p>
+        <p style="font-size:12px;color:#9C9590;margin:4px 0 0;">${esc(data.job_address)}</p>
       </td></tr>
     </table>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
           Review Your Proposal
         </a>
       </td></tr>
@@ -316,7 +339,7 @@ export function buildApprovalConfirmationHtml(data: ApprovalEmailData): string {
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.homeowner_name},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.homeowner_name)},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 28px;">
       Great news — your proposal has been officially approved and your contract is now active. We're excited to get started on your project. Here's a summary of everything you've signed off on:
     </p>
@@ -335,12 +358,12 @@ export function buildApprovalConfirmationHtml(data: ApprovalEmailData): string {
           </tr>
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
-          ${data.project_title ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.project_title}</td></tr>` : ""}
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${data.job_address}</td></tr>
+          ${data.project_title ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${esc(data.project_title)}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${esc(data.job_address)}</td></tr>
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed:</strong> ${signedDate}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed by:</strong> ${data.signature_name}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed by:</strong> ${esc(data.signature_name)}</td></tr>
           ${startDate ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Est. Start:</strong> ${startDate}</td></tr>` : ""}
-          ${data.project_length ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Timeline:</strong> ${data.project_length}</td></tr>` : ""}
+          ${data.project_length ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Timeline:</strong> ${esc(data.project_length)}</td></tr>` : ""}
         </table>
       </td></tr>
     </table>
@@ -362,14 +385,14 @@ export function buildApprovalConfirmationHtml(data: ApprovalEmailData): string {
       <tr><td style="padding:20px 24px;">
         <p style="font-size:12px;font-weight:600;color:#8B6914;margin:0 0 6px;">Next Step: Construction Deposit</p>
         <p style="font-size:13px;color:#6B6B6B;line-height:1.6;margin:0;">
-          Your construction deposit of <strong style="color:#1A1A1A;">$${formatMoney(data.deposit_amount)}</strong> (${data.deposit_percentage}%) is the next step to lock in your start date and begin material ordering. You can pay securely through your project portal.
+          Your construction deposit of <strong style="color:#1A1A1A;">$${formatMoney(data.deposit_amount)}</strong> (${esc(data.deposit_percentage)}%) is the next step to lock in your start date and begin material ordering. You can pay securely through your project portal.
         </p>
       </td></tr>
     </table>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
           Go to Your Project Portal
         </a>
       </td></tr>
@@ -443,7 +466,7 @@ export function buildContractorApprovalNotificationHtml(data: ApprovalEmailData)
 
     <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> just signed and approved their proposal. The contract is now active.
+      <strong style="color:#1A1A1A;">${esc(data.homeowner_name)}</strong> just signed and approved their proposal. The contract is now active.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
@@ -461,11 +484,11 @@ export function buildContractorApprovalNotificationHtml(data: ApprovalEmailData)
           </tr>
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${data.homeowner_name}</td></tr>
-          ${data.project_title ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.project_title}</td></tr>` : ""}
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${data.job_address}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${esc(data.homeowner_name)}</td></tr>
+          ${data.project_title ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${esc(data.project_title)}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${esc(data.job_address)}</td></tr>
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed:</strong> ${signedDate}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signature:</strong> ${data.signature_name}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signature:</strong> ${esc(data.signature_name)}</td></tr>
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Items:</strong> ${data.items.length} line items</td></tr>
         </table>
       </td></tr>
@@ -473,7 +496,7 @@ export function buildContractorApprovalNotificationHtml(data: ApprovalEmailData)
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
           Open Project Workspace
         </a>
       </td></tr>
@@ -506,20 +529,20 @@ export function buildMessageNotificationHtml(data: ContractorMessageNotification
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.homeowner_name.split(" ")[0]},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.homeowner_name.split(" ")[0])},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      Skyler from WDO Custom sent you a message about your ${data.project_title || data.job_address} project:
+      Skyler from WDO Custom sent you a message about your ${esc(data.project_title || data.job_address)} project:
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;border-left:3px solid #1A1A1A;border-radius:0 12px 12px 0;">
       <tr><td style="padding:16px 20px;">
-        <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin:0;font-style:italic;">"${data.message_preview}"</p>
+        <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin:0;font-style:italic;">"${esc(data.message_preview)}"</p>
       </td></tr>
     </table>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
           View & Reply
         </a>
       </td></tr>
@@ -571,18 +594,18 @@ export function buildHomeownerMessageNotificationHtml(data: HomeownerMessageNoti
 
     <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> sent a message about their <strong style="color:#1A1A1A;">${data.project_title || data.job_address}</strong> project:
+      <strong style="color:#1A1A1A;">${esc(data.homeowner_name)}</strong> sent a message about their <strong style="color:#1A1A1A;">${esc(data.project_title || data.job_address)}</strong> project:
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F3F0;border-left:3px solid #C4A265;border-radius:0 12px 12px 0;">
       <tr><td style="padding:16px 20px;">
-        <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin:0;font-style:italic;">"${data.message_preview}"</p>
+        <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin:0;font-style:italic;">"${esc(data.message_preview)}"</p>
       </td></tr>
     </table>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
           Open Project Workspace
         </a>
       </td></tr>
@@ -632,7 +655,7 @@ export function buildContractorPaymentNotificationHtml(data: ContractorPaymentNo
 
     <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> just submitted a payment. Here are the details:
+      <strong style="color:#1A1A1A;">${esc(data.homeowner_name)}</strong> just submitted a payment. Here are the details:
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
@@ -649,9 +672,9 @@ export function buildContractorPaymentNotificationHtml(data: ContractorPaymentNo
           </tr>
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${data.homeowner_name}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">For:</strong> ${data.payment_label}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.project_title || data.job_address}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${esc(data.homeowner_name)}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">For:</strong> ${esc(data.payment_label)}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${esc(data.project_title || data.job_address)}</td></tr>
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Date:</strong> ${new Date(data.paid_at).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</td></tr>
         </table>
       </td></tr>
@@ -659,7 +682,7 @@ export function buildContractorPaymentNotificationHtml(data: ContractorPaymentNo
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
           Open Project Workspace
         </a>
       </td></tr>
@@ -705,7 +728,7 @@ export function buildLeadNotificationHtml(data: LeadNotificationData): string {
         <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
         <td align="right">
           <span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">New Lead</span>
-          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
+          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${esc(data.estimateNumber)}</span>` : ""}
         </td>
       </tr>
     </table>
@@ -724,9 +747,9 @@ export function buildLeadNotificationHtml(data: LeadNotificationData): string {
       <tr><td style="padding:24px 28px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 12px;">Contact Info</p>
         <table width="100%" cellpadding="0" cellspacing="0">
-          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Name:</strong> ${data.name || "Not provided"}</td></tr>
-          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Email:</strong> ${data.email || "Not provided"}</td></tr>
-          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Phone:</strong> ${data.phone || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Name:</strong> ${esc(data.name) || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Email:</strong> ${esc(data.email) || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Phone:</strong> ${esc(data.phone) || "Not provided"}</td></tr>
         </table>
       </td></tr>
     </table>
@@ -735,12 +758,12 @@ export function buildLeadNotificationHtml(data: LeadNotificationData): string {
       <tr><td style="padding:20px 24px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 12px;">Project Details</p>
         <table width="100%" cellpadding="0" cellspacing="0">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Type:</strong> ${data.projectType}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Finish Level:</strong> ${data.scopeLevel}</td></tr>
-          ${data.size ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Size:</strong> ${data.size} sq ft</td></tr>` : ""}
-          ${data.zip ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">ZIP:</strong> ${data.zip}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Type:</strong> ${esc(data.projectType)}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Finish Level:</strong> ${esc(data.scopeLevel)}</td></tr>
+          ${data.size ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Size:</strong> ${esc(data.size)} sq ft</td></tr>` : ""}
+          ${data.zip ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">ZIP:</strong> ${esc(data.zip)}</td></tr>` : ""}
           <tr><td style="padding:8px 0 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Description:</strong></td></tr>
-          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;font-style:italic;">"${data.description}"</td></tr>
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;font-style:italic;">"${esc(data.description)}"</td></tr>
         </table>
       </td></tr>
     </table>
@@ -748,8 +771,8 @@ export function buildLeadNotificationHtml(data: LeadNotificationData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
       <tr><td style="padding:20px 24px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 8px;">AI Estimate Given</p>
-        <p style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${data.estimateLow} — $${data.estimateHigh}</p>
-        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Timeline: ${data.timeline}</p>` : ""}
+        <p style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${esc(data.estimateLow)} — $${esc(data.estimateHigh)}</p>
+        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Timeline: ${esc(data.timeline)}</p>` : ""}
       </td></tr>
     </table>
 
@@ -802,7 +825,7 @@ export function buildConsultationConfirmationHtml(data: ConsultationConfirmation
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.name.split(" ")[0]},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.name.split(" ")[0])},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 28px;">
       Great news — your free in-home consultation with Skyler is confirmed! We're looking forward to meeting you and learning more about your project.
     </p>
@@ -815,17 +838,17 @@ export function buildConsultationConfirmationHtml(data: ConsultationConfirmation
           <tr>
             <td width="50%">
               <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 4px;">Date</p>
-              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${data.date}</p>
+              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${esc(data.date)}</p>
             </td>
             <td width="50%">
               <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 4px;">Time</p>
-              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${data.time}</p>
+              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${esc(data.time)}</p>
             </td>
           </tr>
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Location:</strong> ${data.address}</td></tr>
-          ${data.projectType ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.projectType}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Location:</strong> ${esc(data.address)}</td></tr>
+          ${data.projectType ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${esc(data.projectType)}</td></tr>` : ""}
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Duration:</strong> About 30–45 minutes</td></tr>
         </table>
       </td></tr>
@@ -927,7 +950,7 @@ export function buildConsultationNotificationHtml(data: ConsultationNotification
 
     <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#1A1A1A;">${data.name}</strong> just booked a free in-home consultation.
+      <strong style="color:#1A1A1A;">${esc(data.name)}</strong> just booked a free in-home consultation.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:16px;">
@@ -936,21 +959,21 @@ export function buildConsultationNotificationHtml(data: ConsultationNotification
           <tr>
             <td width="50%">
               <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 4px;">Date</p>
-              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${data.date}</p>
+              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${esc(data.date)}</p>
             </td>
             <td width="50%">
               <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 4px;">Time</p>
-              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${data.time}</p>
+              <p style="font-size:16px;font-weight:700;color:#1A1A1A;margin:0;">${esc(data.time)}</p>
             </td>
           </tr>
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #E8D5B7;padding-top:12px;">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${data.name}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Phone:</strong> <a href="tel:${data.phone}" style="color:#1A1A1A;text-decoration:underline;">${data.phone}</a></td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Email:</strong> <a href="mailto:${data.email}" style="color:#1A1A1A;text-decoration:underline;">${data.email}</a></td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${data.address}</td></tr>
-          ${data.projectType ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.projectType}</td></tr>` : ""}
-          ${data.notes ? `<tr><td style="padding:8px 0 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Notes:</strong> ${data.notes}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${esc(data.name)}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Phone:</strong> <a href="tel:${esc(data.phone)}" style="color:#1A1A1A;text-decoration:underline;">${esc(data.phone)}</a></td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Email:</strong> <a href="mailto:${esc(data.email)}" style="color:#1A1A1A;text-decoration:underline;">${esc(data.email)}</a></td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Address:</strong> ${esc(data.address)}</td></tr>
+          ${data.projectType ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${esc(data.projectType)}</td></tr>` : ""}
+          ${data.notes ? `<tr><td style="padding:8px 0 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Notes:</strong> ${esc(data.notes)}</td></tr>` : ""}
         </table>
       </td></tr>
     </table>
@@ -996,7 +1019,7 @@ export function buildEstimateConfirmationHtml(data: EstimateConfirmationData): s
         </td>
         <td align="right">
           <span style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Your Estimate</span>
-          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
+          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${esc(data.estimateNumber)}</span>` : ""}
         </td>
       </tr>
     </table>
@@ -1006,7 +1029,7 @@ export function buildEstimateConfirmationHtml(data: EstimateConfirmationData): s
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.name.split(" ")[0]},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.name.split(" ")[0])},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 28px;">
       Thanks for using our instant estimate tool! Here&rsquo;s a summary of your ballpark estimate. These numbers are based on current Omaha-area market rates and give you a solid starting point for budgeting.
     </p>
@@ -1014,9 +1037,9 @@ export function buildEstimateConfirmationHtml(data: EstimateConfirmationData): s
     <!-- Estimate Summary Card -->
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:16px;overflow:hidden;">
       <tr><td style="padding:24px 28px;text-align:center;">
-        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#8B6914;margin:0 0 4px;">${data.projectType}</p>
-        <p style="font-size:32px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$${data.estimateLow} &mdash; $${data.estimateHigh}</p>
-        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:8px 0 0;">Estimated timeline: ${data.timeline}</p>` : ""}
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#8B6914;margin:0 0 4px;">${esc(data.projectType)}</p>
+        <p style="font-size:32px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$${esc(data.estimateLow)} &mdash; $${esc(data.estimateHigh)}</p>
+        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:8px 0 0;">Estimated timeline: ${esc(data.timeline)}</p>` : ""}
       </td></tr>
     </table>
 
@@ -1048,7 +1071,7 @@ export function buildEstimateConfirmationHtml(data: EstimateConfirmationData): s
     <!-- CTA: Schedule -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.consultationUrl}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.consultationUrl)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
           Schedule Free Consultation
         </a>
       </td></tr>
@@ -1134,17 +1157,17 @@ export function buildEstimateReminderHtml(data: EstimateReminderData): string {
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.name.split(" ")[0]},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.name.split(" ")[0])},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      Just checking in &mdash; you recently got a ballpark estimate for your <strong style="color:#1A1A1A;">${data.projectType.toLowerCase()}</strong> project, and we&rsquo;d love to help you take the next step.
+      Just checking in &mdash; you recently got a ballpark estimate for your <strong style="color:#1A1A1A;">${esc(data.projectType.toLowerCase())}</strong> project, and we&rsquo;d love to help you take the next step.
     </p>
 
     <!-- Estimate Recap Card -->
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:16px;overflow:hidden;">
       <tr><td style="padding:20px 24px;text-align:center;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#8B6914;margin:0 0 4px;">Your Estimate</p>
-        <p style="font-size:26px;font-weight:700;color:#1A1A1A;margin:0;">$${data.estimateLow} &mdash; $${data.estimateHigh}</p>
-        <p style="font-size:12px;color:#9C9590;margin:6px 0 0;">${data.projectType}</p>
+        <p style="font-size:26px;font-weight:700;color:#1A1A1A;margin:0;">$${esc(data.estimateLow)} &mdash; $${esc(data.estimateHigh)}</p>
+        <p style="font-size:12px;color:#9C9590;margin:6px 0 0;">${esc(data.projectType)}</p>
       </td></tr>
     </table>
 
@@ -1181,12 +1204,12 @@ export function buildEstimateReminderHtml(data: EstimateReminderData): string {
     <!-- CTA -->
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.consultationUrl}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.consultationUrl)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
           Schedule Free Consultation
         </a>
       </td></tr>
       <tr><td align="center" style="padding-top:12px;">
-        <a href="${data.estimateUrl}" style="font-size:11px;color:#9C9590;text-decoration:underline;">View your full estimate</a>
+        <a href="${esc(data.estimateUrl)}" style="font-size:11px;color:#9C9590;text-decoration:underline;">View your full estimate</a>
         <span style="font-size:11px;color:#C0BAB4;margin:0 6px;">&middot;</span>
         <a href="tel:+14028198558" style="font-size:11px;color:#9C9590;text-decoration:underline;">Call (402) 819-8558</a>
       </td></tr>
@@ -1282,7 +1305,7 @@ export function buildSelectionReminderHtml(data: SelectionReminderData): string 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
       <tr><td style="padding:16px 20px;text-align:center;">
         <p style="font-size:12px;color:#8B6914;margin:0 0 8px;font-weight:600;">Or view all selections in one place:</p>
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:10px 28px;border-radius:10px;letter-spacing:0.3px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#C4A265;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:10px 28px;border-radius:10px;letter-spacing:0.3px;">
           Open Project Portal
         </a>
       </td></tr>
@@ -1308,7 +1331,7 @@ export function buildSelectionReminderHtml(data: SelectionReminderData): string 
 
 export function buildSelectionMadeNotificationHtml(data: SelectionMadeNotificationData): string {
   const projectLabel = data.project_title || data.job_address || "Project";
-  const progress = `${data.total_selected} of ${data.total_categories}`;
+  const progress = `${esc(data.total_selected)} of ${esc(data.total_categories)}`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1326,7 +1349,7 @@ export function buildSelectionMadeNotificationHtml(data: SelectionMadeNotificati
 
     <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 12px;">New Selection Made</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      <strong style="color:#1A1A1A;">${data.homeowner_name}</strong> just made a material selection for <strong style="color:#1A1A1A;">${projectLabel}</strong>.
+      <strong style="color:#1A1A1A;">${esc(data.homeowner_name)}</strong> just made a material selection for <strong style="color:#1A1A1A;">${projectLabel}</strong>.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;overflow:hidden;">
@@ -1334,8 +1357,8 @@ export function buildSelectionMadeNotificationHtml(data: SelectionMadeNotificati
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td>
-              <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 4px;">${data.category}</p>
-              <p style="font-size:20px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">${data.selected_value}</p>
+              <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 4px;">${esc(data.category)}</p>
+              <p style="font-size:20px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">${esc(data.selected_value)}</p>
             </td>
             <td align="right" valign="top">
               <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Confirmed</span>
@@ -1343,7 +1366,7 @@ export function buildSelectionMadeNotificationHtml(data: SelectionMadeNotificati
           </tr>
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;border-top:1px solid #C8D9C8;padding-top:10px;">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${data.homeowner_name}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Client:</strong> ${esc(data.homeowner_name)}</td></tr>
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${projectLabel}</td></tr>
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Selection Progress:</strong> ${progress} categories selected</td></tr>
         </table>
@@ -1352,7 +1375,7 @@ export function buildSelectionMadeNotificationHtml(data: SelectionMadeNotificati
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
           View in Workspace
         </a>
       </td></tr>
@@ -1387,9 +1410,9 @@ export function buildPaymentReminderHtml(data: PaymentReminderData): string {
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.homeowner_name.split(" ")[0]},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.homeowner_name.split(" ")[0])},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
-      Quick reminder — your next draw payment for <strong style="color:#1A1A1A;">${data.project_title || data.job_address}</strong> is ready to be submitted so we can keep your project moving forward.
+      Quick reminder — your next draw payment for <strong style="color:#1A1A1A;">${esc(data.project_title || data.job_address)}</strong> is ready to be submitted so we can keep your project moving forward.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:16px;overflow:hidden;">
@@ -1406,8 +1429,8 @@ export function buildPaymentReminderHtml(data: PaymentReminderData): string {
           </tr>
         </table>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #E8D5B7;padding-top:12px;">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">For:</strong> ${data.phase_name}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${data.project_title || data.job_address}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">For:</strong> ${esc(data.phase_name)}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${esc(data.project_title || data.job_address)}</td></tr>
           <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Remaining Balance:</strong> $${formatMoney(data.total_remaining)}</td></tr>
         </table>
       </td></tr>
@@ -1415,7 +1438,7 @@ export function buildPaymentReminderHtml(data: PaymentReminderData): string {
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
           Pay Now
         </a>
       </td></tr>
@@ -1508,7 +1531,7 @@ export function buildDepositEmailHtml(data: DepositEmailData): string {
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${data.portal_url}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
           View Project &amp; Submit Deposit
         </a>
       </td></tr>
@@ -1569,7 +1592,7 @@ export function buildPartnerReferralHtml(data: PartnerReferralData): string {
         <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
         <td align="right">
           <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Referral</span>
-          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
+          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${esc(data.estimateNumber)}</span>` : ""}
         </td>
       </tr>
     </table>
@@ -1579,20 +1602,20 @@ export function buildPartnerReferralHtml(data: PartnerReferralData): string {
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">${data.partnerContactName},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">${esc(data.partnerContactName)},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
       A painting lead just came through the WDO Custom estimate tool. We've told them
-      ${data.partnerCompany} handles our painting work and that you'll be in touch — they're expecting your call.
+      ${esc(data.partnerCompany)} handles our painting work and that you'll be in touch — they're expecting your call.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
       <tr><td style="padding:24px 28px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 12px;">Homeowner</p>
         <table width="100%" cellpadding="0" cellspacing="0">
-          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Name:</strong> ${data.name || "Not provided"}</td></tr>
-          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Email:</strong> ${data.email || "Not provided"}</td></tr>
-          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Phone:</strong> ${data.phone || "Not provided"}</td></tr>
-          ${data.zip ? `<tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>ZIP:</strong> ${data.zip}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Name:</strong> ${esc(data.name) || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Email:</strong> ${esc(data.email) || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Phone:</strong> ${esc(data.phone) || "Not provided"}</td></tr>
+          ${data.zip ? `<tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>ZIP:</strong> ${esc(data.zip)}</td></tr>` : ""}
         </table>
       </td></tr>
     </table>
@@ -1601,11 +1624,11 @@ export function buildPartnerReferralHtml(data: PartnerReferralData): string {
       <tr><td style="padding:20px 24px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 12px;">What They Asked For</p>
         <table width="100%" cellpadding="0" cellspacing="0">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Type:</strong> ${data.projectType}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Finish Level:</strong> ${data.scopeLevel}</td></tr>
-          ${data.size ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Size:</strong> ${data.size}</td></tr>` : ""}
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Type:</strong> ${esc(data.projectType)}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Finish Level:</strong> ${esc(data.scopeLevel)}</td></tr>
+          ${data.size ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Size:</strong> ${esc(data.size)}</td></tr>` : ""}
           <tr><td style="padding:8px 0 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">In their words:</strong></td></tr>
-          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;font-style:italic;">"${data.description}"</td></tr>
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;font-style:italic;">"${esc(data.description)}"</td></tr>
         </table>
       </td></tr>
     </table>
@@ -1613,8 +1636,8 @@ export function buildPartnerReferralHtml(data: PartnerReferralData): string {
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
       <tr><td style="padding:20px 24px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 8px;">Ballpark They Were Shown</p>
-        <p style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${data.estimateLow} — $${data.estimateHigh}</p>
-        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Timeline shown: ${data.timeline}</p>` : ""}
+        <p style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${esc(data.estimateLow)} — $${esc(data.estimateHigh)}</p>
+        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Timeline shown: ${esc(data.timeline)}</p>` : ""}
         <p style="font-size:12px;color:#9C9590;margin:10px 0 0;line-height:1.6;">
           This is an automated ballpark from our estimator, not a quote from you. Price it however you normally would.
         </p>
@@ -1664,7 +1687,7 @@ export function buildReferralHandoffHtml(data: ReferralHandoffData): string {
           <span style="color:#9C9590;font-size:12px;font-weight:500;">General Contractor &middot; Omaha, NE</span>
         </td>
         <td align="right">
-          ${data.estimateNumber ? `<span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
+          ${data.estimateNumber ? `<span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${esc(data.estimateNumber)}</span>` : ""}
         </td>
       </tr>
     </table>
@@ -1674,16 +1697,16 @@ export function buildReferralHandoffHtml(data: ReferralHandoffData): string {
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.name},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.name)},</p>
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 20px;">
-      Thanks for using our estimator. Here's the ballpark range we generated for your ${data.projectType.toLowerCase()} project.
+      Thanks for using our estimator. Here's the ballpark range we generated for your ${esc(data.projectType.toLowerCase())} project.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
       <tr><td style="padding:22px 26px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 8px;">Your Estimated Range</p>
-        <p style="font-size:24px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${data.estimateLow} — $${data.estimateHigh}</p>
-        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Estimated timeline: ${data.timeline}</p>` : ""}
+        <p style="font-size:24px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${esc(data.estimateLow)} — $${esc(data.estimateHigh)}</p>
+        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Estimated timeline: ${esc(data.timeline)}</p>` : ""}
       </td></tr>
     </table>
 
@@ -1691,13 +1714,13 @@ export function buildReferralHandoffHtml(data: ReferralHandoffData): string {
       <tr><td style="padding:24px 28px;">
         <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 10px;">Who'll Be In Touch</p>
         <p style="font-size:14px;color:#1A1A1A;line-height:1.7;margin:0 0 12px;">
-          ${data.partnerBlurb}
+          ${esc(data.partnerBlurb)}
         </p>
         <p style="font-size:14px;color:#1A1A1A;line-height:1.7;margin:0 0 12px;">
-          We've passed your details to <strong>${data.partnerContactName}</strong> at
-          <strong>${data.partnerCompany}</strong>, and they'll reach out to you directly.
+          We've passed your details to <strong>${esc(data.partnerContactName)}</strong> at
+          <strong>${esc(data.partnerCompany)}</strong>, and they'll reach out to you directly.
           If you'd rather get ahead of it, you can call them at
-          <a href="tel:${data.partnerPhone.replace(/[^0-9+]/g, "")}" style="color:#4A7A4A;font-weight:600;text-decoration:none;">${data.partnerPhone}</a>.
+          <a href="tel:${data.partnerPhone.replace(/[^0-9+]/g, "")}" style="color:#4A7A4A;font-weight:600;text-decoration:none;">${esc(data.partnerPhone)}</a>.
         </p>
         <p style="font-size:13px;color:#6B6B6B;line-height:1.6;margin:0;">
           If you'd prefer we didn't share your details, just reply to this email and we'll take care of it.
