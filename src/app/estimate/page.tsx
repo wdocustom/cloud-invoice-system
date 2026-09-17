@@ -111,14 +111,15 @@ export default function InstantEstimatePage() {
   const [unlockEmail, setUnlockEmail] = useState("");
   const [unlockName, setUnlockName] = useState("");
   const [unlockPhone, setUnlockPhone] = useState("");
-  // Tier B qualification, asked at the gate where the friction is already paid.
-  // All three are optional: an unanswered question scores neutral, and losing a
-  // lead over a question we didn't need to ask would cost more than it saves.
+  // Qualification and scope detail, both asked *after* the estimate is on
+  // screen and both behind a collapsed panel. Nothing optional belongs between
+  // someone and the number they came for: at the gate this was ten buttons
+  // standing in front of a ballpark, which is a tax on the exact conversion the
+  // page exists to produce.
   const [timeline, setTimeline] = useState("");
   const [budgetFit, setBudgetFit] = useState("");
-  const [ownership, setOwnership] = useState("");
-  // Step 4: the branch questions, asked after the estimate as a refinement.
   const [branchAnswers, setBranchAnswers] = useState<Record<string, string>>({});
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [refining, setRefining] = useState(false);
   const [refined, setRefined] = useState(false);
   const refinedRef = useRef<HTMLDivElement>(null);
@@ -149,6 +150,9 @@ export default function InstantEstimatePage() {
       setResult(data);
       setUnlocked(false);
       setBranchAnswers({});
+      setTimeline("");
+      setBudgetFit("");
+      setDetailsOpen(false);
       setRefined(false);
 
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
@@ -161,43 +165,66 @@ export default function InstantEstimatePage() {
 
   const branchQuestions = questionsForProjectType(projectType);
   const answeredCount = branchQuestions.filter((q) => branchAnswers[q.id]).length;
+  const qualificationCount = [timeline, budgetFit].filter(Boolean).length;
+  const totalAnswered = answeredCount + qualificationCount;
 
   /**
-   * Re-price the same lead with the branch answers. Sends the existing token so
-   * the API updates that row rather than creating a second lead for the same
-   * homeowner.
+   * Save whatever was answered in the details panel.
+   *
+   * Two destinations, because the answers do two different jobs. The scope
+   * questions re-price the estimate, so they go back through the estimator
+   * against the existing token — updating that row rather than creating a
+   * second lead for the same homeowner. Timeline and budget don't change the
+   * number, only how the lead is triaged, so they ride the unlock endpoint,
+   * which rescores the row.
    */
-  const handleRefine = async () => {
-    if (!result?.token || answeredCount === 0) return;
+  const handleSubmitDetails = async () => {
+    if (!result?.token || totalAnswered === 0) return;
 
     setError("");
     setRefining(true);
     try {
-      const res = await fetch("/api/instant-estimate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectType,
-          scopeLevel,
-          size,
-          zip,
-          description,
-          refineToken: result.token,
-          answers: branchAnswers,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Request failed");
+      if (qualificationCount > 0) {
+        await fetch("/api/unlock-estimate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: result.token,
+            name,
+            email,
+            phone,
+            timeline,
+            budgetFit,
+          }),
+        }).catch(() => {});
       }
 
-      const data = await res.json();
-      setResult(data);
+      if (answeredCount > 0) {
+        const res = await fetch("/api/instant-estimate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectType,
+            scopeLevel,
+            size,
+            zip,
+            description,
+            refineToken: result.token,
+            answers: branchAnswers,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Request failed");
+        }
+        setResult(await res.json());
+      }
+
       setRefined(true);
       setTimeout(() => refinedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
     } catch (err: any) {
-      setError(err.message || "Couldn't refine that estimate. Please try again.");
+      setError(err.message || "Couldn't update that estimate. Please try again.");
     } finally {
       setRefining(false);
     }
@@ -595,9 +622,6 @@ export default function InstantEstimatePage() {
                               name: unlockName.trim(),
                               email: unlockEmail.trim(),
                               phone: unlockPhone.trim(),
-                              timeline,
-                              budgetFit,
-                              ownership,
                             }),
                           }).catch(() => {});
                           fetch("/api/send-lead-notification", {
@@ -617,9 +641,9 @@ export default function InstantEstimatePage() {
                               timeline: result.timeline_weeks ? `${result.timeline_weeks} weeks` : "",
                               token: result.token || "",
                               estimateNumber: (result as any).estimate_number || "",
-                              intakeTimeline: timeline,
-                              budgetFit,
-                              ownership,
+                              // Qualification is now asked after this point, so
+                              // the band in the subject reflects what was known
+                              // at unlock. The ledger rescores if they answer.
                             }),
                           }).catch(() => {});
                         }}
@@ -648,93 +672,6 @@ export default function InstantEstimatePage() {
                           placeholder="Email address (or phone above) *"
                           className="w-full px-4 py-3 rounded-xl border border-brand-stone/40 bg-white text-sm text-brand-charcoal placeholder:text-brand-muted/40 focus:outline-none focus:border-luxury-gold/60 focus:ring-2 focus:ring-luxury-gold/15 transition"
                         />
-                        {/* Optional qualification. Asked here rather than before
-                            the estimate: the range is already on screen, so the
-                            budget question can be concrete instead of abstract. */}
-                        <div className="pt-1 space-y-3 text-left">
-                          <p className="text-[10px] font-bold text-brand-muted uppercase tracking-wide text-center">
-                            Optional — helps us prepare before we call
-                          </p>
-
-                          <div>
-                            <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-wide mb-1.5">
-                              When would you like to start?
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                              {[
-                                { value: "asap", label: "As soon as possible" },
-                                { value: "1_3_months", label: "1–3 months" },
-                                { value: "3_6_months", label: "3–6 months" },
-                                { value: "researching", label: "Just researching" },
-                              ].map((opt) => (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() => setTimeline(timeline === opt.value ? "" : opt.value)}
-                                  className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all ${
-                                    timeline === opt.value
-                                      ? "bg-brand-charcoal border-brand-charcoal text-white"
-                                      : "bg-white border-brand-stone/40 text-brand-muted hover:border-brand-charcoal/30"
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-wide mb-1.5">
-                              Does ${fmt(result.total_projected_low)}–${fmt(result.total_projected_high)} work for your budget?
-                            </label>
-                            <div className="grid gap-2">
-                              {[
-                                { value: "works", label: "Yes, that works" },
-                                { value: "needs_options", label: "I'd like to see options" },
-                                { value: "higher_than_expected", label: "Higher than I expected" },
-                              ].map((opt) => (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() => setBudgetFit(budgetFit === opt.value ? "" : opt.value)}
-                                  className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all ${
-                                    budgetFit === opt.value
-                                      ? "bg-brand-charcoal border-brand-charcoal text-white"
-                                      : "bg-white border-brand-stone/40 text-brand-muted hover:border-brand-charcoal/30"
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-wide mb-1.5">
-                              Do you own the home?
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { value: "own", label: "I own it" },
-                                { value: "buying", label: "Buying it" },
-                                { value: "renting", label: "Renting" },
-                              ].map((opt) => (
-                                <button
-                                  key={opt.value}
-                                  type="button"
-                                  onClick={() => setOwnership(ownership === opt.value ? "" : opt.value)}
-                                  className={`px-3 py-2.5 rounded-xl border text-[11px] font-bold transition-all ${
-                                    ownership === opt.value
-                                      ? "bg-brand-charcoal border-brand-charcoal text-white"
-                                      : "bg-white border-brand-stone/40 text-brand-muted hover:border-brand-charcoal/30"
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
 
                         <button
                           type="submit"
@@ -751,101 +688,183 @@ export default function InstantEstimatePage() {
                 </>
               )}
 
-              {/* Refinement — branch questions, offered once the numbers are
-                  already on screen so answering has a visible payoff. */}
-              {unlocked && branchQuestions.length > 0 && (
-                <div ref={refinedRef} className="px-6 py-6 border-t border-brand-stone/15 bg-brand-alabaster/60">
+              {/* Details — scope questions and qualification, both optional and
+                  both collapsed. This sits after the unlock deliberately: the
+                  person already has what they came for, so anything here is a
+                  genuine choice rather than a toll. */}
+              {unlocked && (
+                <div ref={refinedRef} className="px-6 py-5 border-t border-brand-stone/15 bg-brand-alabaster/60">
                   <div className="max-w-md mx-auto">
                     {refined ? (
                       <div className="text-center">
-                        <div className="inline-flex items-center gap-2 bg-sage-100 border border-sage-200 rounded-full px-4 py-1.5 mb-3">
+                        <div className="inline-flex items-center gap-2 bg-sage-100 border border-sage-200 rounded-full px-4 py-1.5 mb-2">
                           <svg className="w-3.5 h-3.5 text-sage-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-sage-700">Estimate updated</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-sage-700">Thanks — got it</span>
                         </div>
                         <p className="text-xs text-brand-muted leading-relaxed">
-                          Your range above now reflects what you told us. We&apos;ll bring these details to the walkthrough.
+                          {answeredCount > 0
+                            ? "Your range above now reflects what you told us."
+                            : "We'll have this in hand before we call."}
                         </p>
                         <button
                           type="button"
-                          onClick={() => setRefined(false)}
-                          className="mt-3 text-[11px] font-bold text-brand-muted underline underline-offset-4 hover:text-brand-charcoal transition-colors"
+                          onClick={() => { setRefined(false); setDetailsOpen(true); }}
+                          className="mt-2 text-[11px] font-bold text-brand-muted underline underline-offset-4 hover:text-brand-charcoal transition-colors"
                         >
                           Change an answer
                         </button>
                       </div>
+                    ) : !detailsOpen ? (
+                      <button
+                        type="button"
+                        onClick={() => setDetailsOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-brand-stone/40 bg-white text-brand-muted hover:border-brand-charcoal/30 hover:text-brand-charcoal transition-all"
+                      >
+                        <span className="text-xs font-bold">
+                          {branchQuestions.length > 0 ? "Want a tighter number?" : "Anything else we should know?"}
+                        </span>
+                        <span className="text-[11px] opacity-60">
+                          {branchQuestions.length > 0 ? `${branchQuestions.length + 2} quick questions` : "2 quick questions"}
+                        </span>
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                      </button>
                     ) : (
                       <>
-                        <div className="text-center mb-4">
-                          <h4 className="text-base font-black text-brand-charcoal tracking-tight mb-1">
-                            Tighten This Estimate
-                          </h4>
-                          <p className="text-xs text-brand-muted leading-relaxed">
-                            {branchQuestions.length} quick questions. These are the details that move the number most —
-                            answering narrows your range.
-                          </p>
-                        </div>
+                        {branchQuestions.length > 0 && (
+                          <div className="space-y-4 mb-5">
+                            <p className="text-[10px] font-bold text-brand-muted uppercase tracking-wide">
+                              Narrows your range
+                            </p>
+                            {branchQuestions.map((question) => (
+                              <div key={question.id}>
+                                <label className="block text-[11px] font-bold text-brand-charcoal mb-1.5">
+                                  {question.label}
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                  {question.options.map((opt) => (
+                                    <button
+                                      key={opt.value}
+                                      type="button"
+                                      onClick={() =>
+                                        setBranchAnswers((prev) => {
+                                          const next = { ...prev };
+                                          if (next[question.id] === opt.value) delete next[question.id];
+                                          else next[question.id] = opt.value;
+                                          return next;
+                                        })
+                                      }
+                                      className={`px-3 py-2 rounded-xl border text-[11px] font-bold transition-all ${
+                                        branchAnswers[question.id] === opt.value
+                                          ? "bg-brand-charcoal border-brand-charcoal text-white"
+                                          : "bg-white border-brand-stone/40 text-brand-muted hover:border-brand-charcoal/30"
+                                      }`}
+                                    >
+                                      {opt.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
                         <div className="space-y-4">
-                          {branchQuestions.map((question) => (
-                            <div key={question.id}>
-                              <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-wide mb-1.5">
-                                {question.label}
-                              </label>
-                              <div className="flex flex-wrap gap-2">
-                                {question.options.map((opt) => (
-                                  <button
-                                    key={opt.value}
-                                    type="button"
-                                    onClick={() =>
-                                      setBranchAnswers((prev) => {
-                                        const next = { ...prev };
-                                        if (next[question.id] === opt.value) delete next[question.id];
-                                        else next[question.id] = opt.value;
-                                        return next;
-                                      })
-                                    }
-                                    className={`px-3 py-2 rounded-xl border text-[11px] font-bold transition-all ${
-                                      branchAnswers[question.id] === opt.value
-                                        ? "bg-brand-charcoal border-brand-charcoal text-white"
-                                        : "bg-white border-brand-stone/40 text-brand-muted hover:border-brand-charcoal/30"
-                                    }`}
-                                  >
-                                    {opt.label}
-                                  </button>
-                                ))}
-                              </div>
+                          <p className="text-[10px] font-bold text-brand-muted uppercase tracking-wide">
+                            Helps us prepare
+                          </p>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-brand-charcoal mb-1.5">
+                              When would you like to start?
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                { value: "asap", label: "ASAP" },
+                                { value: "1_3_months", label: "1–3 months" },
+                                { value: "3_6_months", label: "3–6 months" },
+                                { value: "researching", label: "Just researching" },
+                              ].map((opt) => (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => setTimeline(timeline === opt.value ? "" : opt.value)}
+                                  className={`px-3 py-2 rounded-xl border text-[11px] font-bold transition-all ${
+                                    timeline === opt.value
+                                      ? "bg-brand-charcoal border-brand-charcoal text-white"
+                                      : "bg-white border-brand-stone/40 text-brand-muted hover:border-brand-charcoal/30"
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
                             </div>
-                          ))}
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-brand-charcoal mb-1.5">
+                              Does this range work for your budget?
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                { value: "works", label: "Yes" },
+                                { value: "needs_options", label: "Show me options" },
+                                { value: "higher_than_expected", label: "Higher than expected" },
+                              ].map((opt) => (
+                                <button
+                                  key={opt.value}
+                                  type="button"
+                                  onClick={() => setBudgetFit(budgetFit === opt.value ? "" : opt.value)}
+                                  className={`px-3 py-2 rounded-xl border text-[11px] font-bold transition-all ${
+                                    budgetFit === opt.value
+                                      ? "bg-brand-charcoal border-brand-charcoal text-white"
+                                      : "bg-white border-brand-stone/40 text-brand-muted hover:border-brand-charcoal/30"
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={handleRefine}
-                          disabled={refining || answeredCount === 0}
-                          className="mt-5 w-full bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs tracking-wide uppercase px-8 py-3.5 rounded-xl transition-all active:scale-[0.98]"
-                        >
-                          {refining ? (
-                            <span className="flex items-center justify-center gap-2">
-                              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                              </svg>
-                              Recalculating
-                            </span>
-                          ) : answeredCount === 0 ? (
-                            "Answer one to continue"
-                          ) : (
-                            `Update my estimate (${answeredCount}/${branchQuestions.length})`
-                          )}
-                        </button>
+                        <div className="mt-5 flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={handleSubmitDetails}
+                            disabled={refining || totalAnswered === 0}
+                            className="flex-1 bg-brand-charcoal hover:bg-brand-charcoal/90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs tracking-wide uppercase px-6 py-3.5 rounded-xl transition-all active:scale-[0.98]"
+                          >
+                            {refining ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Saving
+                              </span>
+                            ) : answeredCount > 0 ? (
+                              "Update my estimate"
+                            ) : (
+                              "Send this to WDO"
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDetailsOpen(false)}
+                            className="text-[11px] font-bold text-brand-muted hover:text-brand-charcoal transition-colors"
+                          >
+                            Skip
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>
                 </div>
               )}
-
               {/* ROI Section — only after unlock */}
               {unlocked && (() => {
                 const roi = ROI_DATA[projectType];
