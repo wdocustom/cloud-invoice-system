@@ -1536,3 +1536,187 @@ export function buildDepositEmailHtml(data: DepositEmailData): string {
 </body>
 </html>`;
 }
+
+// ─── Trade Referral (estimate page → partner, e.g. Nelson Brothers Painting) ───
+
+interface PartnerReferralData {
+  estimateNumber?: string;
+  partnerContactName: string;
+  partnerCompany: string;
+  name: string;
+  email: string;
+  phone: string;
+  projectType: string;
+  scopeLevel: string;
+  size: string;
+  zip: string;
+  description: string;
+  estimateLow: string;
+  estimateHigh: string;
+  timeline: string;
+}
+
+export function buildPartnerReferralHtml(data: PartnerReferralData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
+        <td align="right">
+          <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">Referral</span>
+          ${data.estimateNumber ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">${data.partnerContactName},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 24px;">
+      A painting lead just came through the WDO Custom estimate tool. We've told them
+      ${data.partnerCompany} handles our painting work and that you'll be in touch — they're expecting your call.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
+      <tr><td style="padding:24px 28px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 12px;">Homeowner</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Name:</strong> ${data.name || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Email:</strong> ${data.email || "Not provided"}</td></tr>
+          <tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>Phone:</strong> ${data.phone || "Not provided"}</td></tr>
+          ${data.zip ? `<tr><td style="padding:3px 0;font-size:14px;color:#1A1A1A;"><strong>ZIP:</strong> ${data.zip}</td></tr>` : ""}
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#ffffff;border:1px solid #E8E4DF;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 12px;">What They Asked For</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Type:</strong> ${data.projectType}</td></tr>
+          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Finish Level:</strong> ${data.scopeLevel}</td></tr>
+          ${data.size ? `<tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Size:</strong> ${data.size}</td></tr>` : ""}
+          <tr><td style="padding:8px 0 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">In their words:</strong></td></tr>
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;line-height:1.6;font-style:italic;">"${data.description}"</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 8px;">Ballpark They Were Shown</p>
+        <p style="font-size:22px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${data.estimateLow} — $${data.estimateHigh}</p>
+        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Timeline shown: ${data.timeline}</p>` : ""}
+        <p style="font-size:12px;color:#9C9590;margin:10px 0 0;line-height:1.6;">
+          This is an automated ballpark from our estimator, not a quote from you. Price it however you normally would.
+        </p>
+      </td></tr>
+    </table>
+
+    <p style="font-size:12px;color:#9C9590;margin:28px 0 0;">Referred automatically from wdocustom.com/estimate</p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">WDO Custom &middot; Automated Referral</p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}
+
+// ─── Referral Handoff (estimate page → homeowner) ───
+
+interface ReferralHandoffData {
+  estimateNumber?: string;
+  name: string;
+  projectType: string;
+  estimateLow: string;
+  estimateHigh: string;
+  timeline: string;
+  partnerContactName: string;
+  partnerCompany: string;
+  partnerPhone: string;
+  partnerBlurb: string;
+}
+
+export function buildReferralHandoffHtml(data: ReferralHandoffData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:28px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td>
+          <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">WDO Custom</span>
+          <br>
+          <span style="color:#9C9590;font-size:12px;font-weight:500;">General Contractor &middot; Omaha, NE</span>
+        </td>
+        <td align="right">
+          ${data.estimateNumber ? `<span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${data.estimateNumber}</span>` : ""}
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${data.name},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 20px;">
+      Thanks for using our estimator. Here's the ballpark range we generated for your ${data.projectType.toLowerCase()} project.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF9F0;border:1px solid #E8D5B7;border-radius:12px;">
+      <tr><td style="padding:22px 26px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8B6914;margin:0 0 8px;">Your Estimated Range</p>
+        <p style="font-size:24px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.3px;">$${data.estimateLow} — $${data.estimateHigh}</p>
+        ${data.timeline ? `<p style="font-size:12px;color:#9C9590;margin:6px 0 0;">Estimated timeline: ${data.timeline}</p>` : ""}
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
+      <tr><td style="padding:24px 28px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#4A7A4A;margin:0 0 10px;">Who'll Be In Touch</p>
+        <p style="font-size:14px;color:#1A1A1A;line-height:1.7;margin:0 0 12px;">
+          ${data.partnerBlurb}
+        </p>
+        <p style="font-size:14px;color:#1A1A1A;line-height:1.7;margin:0 0 12px;">
+          We've passed your details to <strong>${data.partnerContactName}</strong> at
+          <strong>${data.partnerCompany}</strong>, and they'll reach out to you directly.
+          If you'd rather get ahead of it, you can call them at
+          <a href="tel:${data.partnerPhone.replace(/[^0-9+]/g, "")}" style="color:#4A7A4A;font-weight:600;text-decoration:none;">${data.partnerPhone}</a>.
+        </p>
+        <p style="font-size:13px;color:#6B6B6B;line-height:1.6;margin:0;">
+          If you'd prefer we didn't share your details, just reply to this email and we'll take care of it.
+        </p>
+      </td></tr>
+    </table>
+
+    <p style="font-size:13px;color:#6B6B6B;line-height:1.7;margin:24px 0 0;">
+      And if your project grows beyond paint — kitchens, bathrooms, basements, additions — come back to us any time.
+    </p>
+
+  </td></tr>
+  <tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
+  </td></tr>
+</table>
+
+</body>
+</html>`;
+}

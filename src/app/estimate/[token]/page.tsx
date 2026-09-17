@@ -33,6 +33,8 @@ interface Estimate {
   phone: string | null;
   project_type: string;
   scope_level: string;
+  size: string | null;
+  zip: string | null;
   description: string;
   estimate_data: EstimateData;
   status: string;
@@ -129,8 +131,11 @@ export default function PublicEstimatePage() {
         phone: unlockPhone.trim(),
         projectType: estimate.project_type,
         scopeLevel: estimate.scope_level,
-        size: "",
-        zip: "",
+        // Send the stored size/ZIP rather than blanks: the notification scores
+        // the lead to pick its subject-line band, and scoring a partial copy
+        // would disagree with the score the ledger shows.
+        size: estimate.size || "",
+        zip: estimate.zip || "",
         description: estimate.description,
         estimateLow: result.total_projected_low?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",
         estimateHigh: result.total_projected_high?.toLocaleString("en-US", { maximumFractionDigits: 0 }) ?? "",

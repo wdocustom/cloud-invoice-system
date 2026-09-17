@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
+import { findPartnerById } from "@/lib/referral-partners";
 
 export default function ProjectsIndexLedger() {
   const router = useRouter();
@@ -268,18 +269,24 @@ export default function ProjectsIndexLedger() {
                   contacted: "badge-pending",
                   consultation_scheduled: "badge-neutral",
                   converted: "badge-approved",
+                  referred: "badge-neutral",
                 };
                 const statusDots: Record<string, string> = {
                   new: "bg-paper-50",
                   contacted: "bg-bronze-400",
                   consultation_scheduled: "bg-ink-400",
                   converted: "bg-forest-500",
+                  referred: "bg-forest-500",
                 };
+                // A referred lead names the partner it went to, so the ledger
+                // doesn't show a painting handoff as a call Skyler still owes.
+                const partner = findPartnerById(est.referred_partner_id);
                 const statusLabels: Record<string, string> = {
                   new: "New Lead",
                   contacted: "Contacted",
                   consultation_scheduled: "Consultation Set",
                   converted: "Converted",
+                  referred: partner ? `Referred → ${partner.company}` : "Referred Out",
                 };
                 const reminderCount = Array.isArray(est.reminder_emails) ? est.reminder_emails.length : 0;
                 const createdAgo = getTimeAgo(est.created_at);
