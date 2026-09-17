@@ -4,6 +4,8 @@ import laborRates from "@/lib/labor-rates.json";
 import permitFees from "@/lib/permit-fees.json";
 import { insertTolerant } from "@/lib/db";
 import { allocateDocumentNumber, estimateNumberFields } from "@/lib/document-numbers";
+import { leadScoreFields, scoreLead, type LeadFlag } from "@/lib/lead-score";
+import { findPartnerForProjectType } from "@/lib/referral-partners";
 
 function getRegionalMultiplier(zip: string): number {
   if (!zip || zip.length < 3) return laborRates.regional_multipliers.other;
@@ -160,6 +162,30 @@ Respond ONLY with raw JSON matching this exact schema:
       const supabase = getSupabase();
       const numberFields = estimateNumberFields(await allocateDocumentNumber(supabase));
 
+      // Triage score, from the signals this request already carries. Scoring is
+      // pure and cannot throw on partial input, so it stays inside the existing
+      // non-blocking DB block: a scoring or schema problem must never cost the
+      // homeowner the estimate they just waited for.
+      const partner = findPartnerForProjectType(projectType);
+      const extraFlags: LeadFlag[] = partner ? ["referral"] : [];
+      const scoreFields = leadScoreFields(
+        scoreLead(
+          {
+            projectType,
+            scopeLevel,
+            size,
+            zip,
+            description,
+            name,
+            email,
+            phone,
+            estimateLow: typeof parsed?.total_projected_low === "number" ? parsed.total_projected_low : null,
+            estimateHigh: typeof parsed?.total_projected_high === "number" ? parsed.total_projected_high : null,
+          },
+          extraFlags
+        )
+      );
+
       const { error: insertErr, dropped } = await insertTolerant(
         supabase,
         "estimates",
@@ -175,6 +201,8 @@ Respond ONLY with raw JSON matching this exact schema:
           description,
           estimate_data: parsed,
           ...numberFields,
+          ...scoreFields,
+          referred_partner_id: partner?.id ?? null,
         },
         "id"
       );

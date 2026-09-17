@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { updateTolerant } from "@/lib/db";
+import { leadScoreFields, scoreLeadRow, type LeadFlag } from "@/lib/lead-score";
+import { findPartnerForProjectType } from "@/lib/referral-partners";
 
 function getSupabase() {
   return createClient(
@@ -28,14 +31,44 @@ export async function POST(request: Request) {
     }
 
     const supabase = getSupabase();
-    await supabase
+
+    const contact = {
+      name: trimName || null,
+      email: trimEmail || null,
+      phone: trimPhone || null,
+    };
+
+    // Contact completeness is a scored component, so unlocking moves the score.
+    // Re-score from the stored row merged with what just arrived; if the row
+    // can't be read, still write the contact details — capturing the lead
+    // matters more than keeping its score current.
+    const { data: existing } = await supabase
       .from("estimates")
-      .update({
-        name: trimName || null,
-        email: trimEmail || null,
-        phone: trimPhone || null,
-      })
-      .eq("token", token);
+      .select("*")
+      .eq("token", token)
+      .maybeSingle();
+
+    // Unknown or stale token. updateTolerant matches exactly one row, so
+    // pushing on would turn what used to be a silent no-op into a 500.
+    if (!existing) {
+      return NextResponse.json({ success: true });
+    }
+
+    const partner = findPartnerForProjectType(existing.project_type);
+    const extraFlags: LeadFlag[] = partner ? ["referral"] : [];
+    const scoreFields = leadScoreFields(scoreLeadRow({ ...existing, ...contact }, extraFlags));
+
+    const { error } = await updateTolerant(
+      supabase,
+      "estimates",
+      { ...contact, ...scoreFields },
+      (query) => query.eq("token", token)
+    );
+
+    if (error) {
+      console.error("Unlock estimate update failed:", error);
+      return NextResponse.json({ error: "Could not save your details." }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
