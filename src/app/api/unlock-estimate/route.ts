@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { updateTolerant } from "@/lib/db";
 import { leadScoreFields, scoreLeadRow, type LeadFlag } from "@/lib/lead-score";
 import { findPartnerForProjectType } from "@/lib/referral-partners";
+import { flagsForAnswers } from "@/lib/intake-questions";
 
 function getSupabase() {
   return createClient(
@@ -13,7 +14,7 @@ function getSupabase() {
 
 export async function POST(request: Request) {
   try {
-    const { token, name, email, phone } = await request.json();
+    const { token, name, email, phone, timeline, budgetFit, ownership } = await request.json();
 
     if (!token) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 });
@@ -32,10 +33,20 @@ export async function POST(request: Request) {
 
     const supabase = getSupabase();
 
+    // Tier B answers are optional — skipping them scores neutral rather than
+    // blocking the unlock, so the gate never costs a lead over a question.
+    // Unanswered questions are omitted entirely rather than written as null, so
+    // a second unlock on the same token can't erase the first one's answers.
+    const intake: Record<string, string> = {};
+    if ((timeline || "").trim()) intake.intake_timeline = timeline.trim();
+    if ((budgetFit || "").trim()) intake.intake_budget_fit = budgetFit.trim();
+    if ((ownership || "").trim()) intake.intake_ownership = ownership.trim();
+
     const contact = {
       name: trimName || null,
       email: trimEmail || null,
       phone: trimPhone || null,
+      ...intake,
     };
 
     // Contact completeness is a scored component, so unlocking moves the score.
@@ -55,7 +66,11 @@ export async function POST(request: Request) {
     }
 
     const partner = findPartnerForProjectType(existing.project_type);
-    const extraFlags: LeadFlag[] = partner ? ["referral"] : [];
+    const extraFlags: LeadFlag[] = [
+      ...(partner ? (["referral"] as LeadFlag[]) : []),
+      // A lead can refine before unlocking, so branch flags may already exist.
+      ...flagsForAnswers(existing.project_type, existing.intake_answers),
+    ];
     const scoreFields = leadScoreFields(scoreLeadRow({ ...existing, ...contact }, extraFlags));
 
     const { error } = await updateTolerant(

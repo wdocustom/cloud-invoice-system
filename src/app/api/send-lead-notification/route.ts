@@ -8,84 +8,48 @@ import {
   buildReferralHandoffHtml,
 } from "@/lib/email-templates";
 import { updateTolerant } from "@/lib/db";
-import { BAND_LABELS, scoreLead, type LeadFlag } from "@/lib/lead-score";
-import { findPartnerForProjectType, referralDryRun } from "@/lib/referral-partners";
+import { planLeadNotification, type PlannedEmailKind } from "@/lib/lead-notification-plan";
+import { referralDryRun } from "@/lib/referral-partners";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
-
-/** Strip formatting so "$92,400" from the client parses back to a number. */
-function parseMoney(value: unknown): number | null {
-  if (typeof value === "number") return value;
-  const digits = String(value ?? "").replace(/[^0-9.]/g, "");
-  if (!digits) return null;
-  const parsed = Number(digits);
-  return Number.isFinite(parsed) ? parsed : null;
-}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { name, email, phone, projectType, scopeLevel, size, zip, description, estimateLow, estimateHigh, timeline, token, estimateNumber } = body;
 
-    const trimName = (name || "").trim();
-    const trimEmail = (email || "").trim();
-    const trimPhone = (phone || "").trim();
+    const dryRun = referralDryRun();
+    const plan = planLeadNotification(body, { dryRun });
 
-    if (!trimEmail && !trimPhone) {
-      return NextResponse.json(
-        { error: "Email or phone number is required to process this lead." },
-        { status: 400 }
-      );
+    if (plan.error) {
+      return NextResponse.json({ error: plan.error }, { status: 400 });
     }
-
-    // Painting is referred out; everything else stays with WDO.
-    const partner = findPartnerForProjectType(projectType);
-
-    // Score here too, so the subject line carries the band. This repeats the
-    // calculation unlock-estimate persists rather than reading it back — the
-    // scorer is pure and cheap, and a notification should not fail because a
-    // DB read did.
-    const extraFlags: LeadFlag[] = partner ? ["referral"] : [];
-    const score = scoreLead(
-      {
-        projectType,
-        scopeLevel,
-        size,
-        zip,
-        description,
-        name: trimName,
-        email: trimEmail,
-        phone: trimPhone,
-        estimateLow: parseMoney(estimateLow),
-        estimateHigh: parseMoney(estimateHigh),
-      },
-      extraFlags
-    );
 
     if (!resend) {
       console.warn("Lead notification skipped — RESEND_API_KEY not set");
       return NextResponse.json({ success: true, skipped: true });
     }
 
-    const emails: Promise<any>[] = [];
+    const trimName = (name || "").trim();
+    const trimEmail = (email || "").trim();
+    const trimPhone = (phone || "").trim();
+    const partner = plan.partner;
 
-    // ── Skyler always hears about every lead, referred or not ──
-    const subjectPrefix = partner
-      ? `[Referred → ${partner.company}]`
-      : `[${score.band} · ${BAND_LABELS[score.band]}]`;
+    if (dryRun && partner) {
+      console.info(`[referral dry run] would email ${partner.email} about ${trimName || trimEmail || trimPhone}`);
+    }
 
-    emails.push(
-      resend.emails.send({
-        from: "WDO Custom <messages@wdocustom.com>",
-        to: ["skyler@wdocustom.com"],
-        subject: `${subjectPrefix} New Estimate Lead${estimateNumber ? ` ${estimateNumber}` : ""}: ${trimName || trimEmail || trimPhone || "Unknown"} — ${projectType}`,
-        html: buildLeadNotificationHtml({
+    // Each planned email knows its recipient and subject; the body is rendered
+    // per kind here.
+    const renderers: Record<PlannedEmailKind, () => string> = {
+      admin: () =>
+        buildLeadNotificationHtml({
           estimateNumber: estimateNumber || "",
-          name: trimName || "",
-          email: trimEmail || "",
-          phone: trimPhone || "",
+          name: trimName,
+          email: trimEmail,
+          phone: trimPhone,
           projectType: projectType || "Not specified",
           scopeLevel: scopeLevel || "mid",
           size: size || "",
@@ -95,23 +59,14 @@ export async function POST(request: Request) {
           estimateHigh: estimateHigh || "—",
           timeline: timeline || "",
         }),
-      })
-    );
-
-    // ── Referred leads: hand off to the partner, tell the homeowner who's calling ──
-    if (partner) {
-      const referralPayload = {
-        from: "WDO Custom <messages@wdocustom.com>",
-        to: [partner.email],
-        replyTo: "skyler@wdocustom.com",
-        subject: `Painting referral from WDO Custom: ${trimName || trimEmail || trimPhone || "New lead"}${zip ? ` (${zip})` : ""}`,
-        html: buildPartnerReferralHtml({
+      partner: () =>
+        buildPartnerReferralHtml({
           estimateNumber: estimateNumber || "",
-          partnerContactName: partner.contactName,
-          partnerCompany: partner.company,
-          name: trimName || "",
-          email: trimEmail || "",
-          phone: trimPhone || "",
+          partnerContactName: partner!.contactName,
+          partnerCompany: partner!.company,
+          name: trimName,
+          email: trimEmail,
+          phone: trimPhone,
           projectType: projectType || "Interior Painting",
           scopeLevel: scopeLevel || "mid",
           size: size || "",
@@ -121,68 +76,54 @@ export async function POST(request: Request) {
           estimateHigh: estimateHigh || "—",
           timeline: timeline || "",
         }),
-      };
+      homeowner_referral: () =>
+        buildReferralHandoffHtml({
+          estimateNumber: estimateNumber || "",
+          name: trimName || "there",
+          projectType: projectType || "Painting",
+          estimateLow: estimateLow || "—",
+          estimateHigh: estimateHigh || "—",
+          timeline: timeline || "",
+          partnerContactName: partner!.contactName,
+          partnerCompany: partner!.company,
+          partnerPhone: partner!.phone,
+          partnerBlurb: partner!.blurb,
+        }),
+      homeowner_estimate: () => {
+        const consultationParams = new URLSearchParams();
+        if (trimName) consultationParams.set("name", trimName);
+        if (trimEmail) consultationParams.set("email", trimEmail);
+        if (trimPhone) consultationParams.set("phone", trimPhone);
+        if (projectType) consultationParams.set("project", projectType);
 
-      if (referralDryRun()) {
-        console.info(`[referral dry run] would send to ${partner.email}: ${referralPayload.subject}`);
-      } else {
-        emails.push(resend.emails.send(referralPayload));
-      }
+        return buildEstimateConfirmationHtml({
+          estimateNumber: estimateNumber || "",
+          name: trimName || "there",
+          projectType: projectType || "Remodeling Project",
+          estimateLow: estimateLow || "—",
+          estimateHigh: estimateHigh || "—",
+          timeline: timeline || "",
+          consultationUrl: `https://www.wdocustom.com/consultation?${consultationParams.toString()}`,
+        });
+      },
+    };
 
-      if (trimEmail) {
-        emails.push(
-          resend.emails.send({
-            from: "WDO Custom <messages@wdocustom.com>",
-            to: [trimEmail],
-            subject: `Your ${projectType || "Painting"} Estimate — $${estimateLow} to $${estimateHigh}`,
-            html: buildReferralHandoffHtml({
-              estimateNumber: estimateNumber || "",
-              name: trimName || "there",
-              projectType: projectType || "Painting",
-              estimateLow: estimateLow || "—",
-              estimateHigh: estimateHigh || "—",
-              timeline: timeline || "",
-              partnerContactName: partner.contactName,
-              partnerCompany: partner.company,
-              partnerPhone: partner.phone,
-              partnerBlurb: partner.blurb,
-            }),
-          })
-        );
-      }
-    } else if (trimEmail) {
-      // ── WDO's own leads: estimate plus a pre-filled consultation link ──
-      const consultationParams = new URLSearchParams();
-      if (trimName) consultationParams.set("name", trimName);
-      if (trimEmail) consultationParams.set("email", trimEmail);
-      if (trimPhone) consultationParams.set("phone", trimPhone);
-      if (projectType) consultationParams.set("project", projectType);
-      const consultationUrl = `https://www.wdocustom.com/consultation?${consultationParams.toString()}`;
-
-      emails.push(
+    await Promise.all(
+      plan.emails.map((planned) =>
         resend.emails.send({
           from: "WDO Custom <messages@wdocustom.com>",
-          to: [trimEmail],
-          subject: `Your ${projectType || "Remodeling"} Estimate — $${estimateLow} to $${estimateHigh}`,
-          html: buildEstimateConfirmationHtml({
-            estimateNumber: estimateNumber || "",
-            name: trimName || "there",
-            projectType: projectType || "Remodeling Project",
-            estimateLow: estimateLow || "—",
-            estimateHigh: estimateHigh || "—",
-            timeline: timeline || "",
-            consultationUrl,
-          }),
+          to: [planned.to],
+          ...(planned.kind === "partner" ? { replyTo: "skyler@wdocustom.com" } : {}),
+          subject: planned.subject,
+          html: renderers[planned.kind](),
         })
-      );
-    }
-
-    await Promise.all(emails);
+      )
+    );
 
     // Record the handoff so the ledger shows it, not just the outbox. Best
     // effort: the emails have already gone out and a bookkeeping failure
     // shouldn't turn a delivered referral into an error response.
-    if (partner && token && !referralDryRun()) {
+    if (plan.recordReferral && partner) {
       try {
         const supabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,

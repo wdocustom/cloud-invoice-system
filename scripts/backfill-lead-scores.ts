@@ -117,6 +117,16 @@ async function main() {
     );
   }
 
+  // ── Tier B coverage: how many leads answered the gate questions at all ──
+  const answered = rows.filter((row) => row.intake_timeline || row.intake_budget_fit).length;
+  const refinedCount = rows.filter((row) => !!row.refined_at).length;
+  console.log(`\nQualification coverage`);
+  console.log(`  Answered the gate questions  ${String(answered).padStart(4)}  ${pct(answered, rows.length)}`);
+  console.log(`  Refined their estimate       ${String(refinedCount).padStart(4)}  ${pct(refinedCount, rows.length)}`);
+  if (answered === 0) {
+    console.log("  (Leads created before the gate questions shipped score these neutral.)");
+  }
+
   // ── Flags worth eyeballing ──
   const flagCounts = new Map<string, number>();
   for (const { result } of scored) {
