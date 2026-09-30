@@ -20,6 +20,7 @@ import {
   displayPercent,
 } from "@/lib/payment-schedule";
 import { changeOrderPdfInput, contractTotals, type AlreadyCovered } from "@/lib/change-orders";
+import { contractTotalMismatch, itemsContractTotal, lineBidOf } from "@/lib/contract-total";
 import { generateProposalPdf } from "@/lib/generate-pdf";
 import {
   applyScopeAmendment,
@@ -269,12 +270,17 @@ export default function ProjectWorkspaceControlHub() {
   }
 
   async function saveGlobalScopeItemChanges(updatedItems: any[]) {
-    const isApproved = project?.status === "approved";
-    const calculatedNewTotal = roundCents(
-      isApproved
-        ? updatedItems.reduce((sum, item) => sum + toNum(item.actual_cost ?? item.cost ?? item.mid_cost), 0)
-        : updatedItems.reduce((sum, item) => sum + toNum(item.mid_cost), 0)
-    );
+    // Never compute a contract's money without knowing the contract. A save
+    // that ran with `project` still null treated signed contracts as unsigned
+    // proposals — zeroing their total — and wrote an empty draw schedule and
+    // the default deposit over the real ones. Refusing is always safer.
+    if (!project) {
+      toast("Couldn't save — the project hadn't finished loading. Please try that edit again.", "error");
+      return;
+    }
+
+    const isApproved = project.status === "approved";
+    const calculatedNewTotal = roundCents(itemsContractTotal(updatedItems, isApproved));
 
     // The deposit and every draw are percentages of the contract, so a change to
     // the line items has to carry through to their dollar figures in the same
@@ -503,10 +509,18 @@ export default function ProjectWorkspaceControlHub() {
     saveGlobalScopeItemChanges(nextItemsArray);
   };
 
+  // The debounced save must call the *current* saveGlobalScopeItemChanges.
+  // Memoised on [projectId] it captured the first render's copy, where
+  // `project` was still null — so every inline edit saved as if the contract
+  // were an unsigned proposal with no deposit or draw schedule. On a signed
+  // contract that zeroed the total and deleted the draws.
+  const saveScopeRef = useRef(saveGlobalScopeItemChanges);
+  saveScopeRef.current = saveGlobalScopeItemChanges;
+
   const debouncedSave = useCallback((items: any[]) => {
     flushPendingDebounce();
-    saveTimerRef.current = setTimeout(() => saveGlobalScopeItemChanges(items), 600);
-  }, [projectId]);
+    saveTimerRef.current = setTimeout(() => saveScopeRef.current(items), 600);
+  }, []);
 
   async function saveSelectionOptions(updatedOptions: any[], updatedSelections?: Record<string, string>) {
     const patch: any = { homeowner_options: updatedOptions };
@@ -659,10 +673,7 @@ export default function ProjectWorkspaceControlHub() {
       ...currentItems[index],
       [field]: value
     };
-    const isApproved = project?.status === "approved";
-    const newTotal = isApproved
-      ? currentItems.reduce((sum: number, item: any) => sum + toNum(item.actual_cost ?? item.cost ?? item.mid_cost), 0)
-      : currentItems.reduce((sum: number, item: any) => sum + toNum(item.mid_cost), 0);
+    const newTotal = itemsContractTotal(currentItems, project?.status === "approved");
     setProject((prev: any) => ({
       ...prev,
       items: currentItems,
@@ -844,6 +855,53 @@ export default function ProjectWorkspaceControlHub() {
 
       {/* METRICS ROW CARDS AREA */}
       <div className="mx-auto max-w-6xl px-4 pt-7 sm:px-8 sm:pt-9">
+
+        {/* Stored total disagrees with the line items — the signature of the
+            inline-edit bug that zeroed signed contracts and cleared their
+            draws. The items themselves were never touched, so the total can
+            be restored from them; the draw schedule can't. */}
+        {(() => {
+          const mismatch = contractTotalMismatch(project);
+          if (!mismatch) return null;
+          const money = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+          const hasPhases = Array.isArray(project?.payment_phases) && project.payment_phases.length > 0;
+          return (
+            <div className="mb-6 border-l-2 border-brick-500 bg-brick-50 px-5 py-4">
+              <p className="text-[13.5px] font-medium text-ink-900">
+                The stored contract total ({money(mismatch.stored)}) doesn&apos;t match this job&apos;s line items ({money(mismatch.expected)}).
+              </p>
+              <p className="mt-1.5 max-w-3xl text-[12.5px] leading-relaxed text-ink-500">
+                A bug in inline line editing, now fixed, could overwrite a contract&apos;s total, deposit and draw schedule.
+                The line items weren&apos;t affected. Until this is restored, the homeowner&apos;s portal shows the wrong total too.
+              </p>
+              <ul className="mt-2 max-w-3xl list-disc space-y-1 pl-5 text-[12.5px] leading-relaxed text-ink-500">
+                <li>Restoring recalculates the total and the deposit dollar amount from the line items.</li>
+                <li>
+                  The deposit is currently {displayPercent(depositPercentOf(project, mismatch.expected))}%. The same bug reset deposits to
+                  the default, so confirm that&apos;s what was agreed.
+                </li>
+                {!hasPhases && (
+                  <li className="text-brick-600">
+                    This job has no draw schedule. Every job is created with one, so the same bug most likely cleared it.
+                    It can&apos;t be recovered from this record — re-add it under Draw Phases.
+                  </li>
+                )}
+              </ul>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!confirm(`Restore the contract total to ${money(mismatch.expected)} from the line items?`)) return;
+                  flushPendingDebounce();
+                  saveGlobalScopeItemChanges(Array.isArray(project?.items) ? project.items : []);
+                }}
+                className="btn-ink mt-3"
+              >
+                Restore total from line items
+              </button>
+            </div>
+          );
+        })()}
+
         <div className="grid grid-cols-1 gap-px overflow-hidden rounded-panel bg-paper-200/60 shadow-riser ring-1 ring-rule-300/50 lg:grid-cols-3">
 
         {/* PROJECT ADDRESS CARD */}
@@ -885,8 +943,8 @@ export default function ProjectWorkspaceControlHub() {
             {(() => {
               const items = Array.isArray(project?.items) ? project.items : [];
               const hasActuals = project?.status === "approved" && items.some((i: any) => i.actual_cost != null);
-              const bidTotal = items.reduce((s: number, i: any) => s + toNum(i.cost || i.mid_cost), 0);
-              const actualTotal = items.reduce((s: number, i: any) => s + toNum(i.actual_cost ?? i.cost ?? i.mid_cost), 0);
+              const bidTotal = items.reduce((s: number, i: any) => s + lineBidOf(i, true), 0);
+              const actualTotal = itemsContractTotal(items, true);
               if (hasActuals) {
                 return (
                   <div className="mt-3 space-y-2.5">
@@ -1741,7 +1799,7 @@ export default function ProjectWorkspaceControlHub() {
                 </span>
                 <span aria-hidden className="h-px flex-1 self-center bg-paper-200/70" />
                 <span className="figure shrink-0 text-[12.5px]">
-                  ${group.entries.reduce((sum, e) => sum + midCostOf(e.item), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  ${group.entries.reduce((sum, e) => sum + lineBidOf(e.item, project?.status === "approved"), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
@@ -1796,7 +1854,7 @@ export default function ProjectWorkspaceControlHub() {
                     <div className="bg-paper-50 px-5 py-4">
                       <p className="eyebrow">Bid Amount</p>
                       <p className="figure mt-1.5 text-[15px]">
-                        ${toNum(item.cost || item.mid_cost).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${lineBidOf(item, true).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </p>
                     </div>
                     <div className={`px-5 py-4 ${item.actual_cost != null ? 'bg-forest-50' : 'bg-bronze-50'}`}>
@@ -1818,8 +1876,8 @@ export default function ProjectWorkspaceControlHub() {
                         />
                       </div>
                       {item.actual_cost != null && (
-                        <p className={`mt-1 font-sans text-[10px] tabular-nums ${toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? 'text-brick-600' : 'text-forest-700'}`}>
-                          {toNum(item.actual_cost) > toNum(item.cost || item.mid_cost) ? '▲' : '▼'} ${Math.abs(toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)).toLocaleString(undefined, {minimumFractionDigits:2})} ({toNum(item.cost || item.mid_cost) > 0 ? ((toNum(item.actual_cost) - toNum(item.cost || item.mid_cost)) / toNum(item.cost || item.mid_cost) * 100).toFixed(1) : '0'}%)
+                        <p className={`mt-1 font-sans text-[10px] tabular-nums ${toNum(item.actual_cost) > lineBidOf(item, true) ? 'text-brick-600' : 'text-forest-700'}`}>
+                          {toNum(item.actual_cost) > lineBidOf(item, true) ? '▲' : '▼'} ${Math.abs(toNum(item.actual_cost) - lineBidOf(item, true)).toLocaleString(undefined, {minimumFractionDigits:2})} ({lineBidOf(item, true) > 0 ? ((toNum(item.actual_cost) - lineBidOf(item, true)) / lineBidOf(item, true) * 100).toFixed(1) : '0'}%)
                         </p>
                       )}
                     </div>

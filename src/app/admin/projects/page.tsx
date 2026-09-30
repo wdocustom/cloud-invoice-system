@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
 import { changeOrdersByParent, contractTotals } from "@/lib/change-orders";
+import { contractTotalMismatch } from "@/lib/contract-total";
 import { findPartnerById } from "@/lib/referral-partners";
 import { BAND_LABELS, FLAG_LABELS, effectiveBand, effectiveScore, type LeadFlag } from "@/lib/lead-score";
 
@@ -208,6 +209,9 @@ export default function ProjectsIndexLedger() {
                 // carries, so staff see where the job actually stands.
                 const viewCount = toNum(proj.view_count);
                 const totals = totalsFor(proj);
+                // The stored total no longer matches the line items — see the
+                // restore notice on the project page.
+                const totalMismatch = contractTotalMismatch(proj);
                 const jobStatus = isApproved
                   ? "Signed"
                   : proj.status === "declined"
@@ -244,6 +248,11 @@ export default function ProjectsIndexLedger() {
                         <p className="mt-0.5 truncate text-[12.5px] text-ink-500">
                           {proj.job_address || "Address pending"}
                         </p>
+                        {totalMismatch && (
+                          <p className="mt-1 text-[12px] font-medium text-brick-600">
+                            Total doesn&apos;t match line items — open to restore
+                          </p>
+                        )}
 
                         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 sm:hidden">
                           <span className="figure text-[15px]">
