@@ -10,6 +10,7 @@ import { categoryOf } from "@/lib/scope-amendment";
 import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phasePercentOf } from "@/lib/payment-schedule";
 import { TERMS_AND_CONDITIONS } from "@/lib/terms";
 import { isReceiptTracked, isUnreadFromContractor } from "@/lib/messages";
+import { changeOrderEmailFigures, changeOrderPdfInput, contractTotals } from "@/lib/change-orders";
 
 interface HomeownerPortalProps {
   id: string;
@@ -31,6 +32,9 @@ export default function HomeownerPortalClient({
 
   const [invoice, setInvoice] = useState<Invoice | null>(initialInvoice);
   const [changeOrders, setChangeOrders] = useState<any[]>(initialChangeOrders);
+  // Typed signature per change order, so two open at once don't share a name.
+  const [coSignatures, setCoSignatures] = useState<Record<string, string>>({});
+  const [signingCoId, setSigningCoId] = useState<string | null>(null);
   const [scheduleTasks, setScheduleTasks] = useState<any[]>(initialScheduleTasks);
   const [dailyLogs, setDailyLogs] = useState<any[]>(initialDailyLogs);
 
@@ -225,9 +229,8 @@ export default function HomeownerPortalClient({
         return sum;
       }, 0);
 
-  const approvedCoTotal = changeOrders
-    .filter((co: any) => co.status === "approved")
-    .reduce((sum: number, co: any) => sum + toNum(co.amount), 0);
+  // Same rule the contractor's ledger uses: only signed change orders count.
+  const approvedCoTotal = contractTotals(null, changeOrders).approved;
 
   const combinedProjectTotal = baseTotal + approvedCoTotal;
   const depositPercent = displayPercent(depositPercentOf(invoice, baseTotal));
@@ -293,11 +296,36 @@ export default function HomeownerPortalClient({
     setPendingSelection(null);
   };
 
-  const executeOneClickCoApproval = async (coId: string) => {
-    if (!confirm("Authorize and append this change order supplement to your project contract?")) return;
-    const { error } = await supabase.from("invoices").update({ status: "approved" }).eq("id", coId);
-    if (error) toast("Approval exception processing validation token.", "error");
-    else fetchInvoiceData();
+  /**
+   * Sign a change order. Signed server-side so the name, time and origin are
+   * recorded the way the original contract's signature is — the terms (§3)
+   * require change orders to be signed before the added work begins.
+   */
+  const signChangeOrder = async (coId: string) => {
+    const signature = (coSignatures[coId] || "").trim();
+    if (signature.length < 2) return toast("Please type your full name to sign", "error");
+
+    setSigningCoId(coId);
+    try {
+      const res = await fetch("/api/change-orders/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          change_order_id: coId,
+          parent_id: id,
+          signature_name: signature,
+          base_url: window.location.origin,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not record your signature");
+      toast("Change order signed — a copy is on its way to your inbox", "success");
+      fetchInvoiceData();
+    } catch (err: any) {
+      toast(err.message || "Could not record your signature", "error");
+    } finally {
+      setSigningCoId(null);
+    }
   };
 
   const initiateStripePayment = async (amount: number, description: string, phaseIndex?: number) => {
@@ -1687,22 +1715,89 @@ export default function HomeownerPortalClient({
                             </svg>
                           </div>
                         </div>
-                        {isExpanded && (
+                        {isExpanded && (() => {
+                          // What this change does to the contract, stated the
+                          // same way as the emailed copy and the PDF.
+                          const figures = changeOrderEmailFigures(co, invoice, changeOrders);
+                          const money = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                          return (
                           <div className="animate-rise space-y-3 border-t border-rule-300/50 bg-paper-50/50 p-4">
                             <div className="panel overflow-hidden">
                               {co.items?.map((item: any, iIdx: number) => (
-                                <div key={iIdx} className="flex items-baseline justify-between gap-4 border-b border-rule-300/50 px-3.5 py-2.5 last:border-b-0">
-                                  <span className="min-w-0 truncate text-[12.5px] text-ink-500">{item.title}</span>
-                                  <span className="figure shrink-0 text-[12.5px]">${toNum(item.cost).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                <div key={iIdx} className="border-b border-rule-300/50 px-3.5 py-2.5 last:border-b-0">
+                                  <div className="flex items-baseline justify-between gap-4">
+                                    <span className="min-w-0 truncate text-[12.5px] text-ink-900">{item.title}</span>
+                                    <span className="figure shrink-0 text-[12.5px]">${toNum(item.cost).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                                  </div>
+                                  {item.description && (
+                                    <p className="mt-1 text-[11.5px] leading-relaxed text-ink-500">{item.description}</p>
+                                  )}
                                 </div>
                               ))}
                             </div>
-                            {!isCoApproved && (
-                              <button type="button" onClick={() => executeOneClickCoApproval(co.id)} className="btn-ink w-full py-2.5">
-                                Approve Change Order
-                              </button>
+
+                            <dl className="space-y-1.5 px-1 text-[12.5px]">
+                              <div className="flex justify-between gap-4 text-ink-500">
+                                <dt>Contract before this change</dt>
+                                <dd className="figure">${money(figures.prior_contract_total)}</dd>
+                              </div>
+                              <div className="flex justify-between gap-4 text-ink-500">
+                                <dt>This change order</dt>
+                                <dd className="figure">+${money(figures.amount)}</dd>
+                              </div>
+                              <div className="flex justify-between gap-4 border-t border-rule-300/60 pt-1.5 font-medium text-ink-900">
+                                <dt>{isCoApproved ? "Contract total" : "Contract total once signed"}</dt>
+                                <dd className="figure">${money(figures.revised_contract_total)}</dd>
+                              </div>
+                              <div className="flex justify-between gap-4 pt-1 text-ink-500">
+                                <dt>Schedule</dt>
+                                <dd className="text-right">{(co.schedule_impact || "").trim() || "No change to the completion date"}</dd>
+                              </div>
+                            </dl>
+
+                            {isCoApproved && co.signature_name && (
+                              <p className="px-1 text-[11.5px] text-ink-500">
+                                Signed by <span className="font-medium text-ink-900">{co.signature_name}</span>
+                                {co.signed_at ? ` · ${new Date(co.signed_at).toLocaleString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}` : ""}
+                              </p>
                             )}
-                            {isCoApproved && !isCoPaid && (
+
+                            {!isCoApproved && (
+                              <div className="space-y-2.5 border-t border-rule-300/60 pt-3">
+                                <p className="text-[12px] leading-relaxed text-ink-500">
+                                  Signing adds this work to your contract at the price above. Nothing changes until you sign.
+                                </p>
+                                <label htmlFor={`co-signature-${co.id}`} className="field-label">Full legal name</label>
+                                <input
+                                  id={`co-signature-${co.id}`}
+                                  type="text"
+                                  autoComplete="name"
+                                  placeholder="First and last name"
+                                  value={coSignatures[co.id] || ""}
+                                  onChange={(e) => setCoSignatures((prev) => ({ ...prev, [co.id]: e.target.value }))}
+                                  className="field"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={signingCoId === co.id || (coSignatures[co.id] || "").trim().length < 2}
+                                  onClick={() => signChangeOrder(co.id)}
+                                  className="btn-ink w-full py-2.5"
+                                >
+                                  {signingCoId === co.id ? "Signing..." : "Sign change order"}
+                                </button>
+                              </div>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => generateProposalPdf(changeOrderPdfInput(co, invoice, changeOrders))}
+                              className="w-full text-center text-[12px] text-ink-400 underline-offset-4 transition-colors duration-200 ease-architect hover:text-ink-900 hover:underline"
+                            >
+                              Download {isCoApproved ? "signed copy" : "PDF"}
+                            </button>
+                            {/* A no-cost change order is legitimate (a scope swap)
+                                and has nothing to pay. */}
+                            {isCoApproved && !isCoPaid && toNum(co.amount) > 0 && (
                               <button
                                 type="button"
                                 disabled={isPaymentLoading}
@@ -1713,7 +1808,8 @@ export default function HomeownerPortalClient({
                               </button>
                             )}
                           </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     );
                   })}

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toNum } from "@/lib/utils";
+import { changeOrdersByParent, contractTotals } from "@/lib/change-orders";
 import { findPartnerById } from "@/lib/referral-partners";
 import { BAND_LABELS, FLAG_LABELS, effectiveBand, effectiveScore, type LeadFlag } from "@/lib/lead-score";
 
@@ -10,6 +11,9 @@ export default function ProjectsIndexLedger() {
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [estimates, setEstimates] = useState<any[]>([]);
+  // Change orders, read alongside their contracts so each job shows one
+  // revised total — the same figure the homeowner sees in their portal.
+  const [changeOrders, setChangeOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"projects" | "leads">("projects");
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -44,7 +48,7 @@ export default function ProjectsIndexLedger() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [projectsRes, estimatesRes] = await Promise.all([
+      const [projectsRes, estimatesRes, changeOrdersRes] = await Promise.all([
         supabase
           .from("invoices")
           .select("*")
@@ -54,10 +58,15 @@ export default function ProjectsIndexLedger() {
           .from("estimates")
           .select("*")
           .order("created_at", { ascending: false }),
+        supabase
+          .from("invoices")
+          .select("id, parent_id, status, amount")
+          .not("parent_id", "is", null),
       ]);
 
       if (projectsRes.data) setProjects(projectsRes.data);
       if (estimatesRes.data) setEstimates(estimatesRes.data);
+      if (changeOrdersRes.data) setChangeOrders(changeOrdersRes.data);
     } catch (err) {
       console.error("Data retrieval error:", err);
     } finally {
@@ -65,7 +74,9 @@ export default function ProjectsIndexLedger() {
     }
   }
 
-  const totalValue = projects.reduce((s, p) => s + toNum(p.amount), 0);
+  const changeOrdersByJob = changeOrdersByParent(changeOrders);
+  const totalsFor = (proj: any) => contractTotals(proj, changeOrdersByJob.get(proj.id) || []);
+  const totalValue = projects.reduce((s, p) => s + totalsFor(p).revised, 0);
   const approvedCount = projects.filter(p => p.status === "approved").length;
   const newLeads = estimates.filter(e => e.status === "new").length;
   // Referred leads were never WDO's to convert, so counting them here would let
@@ -196,6 +207,7 @@ export default function ProjectsIndexLedger() {
                 // Draft / Sent / Viewed / Signed — read off data the row already
                 // carries, so staff see where the job actually stands.
                 const viewCount = toNum(proj.view_count);
+                const totals = totalsFor(proj);
                 const jobStatus = isApproved
                   ? "Signed"
                   : proj.status === "declined"
@@ -235,8 +247,13 @@ export default function ProjectsIndexLedger() {
 
                         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 sm:hidden">
                           <span className="figure text-[15px]">
-                            ${toNum(proj.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            ${totals.revised.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
+                          {totals.approvedCount > 0 && (
+                            <span className="text-[12px] text-ink-400">
+                              incl. {totals.approvedCount} change order{totals.approvedCount === 1 ? "" : "s"}
+                            </span>
+                          )}
                           {toNum(proj.view_count) > 0 && (
                             <span className="text-[13px] text-ink-400 tabular-nums">
                               {proj.view_count} views
@@ -250,8 +267,16 @@ export default function ProjectsIndexLedger() {
 
                       <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
                         <span className="figure text-[16px]">
-                          ${toNum(proj.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${totals.revised.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
+                        {(totals.approvedCount > 0 || totals.pendingCount > 0) && (
+                          <span className="text-[12px] text-ink-400">
+                            {totals.approvedCount > 0 &&
+                              `incl. +$${totals.approved.toLocaleString(undefined, { maximumFractionDigits: 0 })} in ${totals.approvedCount} CO${totals.approvedCount === 1 ? "" : "s"}`}
+                            {totals.approvedCount > 0 && totals.pendingCount > 0 && " · "}
+                            {totals.pendingCount > 0 && `${totals.pendingCount} awaiting signature`}
+                          </span>
+                        )}
                         <div className="flex items-center gap-3">
                           {toNum(proj.view_count) > 0 && (
                             <span className="text-[13px] text-ink-400 tabular-nums">

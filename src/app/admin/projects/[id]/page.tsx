@@ -19,7 +19,8 @@ import {
   amountToPercent,
   displayPercent,
 } from "@/lib/payment-schedule";
-import { formatChangeOrderNumber } from "@/lib/document-numbers";
+import { changeOrderPdfInput, contractTotals, type AlreadyCovered } from "@/lib/change-orders";
+import { generateProposalPdf } from "@/lib/generate-pdf";
 import {
   applyScopeAmendment,
   groupItemsByCategory,
@@ -107,9 +108,13 @@ export default function ProjectWorkspaceControlHub() {
   // Change Order States
   const [coDescription, setCoDescription] = useState("");
   const [coItems, setCoItems] = useState<any[]>([]);
+  const [coScheduleImpact, setCoScheduleImpact] = useState("");
+  // Parts of the request the generator found already in the signed contract.
+  const [coAlreadyCovered, setCoAlreadyCovered] = useState<AlreadyCovered[]>([]);
   const [isGeneratingCo, setIsGeneratingCo] = useState(false);
   const [isDeployingCo, setIsDeployingCo] = useState(false);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
+  const coTotals = contractTotals(project, changeOrders);
 
   // AI Scope Amendment States
   const [amendRequest, setAmendRequest] = useState("");
@@ -905,6 +910,18 @@ export default function ProjectWorkspaceControlHub() {
                 </h2>
               );
             })()}
+            {/* Signed change orders are part of the contract; show what it's
+                worth now, the same figure the homeowner sees in their portal. */}
+            {coTotals.approvedCount > 0 && (
+              <p className="mt-2.5 font-sans text-[12.5px] tracking-architect text-ink-500">
+                +<span className="tnum">${coTotals.approved.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                {" "}in {coTotals.approvedCount} signed change order{coTotals.approvedCount === 1 ? "" : "s"}
+                {" "}· contract now{" "}
+                <span className="tnum font-medium text-ink-900">
+                  ${coTotals.revised.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -3041,13 +3058,33 @@ export default function ProjectWorkspaceControlHub() {
           </div>
 
           <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
-            Draft scope modifications with AI-generated line items. Deployed change orders appear on the homeowner portal for approval.
+            Draft scope modifications with AI-generated line items. Issuing one emails the homeowner a copy to review,
+            and the work is added to the contract only once they sign it.
           </p>
+
+          {/* Where the contract stands, change orders included */}
+          {changeOrders.length > 0 && (
+            <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-rule-300/70 py-4 sm:grid-cols-4">
+              {[
+                ["Original contract", coTotals.original],
+                [`Signed changes (${coTotals.approvedCount})`, coTotals.approved],
+                [`Awaiting signature (${coTotals.pendingCount})`, coTotals.pending],
+                ["Contract now", coTotals.revised],
+              ].map(([label, value]) => (
+                <div key={label as string}>
+                  <dt className="eyebrow">{label}</dt>
+                  <dd className="figure mt-1 text-[15px]">
+                    ${(value as number).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
 
           {/* Existing Change Orders */}
           {changeOrders.length > 0 && (
             <div className="mt-5">
-              <p className="eyebrow border-b border-rule-300/70 pb-2.5">Deployed Change Orders</p>
+              <p className="eyebrow border-b border-rule-300/70 pb-2.5">Issued Change Orders</p>
               {changeOrders.map((co: any) => (
                 <div key={co.id} className="group relative flex items-start justify-between gap-4 border-b border-rule-300/55 py-3.5 transition-colors duration-300 ease-architect hover:bg-paper-50">
                   <span aria-hidden className="absolute bottom-0 left-0 top-0 w-px origin-top scale-y-0 bg-bronze-400 opacity-0 transition-all duration-300 ease-architect group-hover:scale-y-100 group-hover:opacity-100" />
@@ -3056,10 +3093,10 @@ export default function ProjectWorkspaceControlHub() {
                       <p className="font-sans text-[10px] tracking-architect text-ink-400">{co.proposal_number}</p>
                     )}
                     <p className="mt-1 truncate text-[13px] font-medium text-ink-900">{co.description || co.project_title || "Change Order"}</p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                       <span className={`badge ${co.status === 'approved' ? 'badge-approved' : 'badge-pending'}`}>
                         <span className={`badge-dot ${co.status === 'approved' ? 'bg-forest-500' : 'bg-bronze-400'}`} />
-                        {co.status === 'approved' ? 'Approved' : 'Pending'}
+                        {co.status === 'approved' ? 'Signed' : 'Awaiting signature'}
                       </span>
                       {co.status === 'approved' && (
                         <span className={`badge ${co.deposit_cleared ? 'badge-neutral' : 'badge-declined'}`}>
@@ -3067,10 +3104,30 @@ export default function ProjectWorkspaceControlHub() {
                         </span>
                       )}
                     </div>
+                    {/* The record that makes a signed change order enforceable. */}
+                    {co.status === 'approved' && (
+                      <p className="mt-1.5 text-[11.5px] text-ink-500">
+                        {co.signature_name
+                          ? <>Signed by <span className="font-medium text-ink-900">{co.signature_name}</span>{co.signed_at ? ` · ${new Date(co.signed_at).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}` : ""}</>
+                          : <span className="text-brick-600">Approved before signatures were recorded — no signature on file</span>}
+                      </p>
+                    )}
+                    {co.schedule_impact && (
+                      <p className="mt-1 text-[11.5px] text-ink-500">Schedule: {co.schedule_impact}</p>
+                    )}
                   </div>
-                  <span className="figure shrink-0 text-[14px]">
-                    ${toNum(co.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span className="figure text-[14px]">
+                      ${toNum(co.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => generateProposalPdf(changeOrderPdfInput(co, project, changeOrders))}
+                      className="text-[11.5px] text-ink-400 underline-offset-4 transition-colors duration-200 ease-architect hover:text-ink-900 hover:underline"
+                    >
+                      Download PDF
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -3096,6 +3153,7 @@ export default function ProjectWorkspaceControlHub() {
               onClick={async () => {
                 setIsGeneratingCo(true);
                 setCoItems([]);
+                setCoAlreadyCovered([]);
                 try {
                   const res = await fetch("/api/generate-scope", {
                     method: "POST",
@@ -3104,11 +3162,19 @@ export default function ProjectWorkspaceControlHub() {
                       prompt: coDescription,
                       address: project?.job_address || "",
                       zipcode: "Omaha",
+                      // The signed contract and its change orders, so the
+                      // generator prices only what's genuinely new.
+                      contractItems: Array.isArray(project?.items) ? project.items : [],
+                      changeOrders,
                     }),
                   });
                   const data = await res.json();
                   if (!res.ok) throw new Error(data.error || "Generation failed");
                   setCoItems(data.items || []);
+                  setCoAlreadyCovered(Array.isArray(data.already_covered) ? data.already_covered : []);
+                  if ((data.items || []).length === 0 && (data.already_covered || []).length > 0) {
+                    toast("Everything in that request looks like it's already in the contract", "error");
+                  }
                 } catch (err: any) {
                   toast("AI generation failed: " + err.message, "error");
                 } finally {
@@ -3130,10 +3196,27 @@ export default function ProjectWorkspaceControlHub() {
               )}
             </button>
 
+            {/* Work the homeowner has already signed for — not priced again. */}
+            {coAlreadyCovered.length > 0 && (
+              <div className="mt-5 border-l-2 border-bronze-400 bg-bronze-50/60 px-4 py-3">
+                <p className="eyebrow-ink">Already in the contract — not priced</p>
+                <ul className="mt-2 space-y-1.5">
+                  {coAlreadyCovered.map((entry, idx) => (
+                    <li key={idx} className="text-[12.5px] leading-relaxed text-ink-500">
+                      &ldquo;{entry.request}&rdquo; → <span className="font-medium text-ink-900">{entry.existing_title}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-[11.5px] text-ink-400">
+                  If any of this genuinely goes beyond what was signed, describe just the extra part and generate again.
+                </p>
+              </div>
+            )}
+
             {/* Generated Items Preview */}
             {coItems.length > 0 && (
               <div className="mt-5 border-t border-rule-300/70 pt-4">
-                <p className="eyebrow">Generated Items — edit costs before deploying</p>
+                <p className="eyebrow">Generated Items — edit costs before issuing</p>
                 <div className="mt-2">
                   {coItems.map((item: any, idx: number) => (
                     <div key={idx} className="border-b border-rule-300/55 py-3">
@@ -3179,6 +3262,20 @@ export default function ProjectWorkspaceControlHub() {
                   ))}
                 </div>
 
+                {/* The terms (§3) require a change order to state its impact on
+                    the timeline, so it's asked for here rather than left out. */}
+                <div className="mt-4 max-w-md">
+                  <label htmlFor="co-schedule" className="field-label">Schedule impact</label>
+                  <input
+                    id="co-schedule"
+                    type="text"
+                    value={coScheduleImpact}
+                    onChange={(e) => setCoScheduleImpact(e.target.value)}
+                    placeholder="e.g. Adds 3 working days — leave blank if none"
+                    className="field"
+                  />
+                </div>
+
                 <div className="mt-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                   <div className="flex items-baseline gap-2.5">
                     <span className="eyebrow">Total</span>
@@ -3190,55 +3287,54 @@ export default function ProjectWorkspaceControlHub() {
                     type="button"
                     disabled={isDeployingCo || coItems.length === 0}
                     onClick={async () => {
-                      if (!confirm("Deploy this change order to the homeowner portal?")) return;
+                      const recipient = project?.homeowner_email || "the homeowner (no email on file)";
+                      if (!confirm(`Issue this change order and email it to ${recipient} for signature?`)) return;
                       setIsDeployingCo(true);
                       try {
-                        const finalItems = coItems.map((item) => ({
-                          title: item.title,
-                          description: item.mid_description,
-                          cost: toNum(item.mid_cost),
-                        }));
-                        const totalAmount = finalItems.reduce((s, i) => s + i.cost, 0);
-                        // A change order hangs off the proposal's number
-                        // instead of taking one of its own: PRO-2026-0007-CO1.
-                        const coNumber = project?.proposal_number
-                          ? formatChangeOrderNumber(project.proposal_number, changeOrders.length + 1)
-                          : null;
-                        const { error } = await supabase.from("invoices").insert({
-                          parent_id: projectId,
-                          ...(coNumber
-                            ? {
-                                proposal_number: coNumber,
-                                sequence_year: project?.sequence_year ?? null,
-                                sequence_no: project?.sequence_no ?? null,
-                                estimate_number: project?.estimate_number ?? null,
-                              }
-                            : {}),
-                          homeowner_name: project?.homeowner_name,
-                          homeowner_email: project?.homeowner_email,
-                          job_address: project?.job_address,
-                          project_title: project?.project_title,
-                          description: coDescription,
-                          items: finalItems,
-                          amount: totalAmount,
-                          status: "pending",
-                          deposit_percentage: 0,
-                          payment_phases: [{ name: "Full Payment", percentage: 100 }],
+                        // Created server-side: that's where the number is
+                        // allocated collision-free and the homeowner is emailed.
+                        const res = await fetch("/api/change-orders", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            parent_id: projectId,
+                            description: coDescription,
+                            schedule_impact: coScheduleImpact,
+                            items: coItems.map((item) => ({
+                              title: item.title,
+                              description: item.mid_description,
+                              cost: toNum(item.mid_cost),
+                            })),
+                            base_url: window.location.origin,
+                          }),
                         });
-                        if (error) throw error;
-                        toast("Change order deployed", "success");
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || "Could not issue the change order");
+
+                        const number = data.change_order?.proposal_number;
+                        if (data.emailed) {
+                          toast(`${number || "Change order"} issued and emailed for signature`, "success");
+                        } else {
+                          // The change order exists; only the email didn't go.
+                          toast(`${number || "Change order"} issued, but not emailed: ${data.email_error}`, "error");
+                        }
+                        if (Array.isArray(data.dropped) && data.dropped.length > 0) {
+                          toast(`Saved without ${data.dropped.join(", ")} — run the latest migration in Supabase.`, "error");
+                        }
                         setCoDescription("");
                         setCoItems([]);
+                        setCoScheduleImpact("");
+                        setCoAlreadyCovered([]);
                         fetchComprehensiveProjectData();
                       } catch (err: any) {
-                        toast("Failed to deploy: " + err.message, "error");
+                        toast("Failed to issue: " + err.message, "error");
                       } finally {
                         setIsDeployingCo(false);
                       }
                     }}
                     className="btn-ink shrink-0"
                   >
-                    {isDeployingCo ? "Deploying..." : "Deploy Change Order"}
+                    {isDeployingCo ? "Issuing..." : "Issue Change Order"}
                   </button>
                 </div>
               </div>

@@ -1743,3 +1743,201 @@ export function buildReferralHandoffHtml(data: ReferralHandoffData): string {
 </body>
 </html>`;
 }
+
+// ─── Change Orders ───
+//
+// A change order amends a signed contract, so every step of it leaves a trace
+// in someone's inbox: the homeowner is told when one is issued, Skyler is told
+// the moment one is signed, and the homeowner receives the executed copy.
+
+interface ChangeOrderEmailData {
+  change_order_number?: string | null;
+  contract_number?: string | null;
+  homeowner_name: string;
+  project_title?: string | null;
+  job_address?: string | null;
+  description: string;
+  amount: number;
+  /** Contract value before this change order (original + prior signed COs). */
+  prior_contract_total: number;
+  /** Contract value once this change order is signed. */
+  revised_contract_total: number;
+  schedule_impact?: string | null;
+  items: Array<{ title: string; cost: number }>;
+  portal_url: string;
+  signature_name?: string | null;
+  signed_at?: string | null;
+}
+
+function changeOrderHeader(badge: string, badgeColor: string, number?: string | null): string {
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1A1A1A;">
+  <tr><td style="padding:24px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td><span style="color:#ffffff;font-size:18px;font-weight:700;">WDO Custom</span></td>
+        <td align="right">
+          <span style="display:inline-block;background-color:${badgeColor};color:#ffffff;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 14px;border-radius:20px;">${badge}</span>
+          ${number ? `<br><span style="color:#9C9590;font-size:11px;font-weight:600;letter-spacing:0.5px;font-family:monospace;">${esc(number)}</span>` : ""}
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>`;
+}
+
+/** The price adjustment, stated the way §3 of the terms requires. */
+function changeOrderSummaryTable(data: ChangeOrderEmailData): string {
+  const schedule = (data.schedule_impact || "").trim() || "No change to the completion date";
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #E8E4DF;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;">Contract before this change</td><td align="right" style="padding:4px 0;font-size:13px;color:#1A1A1A;">$${formatMoney(data.prior_contract_total)}</td></tr>
+          <tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;">This change order</td><td align="right" style="padding:4px 0;font-size:13px;color:#1A1A1A;font-weight:600;">+$${formatMoney(data.amount)}</td></tr>
+          <tr><td style="padding:10px 0 4px;font-size:14px;color:#1A1A1A;font-weight:700;border-top:1px solid #E8E4DF;">Revised contract total</td><td align="right" style="padding:10px 0 4px;font-size:16px;color:#1A1A1A;font-weight:700;border-top:1px solid #E8E4DF;">$${formatMoney(data.revised_contract_total)}</td></tr>
+          <tr><td colspan="2" style="padding:12px 0 0;font-size:12px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Schedule impact:</strong> ${esc(schedule)}</td></tr>
+        </table>
+      </td></tr>
+    </table>`;
+}
+
+function changeOrderItemsTable(items: ChangeOrderEmailData["items"]): string {
+  if (!items.length) return "";
+  const rows = items
+    .map(
+      (item) =>
+        `<tr><td style="padding:6px 0;font-size:13px;color:#1A1A1A;border-bottom:1px solid #F0EFED;">${esc(item.title)}</td><td align="right" style="padding:6px 0;font-size:13px;color:#1A1A1A;border-bottom:1px solid #F0EFED;">$${formatMoney(item.cost)}</td></tr>`
+    )
+    .join("");
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#ffffff;border:1px solid #E8E4DF;border-radius:12px;">
+      <tr><td style="padding:18px 24px;">
+        <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#9C9590;margin:0 0 8px;">Additional Scope</p>
+        <table width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+      </td></tr>
+    </table>`;
+}
+
+function changeOrderFooter(): string {
+  return `<tr><td style="padding:28px 32px;border-top:1px solid #E8E4DF;">
+    <p style="font-size:11px;color:#C0BAB4;margin:0;text-align:center;">
+      WDO Custom &middot; General Contractor &middot; LIC-1901422 &middot; Omaha, NE
+    </p>
+  </td></tr>`;
+}
+
+function emailShell(inner: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#FBFBFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased;">
+${inner}
+</body>
+</html>`;
+}
+
+/** To the homeowner, when a change order is issued for their signature. */
+export function buildChangeOrderIssuedHtml(data: ChangeOrderEmailData): string {
+  return emailShell(`${changeOrderHeader("Change Order", "#C4A265", data.change_order_number)}
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.homeowner_name.split(" ")[0] || "there")},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 20px;">
+      We've written up a change order for ${data.project_title ? `<strong style="color:#1A1A1A;">${esc(data.project_title)}</strong>` : "your project"}.
+      It adds work to your contract${data.contract_number ? ` (No. ${esc(data.contract_number)})` : ""}, so it needs your signature before we start on it.
+    </p>
+
+    <p style="font-size:14px;color:#1A1A1A;line-height:1.6;margin:0 0 20px;font-style:italic;">"${esc(data.description)}"</p>
+
+    ${changeOrderSummaryTable(data)}
+    ${changeOrderItemsTable(data.items)}
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
+      <tr><td align="center">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
+          Review and Sign
+        </a>
+      </td></tr>
+    </table>
+    <p style="font-size:12px;color:#9C9590;line-height:1.6;margin:0;text-align:center;">
+      Nothing changes until you sign. Questions? Reply here or call 402-819-8558.
+    </p>
+
+  </td></tr>
+  ${changeOrderFooter()}
+</table>`);
+}
+
+/** To Skyler, the moment a homeowner signs a change order. */
+export function buildChangeOrderSignedContractorHtml(data: ChangeOrderEmailData & { workspace_url: string }): string {
+  const signedDate = data.signed_at
+    ? new Date(data.signed_at).toLocaleString("en-US", {
+        weekday: "long", month: "long", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
+      })
+    : "";
+
+  return emailShell(`${changeOrderHeader("Change Order Signed", "#4A7A4A", data.change_order_number)}
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Skyler,</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 20px;">
+      <strong style="color:#1A1A1A;">${esc(data.homeowner_name)}</strong> signed
+      ${data.change_order_number ? `change order <strong style="color:#1A1A1A;">${esc(data.change_order_number)}</strong>` : "a change order"}.
+      The added work is now part of the contract and cleared to start.
+    </p>
+
+    ${changeOrderSummaryTable(data)}
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:12px;">
+      <tr><td style="padding:16px 24px;">
+        <p style="padding:2px 0;margin:0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signature:</strong> ${esc(data.signature_name || "")}</p>
+        <p style="padding:2px 0;margin:0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Signed:</strong> ${esc(signedDate)}</p>
+        <p style="padding:2px 0;margin:0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Scope:</strong> ${esc(data.description)}</p>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr><td align="center">
+        <a href="${esc(data.workspace_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
+          Open Project Workspace
+        </a>
+      </td></tr>
+    </table>
+
+  </td></tr>
+  ${changeOrderFooter()}
+</table>`);
+}
+
+/** To the homeowner, with the executed change order attached. */
+export function buildChangeOrderSignedHomeownerHtml(data: ChangeOrderEmailData): string {
+  return emailShell(`${changeOrderHeader("Signed", "#4A7A4A", data.change_order_number)}
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Thanks, ${esc(data.homeowner_name.split(" ")[0] || "there")}.</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 20px;">
+      Your signed change order is attached for your records. The added work is now part of your contract,
+      and we'll schedule it in.
+    </p>
+
+    ${changeOrderSummaryTable(data)}
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
+      <tr><td align="center">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
+          View Your Project
+        </a>
+      </td></tr>
+    </table>
+    <p style="font-size:12px;color:#9C9590;line-height:1.6;margin:0;text-align:center;">
+      Payment for this change order can be made from your project portal.
+    </p>
+
+  </td></tr>
+  ${changeOrderFooter()}
+</table>`);
+}
