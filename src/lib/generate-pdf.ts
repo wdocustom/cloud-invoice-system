@@ -3,7 +3,7 @@ import { toNum } from "./utils";
 import { categoryOf } from "./scope-amendment";
 import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phasePercentOf } from "./payment-schedule";
 
-interface PdfInvoiceData {
+export interface PdfInvoiceData {
   proposal_number?: string;
   estimate_number?: string;
   homeowner_name: string;
@@ -20,6 +20,19 @@ interface PdfInvoiceData {
   status: string;
   signature_name?: string;
   signed_at?: string;
+  /**
+   * Present when this document is a change order against a signed contract.
+   * The terms (§3) require a change order to state the scope modification, the
+   * price adjustment and any impact to the timeline, so each has a place here.
+   */
+  change_order?: {
+    contract_number?: string | null;
+    /** The contract as originally signed. */
+    original_total: number;
+    /** Change orders signed before this one. */
+    prior_approved_total: number;
+    schedule_impact?: string | null;
+  };
 }
 
 const MARGIN = 20;
@@ -39,6 +52,7 @@ function checkPageBreak(doc: jsPDF, y: number, needed: number): number {
 function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const isApproved = invoice.status === "approved";
+  const co = invoice.change_order;
   const baseTotal = toNum(invoice.amount);
   const depositPct = displayPercent(depositPercentOf(invoice, baseTotal));
   const depositAmt = depositAmountOf(invoice, baseTotal);
@@ -60,7 +74,9 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  const statusText = isApproved ? "EXECUTED CONTRACT" : "PROPOSAL";
+  const statusText = co
+    ? isApproved ? "EXECUTED CHANGE ORDER" : "CHANGE ORDER"
+    : isApproved ? "EXECUTED CONTRACT" : "PROPOSAL";
   const statusW = doc.getTextWidth(statusText) + 10;
   doc.setFillColor(isApproved ? 75 : 196, isApproved ? 143 : 162, isApproved ? 75 : 101);
   doc.roundedRect(PAGE_W - MARGIN - statusW, 10, statusW, 8, 2, 2, "F");
@@ -142,17 +158,32 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   doc.roundedRect(MARGIN, y, CONTENT_W, 16, 3, 3, "FD");
 
   const colW = CONTENT_W / 4;
-  const params = [
-    { label: "PROJECT TOTAL", value: `$${baseTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}` },
-    { label: "DEPOSIT", value: `$${depositAmt.toLocaleString(undefined, { minimumFractionDigits: 2 })} (${depositPct}%)` },
-    { label: "TIMELINE", value: invoice.project_length || "TBD" },
-    {
-      label: "START DATE",
-      value: invoice.estimated_start_date
-        ? new Date(invoice.estimated_start_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-        : "TBD",
-    },
-  ];
+  const money = (n: number) => `$${n.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
+  // A change order states the price adjustment the way the trade expects to
+  // read one: what the contract was, what's already been changed, what this
+  // changes, and what the contract becomes once it's signed.
+  const params = co
+    ? [
+        { label: "ORIGINAL CONTRACT", value: money(toNum(co.original_total)) },
+        { label: "PRIOR CHANGE ORDERS", value: money(toNum(co.prior_approved_total)) },
+        { label: "THIS CHANGE ORDER", value: `+${money(baseTotal)}` },
+        {
+          label: "REVISED CONTRACT",
+          value: money(toNum(co.original_total) + toNum(co.prior_approved_total) + baseTotal),
+        },
+      ]
+    : [
+        { label: "PROJECT TOTAL", value: money(baseTotal) },
+        { label: "DEPOSIT", value: `${money(depositAmt)} (${depositPct}%)` },
+        { label: "TIMELINE", value: invoice.project_length || "TBD" },
+        {
+          label: "START DATE",
+          value: invoice.estimated_start_date
+            ? new Date(invoice.estimated_start_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+            : "TBD",
+        },
+      ];
 
   params.forEach((p, i) => {
     const px = MARGIN + colW * i + 5;
@@ -169,11 +200,40 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
 
   y += 24;
 
+  // ── Change order statement: which contract, and the schedule impact ──
+  if (co) {
+    const contractRef = co.contract_number ? `contract No. ${co.contract_number}` : "the contract for this project";
+    // Font first: splitTextToSize measures with whatever font is current.
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const statement = doc.splitTextToSize(
+      `This change order amends ${contractRef}. The work below is added to the Scope of Work at the price stated. ` +
+        `All other terms of the contract remain in full effect.`,
+      CONTENT_W
+    );
+    doc.text(statement, MARGIN, y);
+    y += statement.length * 3.8 + 3;
+
+    doc.setTextColor(156, 149, 144);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.text("SCHEDULE IMPACT", MARGIN, y);
+    doc.setTextColor(26, 26, 26);
+    doc.setFontSize(8.5);
+    doc.text(
+      (co.schedule_impact || "").trim() || "No change to the completion date",
+      MARGIN + 32,
+      y
+    );
+    y += 9;
+  }
+
   // ── Line Items Table ──
   doc.setTextColor(156, 149, 144);
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
-  doc.text("SCOPE OF WORK", MARGIN, y);
+  doc.text(co ? "ADDITIONAL SCOPE" : "SCOPE OF WORK", MARGIN, y);
   y += 4;
 
   // Header row
@@ -197,7 +257,9 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
 
   invoice.items.forEach((item: any, idx: number) => {
     const category = categoryOf(item);
-    if (category !== lastCategory) {
+    // Change-order lines aren't categorised, so a lone "General Scope" band
+    // would just be noise on the document.
+    if (!co && category !== lastCategory) {
       y = checkPageBreak(doc, y, 10);
       doc.setFillColor(244, 243, 241);
       doc.rect(MARGIN, y - 1, CONTENT_W, 6, "F");
@@ -270,7 +332,7 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("TOTAL", MARGIN + 14, y + 8.5);
+  doc.text(co ? "THIS CHANGE ORDER" : "TOTAL", MARGIN + 14, y + 8.5);
   doc.text(
     `$${runningTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
     PAGE_W - MARGIN - 4,
@@ -333,7 +395,7 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
     doc.setTextColor(74, 122, 74);
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
-    doc.text("CONTRACT EXECUTED", MARGIN + 5, y + 8);
+    doc.text(co ? "CHANGE ORDER EXECUTED" : "CONTRACT EXECUTED", MARGIN + 5, y + 8);
 
     doc.setDrawColor(200, 217, 200);
     doc.line(MARGIN + 5, y + 11, MARGIN + CONTENT_W / 2, y + 11);
@@ -384,10 +446,12 @@ function generatePdfDoc(invoice: PdfInvoiceData): jsPDF {
   return doc;
 }
 
-/** WDO_Custom_Proposal_PRO-2026-0007_Jane_Doe.pdf */
+/** WDO_Custom_Proposal_PRO-2026-0007_Jane_Doe.pdf, or …_ChangeOrder_PRO-2026-0007-CO1_… */
 function pdfFilename(invoice: PdfInvoiceData): string {
   const safeName = (invoice.homeowner_name || "client").replace(/[^a-zA-Z0-9]/g, "_");
-  const docType = invoice.status === "approved" ? "Contract" : "Proposal";
+  const docType = invoice.change_order
+    ? "ChangeOrder"
+    : invoice.status === "approved" ? "Contract" : "Proposal";
   const number = invoice.proposal_number ? `${invoice.proposal_number}_` : "";
   return `WDO_Custom_${docType}_${number}${safeName}.pdf`;
 }

@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildChangeOrderIssuedHtml,
+  buildChangeOrderSignedContractorHtml,
+  buildChangeOrderSignedHomeownerHtml,
   buildEstimateConfirmationHtml,
   buildLeadNotificationHtml,
   buildPartnerReferralHtml,
@@ -132,4 +135,80 @@ test("missing optional fields degrade to placeholders rather than 'undefined'", 
   assert.ok(!html.includes("undefined"));
   assert.ok(!html.includes("null"));
   assert.ok(html.includes("Not provided"));
+});
+
+// ── Change orders ──
+
+const changeOrderData = {
+  change_order_number: "PRO-2026-0007-CO2",
+  contract_number: "PRO-2026-0007",
+  homeowner_name: "Dana Whitfield",
+  project_title: "Basement Finish",
+  job_address: "1204 S 180th St",
+  description: "Add recessed lighting",
+  amount: 2500,
+  prior_contract_total: 104_000,
+  revised_contract_total: 106_500,
+  schedule_impact: "Adds 2 working days",
+  items: [{ title: "Recessed lighting", cost: 2500 }],
+  portal_url: "https://www.wdocustom.com/invoice/abc",
+  signature_name: "Dana Whitfield",
+  signed_at: "2026-09-14T19:42:00Z",
+};
+
+test("the issued email states the price adjustment and asks for a signature", () => {
+  const html = buildChangeOrderIssuedHtml(changeOrderData);
+  assert.ok(html.includes("PRO-2026-0007-CO2"));
+  assert.ok(html.includes("$104,000.00"), "contract before");
+  assert.ok(html.includes("+$2,500.00"), "this change");
+  assert.ok(html.includes("$106,500.00"), "revised total");
+  assert.ok(html.includes("Adds 2 working days"));
+  assert.ok(html.includes("Review and Sign"));
+  assert.ok(html.includes("Hi Dana,"));
+});
+
+test("a blank schedule impact is stated explicitly in the email too", () => {
+  const html = buildChangeOrderIssuedHtml({ ...changeOrderData, schedule_impact: null });
+  assert.ok(html.includes("No change to the completion date"));
+});
+
+test("the contractor notification carries the signature record", () => {
+  const html = buildChangeOrderSignedContractorHtml({
+    ...changeOrderData,
+    workspace_url: "https://www.wdocustom.com/admin/projects/abc",
+  });
+  assert.ok(html.includes("Change Order Signed"));
+  assert.ok(html.includes("Dana Whitfield"));
+  assert.match(html, /September 14, 2026/);
+  assert.ok(html.includes("/admin/projects/abc"));
+});
+
+test("the homeowner confirmation points at their portal", () => {
+  const html = buildChangeOrderSignedHomeownerHtml(changeOrderData);
+  assert.ok(html.includes("Thanks, Dana."));
+  assert.ok(html.includes("signed change order is attached"));
+});
+
+test("change order emails escape homeowner-supplied text and never leak undefined", () => {
+  const hostile = {
+    ...changeOrderData,
+    homeowner_name: INJECTION,
+    description: INJECTION,
+    schedule_impact: INJECTION,
+    items: [{ title: INJECTION, cost: 1 }],
+    signature_name: INJECTION,
+    project_title: undefined as any,
+    contract_number: null,
+    change_order_number: null,
+    signed_at: null,
+  };
+  for (const html of [
+    buildChangeOrderIssuedHtml(hostile),
+    buildChangeOrderSignedHomeownerHtml(hostile),
+    buildChangeOrderSignedContractorHtml({ ...hostile, workspace_url: "https://x" }),
+  ]) {
+    assert.ok(!html.includes("<script>"), "raw markup reached the email");
+    assert.ok(!html.includes("undefined"), "undefined leaked into the email");
+    assert.ok(!html.includes("null"), "null leaked into the email");
+  }
 });
