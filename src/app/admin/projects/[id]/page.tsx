@@ -21,6 +21,16 @@ import {
 } from "@/lib/payment-schedule";
 import { changeOrderPdfInput, contractTotals, type AlreadyCovered } from "@/lib/change-orders";
 import { contractTotalMismatch, itemsContractTotal, lineBidOf } from "@/lib/contract-total";
+import {
+  DEFAULT_COLOR_THEME,
+  addDays,
+  buildScheduleFromItems,
+  clampProgress,
+  invalidDateRange,
+  nextSortOrder,
+  overallProgress,
+  statusForProgress,
+} from "@/lib/project-schedule";
 import { generateProposalPdf } from "@/lib/generate-pdf";
 import {
   applyScopeAmendment,
@@ -65,6 +75,13 @@ export default function ProjectWorkspaceControlHub() {
   const [attachedPhotoName, setAttachedPhotoName] = useState("");
   const [isLogging, setIsLogging] = useState(false);
   const [attachedPhotoFile, setAttachedPhotoFile] = useState<File | null>(null);
+  // Field logs and the construction timeline live in their own tables — the
+  // ones the homeowner portal reads — not on the invoice row.
+  const [projectLogs, setProjectLogs] = useState<any[]>([]);
+  const [scheduleRows, setScheduleRows] = useState<any[]>([]);
+  const [isBuildingSchedule, setIsBuildingSchedule] = useState(false);
+  const scheduleSaveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const pendingSchedulePatches = useRef<Map<string, Record<string, any>>>(new Map());
 
   // Q&A Messaging States
   const [qaMessage, setQaMessage] = useState("");
@@ -172,6 +189,18 @@ export default function ProjectWorkspaceControlHub() {
         .eq("parent_id", projectId)
         .order("created_at", { ascending: true });
       if (cos) setChangeOrders(cos);
+
+      const [{ data: logs }, { data: schedule }] = await Promise.all([
+        supabase.from("project_logs").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
+        supabase
+          .from("project_schedules")
+          .select("*")
+          .eq("project_id", projectId)
+          .order("sort_order", { ascending: true })
+          .order("target_start_date", { ascending: true }),
+      ]);
+      setProjectLogs(logs || []);
+      setScheduleRows(schedule || []);
     } catch (err) {
       console.error("Error retrieving database record profiles:", err);
     } finally {
@@ -696,50 +725,152 @@ export default function ProjectWorkspaceControlHub() {
     reader.readAsDataURL(file);
   };
 
+  // ── Construction timeline (project_schedules) ─────────────────────────
+  // What the homeowner sees under Construction Timeline. Edits show locally
+  // at once and save shortly after the last change to that row.
+
+  /** Write one row. Takes only ids and values — no component state — so a
+   *  delayed call can't act on a stale copy of the project. */
+  async function writeScheduleRow(rowId: string, patch: Record<string, any>) {
+    const { error } = await supabase.from("project_schedules").update(patch).eq("id", rowId);
+    if (error) {
+      toast("Couldn't save the timeline: " + describeDbError(error), "error");
+      fetchComprehensiveProjectData();
+    }
+  }
+
+  function updateScheduleRow(rowId: string, patch: Record<string, any>, delayMs = 500) {
+    const next = { ...patch };
+    if ("progress_percent" in next) {
+      next.progress_percent = clampProgress(next.progress_percent);
+      next.status = statusForProgress(next.progress_percent);
+    }
+    setScheduleRows((rows) => rows.map((r) => (r.id === rowId ? { ...r, ...next } : r)));
+
+    const timers = scheduleSaveTimers.current;
+    const pending = timers.get(rowId);
+    if (pending) clearTimeout(pending);
+    // Fields queued for this row merge, so a quick name-then-percent edit
+    // saves both rather than only the last.
+    const queued = { ...((pendingSchedulePatches.current.get(rowId) as any) || {}), ...next };
+    pendingSchedulePatches.current.set(rowId, queued);
+    timers.set(
+      rowId,
+      setTimeout(() => {
+        timers.delete(rowId);
+        const toSave = pendingSchedulePatches.current.get(rowId) || {};
+        pendingSchedulePatches.current.delete(rowId);
+        writeScheduleRow(rowId, toSave);
+      }, delayMs)
+    );
+  }
+
+  function updateScheduleDates(row: any, field: "target_start_date" | "target_end_date", value: string) {
+    const start = field === "target_start_date" ? value : row.target_start_date;
+    const end = field === "target_end_date" ? value : row.target_end_date;
+    const problem = invalidDateRange(start, end);
+    if (problem) {
+      toast(problem, "error");
+      return;
+    }
+    updateScheduleRow(row.id, { [field]: value }, 0);
+  }
+
+  async function addScheduleRow() {
+    const lastEnd = scheduleRows.reduce((latest: string, r: any) => (r.target_end_date > latest ? r.target_end_date : latest), "");
+    const start = lastEnd ? addDays(lastEnd, 1) : project?.estimated_start_date || new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase
+      .from("project_schedules")
+      .insert({
+        project_id: projectId,
+        task_name: "New phase",
+        target_start_date: start,
+        target_end_date: addDays(start, 4),
+        parent_id: null,
+        progress_percent: 0,
+        status: "scheduled",
+        sort_order: nextSortOrder(scheduleRows),
+        color_theme: DEFAULT_COLOR_THEME,
+      })
+      .select()
+      .single();
+    if (error) return toast("Couldn't add a phase: " + describeDbError(error), "error");
+    setScheduleRows((rows) => [...rows, data]);
+  }
+
+  async function removeScheduleRow(row: any) {
+    if (!confirm(`Remove "${row.task_name}" from the homeowner's timeline?`)) return;
+    const pending = scheduleSaveTimers.current.get(row.id);
+    if (pending) clearTimeout(pending);
+    scheduleSaveTimers.current.delete(row.id);
+    pendingSchedulePatches.current.delete(row.id);
+
+    // Sub-tasks go with their phase, or they'd linger with no parent.
+    const { error } = await supabase.from("project_schedules").delete().or(`id.eq.${row.id},parent_id.eq.${row.id}`);
+    if (error) return toast("Couldn't remove it: " + describeDbError(error), "error");
+    setScheduleRows((rows) => rows.filter((r) => r.id !== row.id && r.parent_id !== row.id));
+  }
+
+  /** Rebuild the timeline from the line items, as signing does. */
+  async function buildTimelineFromItems() {
+    if (scheduleRows.length > 0 && !confirm("Replace the current timeline, including its progress, with one built from the line items?")) return;
+    setIsBuildingSchedule(true);
+    try {
+      const rows = buildScheduleFromItems(projectId, project?.items, project?.estimated_start_date);
+      if (rows.length === 0) throw new Error("this job has no line items to build from");
+      const { error: delErr } = await supabase.from("project_schedules").delete().eq("project_id", projectId);
+      if (delErr) throw new Error(describeDbError(delErr));
+      const { data, error } = await supabase.from("project_schedules").insert(rows).select();
+      if (error) throw new Error(describeDbError(error));
+      setScheduleRows((data || []).sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0)));
+      toast("Timeline built from the line items", "success");
+    } catch (err: any) {
+      toast("Couldn't build the timeline: " + err.message, "error");
+      fetchComprehensiveProjectData();
+    } finally {
+      setIsBuildingSchedule(false);
+    }
+  }
+
   const submitDailyOperationsLog = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dailyNotes.trim() && !attachedPhotoBase64) return;
+    if (!dailyNotes.trim() && !attachedPhotoFile) return;
     setIsLogging(true);
 
-    let photoUrl: string | null = null;
-    if (attachedPhotoFile) {
-      const filePath = `daily-logs/${projectId}/${Date.now()}-${attachedPhotoFile.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("project-photos")
-        .upload(filePath, attachedPhotoFile);
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from("project-photos")
-          .getPublicUrl(filePath);
-        photoUrl = urlData.publicUrl;
-      }
-    }
-
-    const newLogEntry = {
-      timestamp: new Date().toISOString(),
-      notes: dailyNotes.trim(),
-      photo: photoUrl,
-      author: "Contractor Workspace"
-    };
-
-    const currentLogs = Array.isArray(project.daily_logs) ? [...project.daily_logs] : [];
-    const updatedLogs = [newLogEntry, ...currentLogs];
-
     try {
-      const { error } = await supabase
-        .from("invoices")
-        .update({ daily_logs: updatedLogs })
-        .eq("id", projectId);
+      let photoUrl: string | null = null;
+      if (attachedPhotoFile) {
+        const filePath = `daily-logs/${projectId}/${Date.now()}-${attachedPhotoFile.name}`;
+        const { error: uploadError } = await supabase.storage.from("project-photos").upload(filePath, attachedPhotoFile);
+        // Stop rather than save the notes without the photo: a silently missing
+        // photo is worse than being asked to try again.
+        if (uploadError) throw new Error(`the photo didn't upload (${uploadError.message}). Nothing was saved`);
+        photoUrl = supabase.storage.from("project-photos").getPublicUrl(filePath).data.publicUrl;
+      }
 
-      if (error) throw error;
-      setProject((prev: any) => ({ ...prev, daily_logs: updatedLogs }));
+      // project_logs is what the homeowner portal reads. The old code wrote a
+      // daily_logs column on the invoice that doesn't exist — and that the
+      // portal never read even when it did.
+      const { data, error } = await supabase
+        .from("project_logs")
+        .insert({
+          project_id: projectId,
+          log_text: dailyNotes.trim(),
+          photo_urls: photoUrl ? [photoUrl] : [],
+        })
+        .select()
+        .single();
+
+      if (error) throw new Error(describeDbError(error));
+
+      setProjectLogs((prev) => [data, ...prev]);
       setDailyNotes("");
       setAttachedPhotoBase64("");
       setAttachedPhotoName("");
       setAttachedPhotoFile(null);
-      toast("Daily log saved", "success");
+      toast("Log saved — it's on the homeowner's portal now", "success");
     } catch (err: any) {
-      toast("Failed to submit field log: " + err.message, "error");
+      toast("Failed to save field log: " + err.message, "error");
     } finally {
       setIsLogging(false);
     }
@@ -1286,22 +1417,131 @@ export default function ProjectWorkspaceControlHub() {
         </div>
 
         <p className="max-w-2xl text-[12.5px] leading-relaxed text-ink-500">
-          Nest trade rows and track phase progress against the production calendar.
+          The homeowner sees this as their Construction Timeline. Set each phase&apos;s progress and dates here and
+          their portal shows it the next time they open it.
         </p>
 
-        <div className="panel blueprint-grid mt-4 overflow-hidden">
-          <div className="flex items-baseline justify-between gap-4 border-b border-rule-300/55 bg-paper-50/60 px-5 py-3 sm:px-5">
-            <span className="eyebrow">Phase Track</span>
-            <span className="eyebrow hidden sm:block">Calendar Grid</span>
-          </div>
-
-          <div className="px-6 py-14 text-center">
-            <p className="display-sm">Horizon track not configured</p>
+        {project?.status !== "approved" ? (
+          // Signing deletes and rebuilds the timeline, so anything entered
+          // before then would be lost.
+          <div className="panel blueprint-grid mt-4 px-6 py-12 text-center">
+            <p className="display-sm">Built when the homeowner signs</p>
             <p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed text-ink-500">
-              Phase rows appear here once the production calendar is built out for this project.
+              Signing creates one phase per line item from the estimated start date. You can adjust it here after that.
             </p>
           </div>
-        </div>
+        ) : scheduleRows.length === 0 ? (
+          <div className="panel blueprint-grid mt-4 px-6 py-12 text-center">
+            <p className="display-sm">No timeline yet</p>
+            <p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed text-ink-500">
+              Build one phase per line item from the estimated start date — the same timeline signing creates.
+            </p>
+            <button type="button" onClick={buildTimelineFromItems} disabled={isBuildingSchedule} className="btn-ink mt-5">
+              {isBuildingSchedule ? "Building..." : "Build from line items"}
+            </button>
+          </div>
+        ) : (
+          <div className="panel mt-4 overflow-hidden">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-rule-300/55 bg-paper-50/60 px-5 py-3">
+              <span className="eyebrow">Overall progress</span>
+              <span className="figure text-[15px]">{overallProgress(scheduleRows)}%</span>
+            </div>
+
+            {scheduleRows
+              .filter((r: any) => !r.parent_id)
+              .flatMap((phase: any) => [phase, ...scheduleRows.filter((r: any) => r.parent_id === phase.id)])
+              .map((row: any) => {
+                const isSub = !!row.parent_id;
+                const pct = clampProgress(row.progress_percent);
+                return (
+                  <div key={row.id} className={`border-b border-rule-300/55 px-5 py-4 last:border-b-0 ${isSub ? "bg-paper-50/40 pl-9" : ""}`}>
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="text"
+                        defaultValue={row.task_name}
+                        onBlur={(e) => {
+                          const name = e.target.value.trim();
+                          if (!name) { e.target.value = row.task_name; return; }
+                          if (name !== row.task_name) updateScheduleRow(row.id, { task_name: name }, 0);
+                        }}
+                        title="Phase name"
+                        className={`min-w-0 flex-1 border-0 border-b border-transparent bg-transparent py-1 outline-none transition-colors duration-200 ease-architect hover:border-rule-300/70 focus:border-rule-400 ${isSub ? "text-[12.5px] text-ink-500" : "text-[13.5px] font-medium text-ink-900"}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeScheduleRow(row)}
+                        title="Remove from timeline"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-edge text-ink-400 transition-colors duration-200 ease-architect hover:bg-brick-50 hover:text-brick-600"
+                      >
+                        <svg aria-hidden className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[auto_auto_1fr] sm:items-center sm:gap-5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={row.target_start_date || ""}
+                          onChange={(e) => updateScheduleDates(row, "target_start_date", e.target.value)}
+                          title="Start date"
+                          className="field py-1.5 text-[12.5px]"
+                        />
+                        <span className="text-[12px] text-ink-400">to</span>
+                        <input
+                          type="date"
+                          value={row.target_end_date || ""}
+                          onChange={(e) => updateScheduleDates(row, "target_end_date", e.target.value)}
+                          title="End date"
+                          className="field py-1.5 text-[12.5px]"
+                        />
+                      </div>
+                      <span className={`badge ${pct >= 100 ? "badge-approved" : pct > 0 ? "badge-pending" : "badge-neutral"} justify-self-start`}>
+                        {pct >= 100 ? "Complete" : pct > 0 ? "In progress" : "Not started"}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={pct}
+                          onChange={(e) => updateScheduleRow(row.id, { progress_percent: e.target.value })}
+                          aria-label={`${row.task_name} progress`}
+                          className="min-w-0 flex-1 accent-ink-900"
+                        />
+                        <div className="flex shrink-0 items-center gap-1 rounded-edge border border-rule-300/70 bg-paper-50 px-2">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={pct}
+                            onChange={(e) => updateScheduleRow(row.id, { progress_percent: e.target.value })}
+                            title="Progress percent"
+                            className="no-spin tnum w-10 bg-transparent py-1.5 text-right text-[12.5px] font-medium text-ink-900 outline-none"
+                          />
+                          <span className="font-sans text-[11px] text-ink-400">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-rule-300/55 bg-paper-50/60 px-5 py-3">
+              <button type="button" onClick={addScheduleRow} className="btn-outline px-4">Add phase</button>
+              <button
+                type="button"
+                onClick={buildTimelineFromItems}
+                disabled={isBuildingSchedule}
+                className="text-[12px] text-ink-400 underline-offset-4 transition-colors duration-200 ease-architect hover:text-ink-900 hover:underline"
+              >
+                Rebuild from line items
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* PAYMENT SCHEDULE & DEPOSIT MANAGER */}
@@ -2608,27 +2848,27 @@ export default function ProjectWorkspaceControlHub() {
           </div>
 
           <div className="max-h-[320px] overflow-y-auto border-t border-rule-300/70 pr-1 scrollbar-none">
-            {Array.isArray(project?.daily_logs) && project.daily_logs.map((log: any, i: number) => (
-              <div key={i} className="border-b border-rule-300/55 py-4">
+            {projectLogs.map((log: any) => (
+              <div key={log.id} className="border-b border-rule-300/55 py-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                  <span className="font-sans text-[13px] tracking-architect text-ink-500">{log.author || "Site Superintendent"}</span>
-                  <span className="font-sans text-[10px] tabular-nums text-ink-500">{new Date(log.timestamp).toLocaleString()}</span>
+                  <span className="font-sans text-[13px] tracking-architect text-ink-500">Site report</span>
+                  <span className="font-sans text-[10px] tabular-nums text-ink-500">{new Date(log.created_at).toLocaleString()}</span>
                 </div>
                 <div className="mt-2 space-y-3">
-                  {log.notes && <p className="text-[12.5px] leading-relaxed text-ink-500">{log.notes}</p>}
-                  {log.photo && (
-                    <div className="max-w-xs overflow-hidden rounded-edge border border-rule-300/70 bg-paper-50">
-                      <img src={log.photo} alt="Site progress attachment" className="h-auto max-h-44 w-full object-cover" />
+                  {log.log_text && <p className="whitespace-pre-line text-[12.5px] leading-relaxed text-ink-500">{log.log_text}</p>}
+                  {Array.isArray(log.photo_urls) && log.photo_urls.map((url: string) => (
+                    <div key={url} className="max-w-xs overflow-hidden rounded-edge border border-rule-300/70 bg-paper-50">
+                      <img src={url} alt="Site progress attachment" className="h-auto max-h-44 w-full object-cover" />
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
             ))}
-            {(!project?.daily_logs || project.daily_logs.length === 0) && (
+            {projectLogs.length === 0 && (
               <div className="blueprint-grid px-6 py-14 text-center">
                 <p className="display-sm">No field records yet</p>
                 <p className="mx-auto mt-2 max-w-xs text-[12.5px] leading-relaxed text-ink-500">
-                  Entries you save here appear on the homeowner portal timeline.
+                  Entries you save here appear in the Field Log on the homeowner portal.
                 </p>
               </div>
             )}
