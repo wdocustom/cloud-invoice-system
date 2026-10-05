@@ -11,6 +11,7 @@ import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phase
 import { TERMS_AND_CONDITIONS } from "@/lib/terms";
 import { isReceiptTracked, isUnreadFromContractor } from "@/lib/messages";
 import { changeOrderEmailFigures, changeOrderPdfInput, contractTotals } from "@/lib/change-orders";
+import { buildScheduleFromItems, clampProgress, overallProgress } from "@/lib/project-schedule";
 
 interface HomeownerPortalProps {
   id: string;
@@ -376,27 +377,9 @@ export default function HomeownerPortalClient({
       try {
         await supabase.from("project_schedules").delete().eq("project_id", id);
 
-        const fallbackProjectStart = invoice?.estimated_start_date || new Date().toISOString().split("T")[0];
-        let runningDateTracker = new Date(fallbackProjectStart + 'T00:00:00');
-
-        const schedulesToInsert = finalizedItems.map((item: any, orderIndex: number) => {
-          const taskStartStr = runningDateTracker.toISOString().split("T")[0];
-          runningDateTracker.setDate(runningDateTracker.getDate() + 4);
-          const taskEndStr = runningDateTracker.toISOString().split("T")[0];
-          runningDateTracker.setDate(runningDateTracker.getDate() + 1);
-
-          return {
-            project_id: id,
-            task_name: item.title,
-            target_start_date: taskStartStr,
-            target_end_date: taskEndStr,
-            parent_id: null,
-            progress_percent: 0,
-            status: "scheduled",
-            sort_order: orderIndex * 10,
-            color_theme: "bg-amber-400/20 text-amber-800 border-amber-300"
-          };
-        });
+        // Shared with the admin's "Build from line items", so a rebuild there
+        // produces exactly the timeline signing does.
+        const schedulesToInsert = buildScheduleFromItems(id, finalizedItems, invoice?.estimated_start_date);
 
         if (schedulesToInsert.length > 0) {
           await supabase.from("project_schedules").insert(schedulesToInsert);
@@ -1067,7 +1050,7 @@ export default function HomeownerPortalClient({
                 <div>
                   <div className="title-block">
                     <h2 className="display-sm">Construction Timeline</h2>
-                    <span className="eyebrow hidden sm:block">Live</span>
+                    <span className="eyebrow">{overallProgress(scheduleTasks)}% complete</span>
                   </div>
                   <div className="panel overflow-hidden">
                     {masterMilestones.map((milestone) => {
@@ -1084,6 +1067,9 @@ export default function HomeownerPortalClient({
                               </span>
                               <span className="figure text-[12px]">{milestone.progress_percent}%</span>
                             </div>
+                            <div className="h-[3px] w-full basis-full overflow-hidden bg-paper-200">
+                              <div className="h-full bg-forest-500 transition-all duration-500 ease-architect" style={{ width: `${clampProgress(milestone.progress_percent)}%` }} />
+                            </div>
                           </div>
                           <div>
                             {subTasks.map((task) => (
@@ -1097,7 +1083,7 @@ export default function HomeownerPortalClient({
                                 </div>
                                 <div className="flex shrink-0 items-center gap-3 pl-5 sm:pl-0">
                                   <div className="h-[3px] w-20 overflow-hidden bg-paper-200">
-                                    <div className="h-full bg-paper-50 transition-all duration-500 ease-architect" style={{ width: `${task.progress_percent}%` }} />
+                                    <div className="h-full bg-forest-500 transition-all duration-500 ease-architect" style={{ width: `${clampProgress(task.progress_percent)}%` }} />
                                   </div>
                                   <span className="min-w-[28px] text-right font-sans text-[10px] tabular-nums text-ink-500">{task.progress_percent}%</span>
                                 </div>
