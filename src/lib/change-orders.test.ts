@@ -2,6 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   cannotApproveChangeOrder,
+  cannotDeleteChangeOrder,
+  changeOrderIsPaid,
+  deleteConfirmationFor,
   cannotIssueChangeOrder,
   changeOrderAmount,
   changeOrderEmailFigures,
@@ -281,4 +284,49 @@ test("overlap notes keep only complete entries", () => {
     [{ request: "can lights in kitchen", existing_title: "Electrical — Kitchen" }]
   );
   assert.deepEqual(normalizeAlreadyCovered(undefined), []);
+});
+
+// ── Deleting ──
+
+const pendingForDelete = { status: "pending", parent_id: "c1", proposal_number: "PRO-2026-0010-CO2" };
+const signedForDelete = { ...pendingForDelete, status: "approved" };
+
+test("a change order awaiting signature can be deleted", () => {
+  assert.equal(cannotDeleteChangeOrder(pendingForDelete, "c1"), null);
+});
+
+test("a signed change order needs its number typed back", () => {
+  const refusal = cannotDeleteChangeOrder(signedForDelete, "c1");
+  assert.equal(refusal?.status, 400);
+  assert.equal(refusal?.needsConfirmation, "PRO-2026-0010-CO2");
+  assert.equal(cannotDeleteChangeOrder(signedForDelete, "c1", "PRO-2026-0010-CO1")?.status, 400, "wrong number");
+  assert.equal(cannotDeleteChangeOrder(signedForDelete, "c1", " pro-2026-0010-co2 "), null, "case and spaces forgiven");
+});
+
+test("an unnumbered signed change order is confirmed with DELETE", () => {
+  const co = { ...signedForDelete, proposal_number: null };
+  assert.equal(deleteConfirmationFor(co), "DELETE");
+  assert.equal(cannotDeleteChangeOrder(co, "c1", "delete"), null);
+});
+
+test("a paid change order can never be deleted, signed or not, confirmed or not", () => {
+  for (const co of [
+    { ...signedForDelete, deposit_cleared: true },
+    { ...signedForDelete, payment_history: [{ amount: 2500 }] },
+    { ...pendingForDelete, payment_history: [{ amount: 2500 }] },
+  ]) {
+    assert.equal(cannotDeleteChangeOrder(co, "c1", "PRO-2026-0010-CO2")?.status, 409);
+  }
+});
+
+test("a change order can only be deleted from its own contract", () => {
+  assert.equal(cannotDeleteChangeOrder(pendingForDelete, "c2")?.status, 404);
+  assert.equal(cannotDeleteChangeOrder(pendingForDelete, "")?.status, 404);
+  assert.equal(cannotDeleteChangeOrder(null, "c1")?.status, 404);
+});
+
+test("paid means a recorded payment, not just a flag", () => {
+  assert.equal(changeOrderIsPaid({ payment_history: [] }), false);
+  assert.equal(changeOrderIsPaid({ deposit_cleared: false }), false);
+  assert.equal(changeOrderIsPaid({ payment_history: [{}] }), true);
 });

@@ -95,6 +95,87 @@ function buildPaymentReceiptHtml(data: {
 </html>`;
 }
 
+async function recordChangeOrderPayment(
+  supabase: ReturnType<typeof getSupabase>,
+  session: Stripe.Checkout.Session,
+  contractId: string,
+  changeOrderId: string,
+  amountPaid: number
+) {
+  const { data: co } = await supabase.from("invoices").select("*").eq("id", changeOrderId).maybeSingle();
+
+  // Only record against a change order that belongs to the contract the
+  // checkout was opened from.
+  if (!co || co.parent_id !== contractId) {
+    console.error("Webhook: change order not found for contract", changeOrderId, contractId);
+    return NextResponse.json({ received: true });
+  }
+
+  const history = Array.isArray(co.payment_history) ? co.payment_history : [];
+  if (history.some((p: any) => p.stripe_session_id === session.id)) {
+    return NextResponse.json({ received: true });
+  }
+
+  const paymentRecord = {
+    stripe_session_id: session.id,
+    stripe_payment_intent: session.payment_intent,
+    amount: amountPaid,
+    status: session.payment_status,
+    customer_email: session.customer_details?.email,
+    paid_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase
+    .from("invoices")
+    .update({ payment_history: [...history, paymentRecord], deposit_cleared: true })
+    .eq("id", changeOrderId);
+
+  if (error) {
+    console.error("Webhook: failed to record change order payment", error);
+    return NextResponse.json({ error: "Database update failed" }, { status: 500 });
+  }
+
+  if (resend) {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://cloud-invoice-system.vercel.app";
+    const label = co.proposal_number ? `Change Order ${co.proposal_number}` : "Change Order";
+    const customerEmail = session.customer_details?.email || co.homeowner_email;
+    const common = {
+      homeowner_name: co.homeowner_name || "Client",
+      amount: amountPaid,
+      payment_label: label,
+      project_title: co.project_title,
+      job_address: co.job_address || "",
+      paid_at: paymentRecord.paid_at,
+    };
+
+    if (customerEmail) {
+      try {
+        await resend.emails.send({
+          from: "WDO Custom <payments@wdocustom.com>",
+          to: [customerEmail],
+          subject: `Payment Confirmed — ${formatMoney(amountPaid)} received for ${label}`,
+          html: buildPaymentReceiptHtml({ ...common, portal_url: `${baseUrl}/invoice/${contractId}` }),
+        });
+      } catch (emailErr) {
+        console.error("Change order receipt email failed:", emailErr);
+      }
+    }
+    try {
+      await resend.emails.send({
+        from: "WDO Custom <payments@wdocustom.com>",
+        to: ["skyler@wdocustom.com"],
+        subject: `Payment received — ${formatMoney(amountPaid)} for ${label} from ${co.homeowner_name || "Client"}`,
+        html: buildContractorPaymentNotificationHtml({ ...common, portal_url: `${baseUrl}/admin/projects/${contractId}` }),
+      });
+    } catch (emailErr) {
+      console.error("Change order contractor notification failed:", emailErr);
+    }
+  }
+
+  console.log(`Webhook: change order ${changeOrderId} paid — ${amountPaid}`);
+  return NextResponse.json({ received: true });
+}
+
 export async function POST(request: Request) {
   const supabase = getSupabase();
   const body = await request.text();
@@ -121,6 +202,14 @@ export async function POST(request: Request) {
     if (!invoiceId) {
       console.error("Webhook: missing invoice_id in session metadata");
       return NextResponse.json({ received: true });
+    }
+
+    // A change order is paid on its own row. These used to fall through to
+    // the contract path below with phase 0, which marked the contract's
+    // deposit paid and left the change order showing Pay Now.
+    const changeOrderId = session.metadata?.change_order_id;
+    if (changeOrderId) {
+      return recordChangeOrderPayment(supabase, session, invoiceId, changeOrderId, amountPaid);
     }
 
     try {

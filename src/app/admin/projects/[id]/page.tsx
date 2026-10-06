@@ -19,7 +19,13 @@ import {
   amountToPercent,
   displayPercent,
 } from "@/lib/payment-schedule";
-import { changeOrderPdfInput, contractTotals, type AlreadyCovered } from "@/lib/change-orders";
+import {
+  changeOrderIsPaid,
+  changeOrderPdfInput,
+  contractTotals,
+  deleteConfirmationFor,
+  type AlreadyCovered,
+} from "@/lib/change-orders";
 import { contractTotalMismatch, itemsContractTotal, lineBidOf } from "@/lib/contract-total";
 import {
   DEFAULT_COLOR_THEME,
@@ -132,6 +138,7 @@ export default function ProjectWorkspaceControlHub() {
   const [isGeneratingCo, setIsGeneratingCo] = useState(false);
   const [isDeployingCo, setIsDeployingCo] = useState(false);
   const [changeOrders, setChangeOrders] = useState<any[]>([]);
+  const [deletingCoId, setDeletingCoId] = useState<string | null>(null);
   const coTotals = contractTotals(project, changeOrders);
 
   // AI Scope Amendment States
@@ -724,6 +731,53 @@ export default function ProjectWorkspaceControlHub() {
     };
     reader.readAsDataURL(file);
   };
+
+  async function deleteChangeOrder(co: any) {
+    const label = co.proposal_number || "this change order";
+    const signed = co.status === "approved";
+    let confirmation: string | null = null;
+
+    if (signed) {
+      const expected = deleteConfirmationFor(co);
+      confirmation = prompt(
+        `${label} is signed and part of the contract. Deleting it removes ${toNum(co.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })} ` +
+          `from what the homeowner owes, and they'll be emailed that it was removed.\n\n` +
+          `If they've already paid it, don't delete it — check Stripe first. Change-order payments made before this update ` +
+          `were recorded against the contract's deposit, so they won't show as paid here.\n\nType ${expected} to delete it.`
+      );
+      if (confirmation === null) return;
+    } else if (!confirm(`Delete ${label}? It hasn't been signed. The homeowner will be emailed that it's been withdrawn.`)) {
+      return;
+    }
+
+    setDeletingCoId(co.id);
+    try {
+      const res = await fetch("/api/change-orders/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          change_order_id: co.id,
+          parent_id: projectId,
+          confirmation,
+          base_url: window.location.origin,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not delete the change order");
+      setChangeOrders((prev) => prev.filter((c) => c.id !== co.id));
+      toast(
+        data.notified
+          ? `${label} deleted — the homeowner has been emailed`
+          : `${label} deleted, but the homeowner wasn't emailed`,
+        data.notified ? "success" : "error"
+      );
+    } catch (err: any) {
+      toast(err.message, "error");
+      fetchComprehensiveProjectData();
+    } finally {
+      setDeletingCoId(null);
+    }
+  }
 
   // ── Construction timeline (project_schedules) ─────────────────────────
   // What the homeowner sees under Construction Timeline. Edits show locally
@@ -3425,6 +3479,18 @@ export default function ProjectWorkspaceControlHub() {
                     >
                       Download PDF
                     </button>
+                    {changeOrderIsPaid(co) ? (
+                      <span className="text-[11.5px] text-ink-400" title="A payment is recorded against it">Paid — can&apos;t delete</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => deleteChangeOrder(co)}
+                        disabled={deletingCoId === co.id}
+                        className="text-[11.5px] text-brick-600 underline-offset-4 transition-colors duration-200 ease-architect hover:text-brick-700 hover:underline disabled:opacity-50"
+                      >
+                        {deletingCoId === co.id ? "Deleting..." : "Delete"}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

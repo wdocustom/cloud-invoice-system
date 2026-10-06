@@ -1941,3 +1941,57 @@ export function buildChangeOrderSignedHomeownerHtml(data: ChangeOrderEmailData):
   ${changeOrderFooter()}
 </table>`);
 }
+
+/**
+ * To the homeowner, when a change order they were sent is deleted — so a
+ * "please sign" email isn't left pointing at something that's gone, and a
+ * signed one doesn't silently drop off their contract.
+ */
+export function buildChangeOrderWithdrawnHtml(data: {
+  change_order_number?: string | null;
+  homeowner_name: string;
+  description: string;
+  amount: number;
+  was_signed: boolean;
+  /** The contract total once this change order is removed. */
+  contract_total: number;
+  portal_url: string;
+}): string {
+  const label = data.change_order_number ? `change order ${esc(data.change_order_number)}` : "a change order";
+  const body = data.was_signed
+    ? `We've removed ${label} from your contract, so the work below is no longer part of it and you won't be billed for it.`
+    : `We've withdrawn ${label}, so it no longer needs your signature. Nothing about your contract has changed.`;
+
+  return emailShell(`${changeOrderHeader(data.was_signed ? "Removed" : "Withdrawn", "#6B6B6B", data.change_order_number)}
+
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+  <tr><td style="padding:36px 32px 0;">
+
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(data.homeowner_name.split(" ")[0] || "there")},</p>
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0 0 20px;">${body}</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border:1px solid #E8E4DF;border-radius:12px;">
+      <tr><td style="padding:20px 24px;">
+        <p style="font-size:14px;color:#1A1A1A;margin:0 0 6px;font-style:italic;">"${esc(data.description)}"</p>
+        <p style="font-size:13px;color:#6B6B6B;margin:0;">$${formatMoney(data.amount)}</p>
+        <p style="font-size:13px;color:#1A1A1A;margin:14px 0 0;padding-top:12px;border-top:1px solid #E8E4DF;">
+          <strong>Your contract total:</strong> $${formatMoney(data.contract_total)}
+        </p>
+      </td></tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
+      <tr><td align="center">
+        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;">
+          View Your Project
+        </a>
+      </td></tr>
+    </table>
+    <p style="font-size:12px;color:#9C9590;line-height:1.6;margin:0;text-align:center;">
+      Questions? Reply here or call 402-819-8558.
+    </p>
+
+  </td></tr>
+  ${changeOrderFooter()}
+</table>`);
+}
