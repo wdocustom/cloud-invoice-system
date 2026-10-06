@@ -5,12 +5,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(request: Request) {
   try {
-    const { invoice_id, amount, description, phase_index } =
+    const { invoice_id, amount, description, phase_index, change_order_id } =
       (await request.json()) as {
         invoice_id: string;
         amount: number;
         description: string;
         phase_index?: number;
+        /** Set when paying a change order. invoice_id stays the contract, so
+         *  the homeowner lands back on their portal. */
+        change_order_id?: string;
       };
 
     if (!invoice_id || !amount || amount <= 0) {
@@ -40,11 +43,15 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      metadata: {
-        invoice_id,
-        phase_index: String(phase_index ?? 0),
-        payment_type: phase_index === 0 ? "deposit" : `phase_${phase_index}`,
-      },
+      // A change order payment must say so. Without it the phase defaulted to
+      // 0 and the webhook recorded the payment as the contract's deposit.
+      metadata: change_order_id
+        ? { invoice_id, change_order_id, payment_type: "change_order" }
+        : {
+            invoice_id,
+            phase_index: String(phase_index ?? 0),
+            payment_type: phase_index === 0 ? "deposit" : `phase_${phase_index}`,
+          },
       success_url: `${baseUrl}/invoice/${invoice_id}?payment=success`,
       cancel_url: `${baseUrl}/invoice/${invoice_id}?payment=cancelled`,
     });

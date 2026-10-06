@@ -329,7 +329,7 @@ export default function HomeownerPortalClient({
     }
   };
 
-  const initiateStripePayment = async (amount: number, description: string, phaseIndex?: number) => {
+  const initiateStripePayment = async (amount: number, description: string, phaseIndex?: number, changeOrderId?: string) => {
     setIsPaymentLoading(true);
     try {
       const res = await fetch("/api/create-checkout-session", {
@@ -340,6 +340,7 @@ export default function HomeownerPortalClient({
           amount,
           description,
           phase_index: phaseIndex,
+          change_order_id: changeOrderId,
         }),
       });
       const data = await res.json();
@@ -1787,7 +1788,7 @@ export default function HomeownerPortalClient({
                               <button
                                 type="button"
                                 disabled={isPaymentLoading}
-                                onClick={() => initiateStripePayment(toNum(co.amount), `Change Order - ${co.description} - ${invoice.homeowner_name}`)}
+                                onClick={() => initiateStripePayment(toNum(co.amount), `Change Order${co.proposal_number ? ` ${co.proposal_number}` : ""} - ${co.description} - ${invoice.homeowner_name}`, undefined, co.id)}
                                 className="btn-ink w-full py-2.5"
                               >
                                 {isPaymentLoading ? "Connecting..." : "Pay Now"}

@@ -327,3 +327,52 @@ export function normalizeAlreadyCovered(raw: unknown): AlreadyCovered[] {
     return request && existing_title ? [{ request, existing_title }] : [];
   });
 }
+
+/** True once any payment has been recorded against the change order. */
+export function changeOrderIsPaid(co: { deposit_cleared?: unknown; payment_history?: unknown } | null | undefined): boolean {
+  if (!co) return false;
+  if (co.deposit_cleared === true) return true;
+  return Array.isArray(co.payment_history) && co.payment_history.length > 0;
+}
+
+/** What has to be typed to delete a signed change order. */
+export function deleteConfirmationFor(co: { proposal_number?: string | null }): string {
+  return (co.proposal_number || "").trim() || "DELETE";
+}
+
+/**
+ * Why this change order can't be deleted, or null.
+ *
+ * - Awaiting signature: deletable. It's an offer being withdrawn.
+ * - Signed: part of the contract, so deleting it lowers what the homeowner
+ *   owes. Allowed, but only with its number typed back, so it can't happen
+ *   by a stray tap.
+ * - Paid: never. A payment is recorded against it, and deleting the change
+ *   order would leave that money attached to nothing.
+ */
+export function cannotDeleteChangeOrder(
+  co: { status?: string | null; parent_id?: string | null; proposal_number?: string | null; deposit_cleared?: unknown; payment_history?: unknown } | null | undefined,
+  expectedParentId: string | null | undefined,
+  confirmation?: unknown
+): { status: number; error: string; needsConfirmation?: string } | null {
+  if (!co || !expectedParentId || co.parent_id !== expectedParentId) {
+    return { status: 404, error: "Change order not found." };
+  }
+  if (changeOrderIsPaid(co)) {
+    return {
+      status: 409,
+      error: "This change order has been paid, so it can't be deleted. Refund the payment in Stripe first if it needs to be reversed.",
+    };
+  }
+  if (co.status === "approved") {
+    const expected = deleteConfirmationFor(co);
+    if ((confirmation ?? "").toString().trim().toUpperCase() !== expected.toUpperCase()) {
+      return {
+        status: 400,
+        error: `This change order is signed and part of the contract. Type ${expected} to delete it.`,
+        needsConfirmation: expected,
+      };
+    }
+  }
+  return null;
+}
