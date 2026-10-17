@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { geminiGenerate } from "@/lib/gemini";
 import { createClient } from "@supabase/supabase-js";
 import { toNum } from "@/lib/utils";
 import {
@@ -45,7 +46,7 @@ function buildPrompt(invoice: any, items: any[], request: string): string {
 
   return `You are an elite residential remodeling estimator in Omaha, NE with 20+ years of experience, working inside a contractor's proposal system.
 
-A proposal has already been sent to the homeowner and is awaiting their approval. The contractor now wants to add scope to it. Your job is to fold the new work into the EXISTING proposal intelligently — not to blindly append lines.
+A proposal has already been sent to the homeowner and is awaiting their approval. The contractor now wants to change its scope — adding work, changing or reducing existing work, or dropping it. Your job is to apply those changes to the EXISTING proposal intelligently — not to blindly append lines.
 
 PROJECT: ${invoice.project_title || invoice.description || "Residential remodel"}
 ADDRESS: ${invoice.job_address || "Omaha, NE"}
@@ -54,22 +55,29 @@ CURRENT PROPOSAL TOTAL: $${toNum(invoice.amount).toLocaleString()}
 CURRENT SCOPE — each line is numbered with the index you must reference:
 ${describeScope(items)}
 
-WHAT THE CONTRACTOR WANTS TO ADD (their own shorthand):
+WHAT THE CONTRACTOR WANTS TO CHANGE (their own shorthand):
 ${request}
 
-YOUR TASK — for EVERY distinct piece of work in the contractor's notes, decide one of:
+YOUR TASK — for EVERY distinct change in the contractor's notes, decide one of:
 
-1. "merge" — the work belongs inside a line that already exists. This is the DEFAULT when the new
+1. "merge" — the change belongs to a line that already exists. This is the DEFAULT when added
    work is the same trade in the same area as an existing line (e.g. more can lights when there is
-   already an electrical line for that room; a second vanity when a bathroom fixtures line exists).
-   Rewrite that line's title and descriptions so they cover BOTH the original scope and the new work,
-   and raise mid_cost / high_cost to the new correct TOTAL for the combined line — never output just
-   the increment. Never drop scope that was already in the line.
+   already an electrical line for that room; a second vanity when a bathroom fixtures line exists),
+   and for any change or reduction to an existing line. Rewrite that line's title and descriptions to
+   cover its scope AFTER the change, and set mid_cost / high_cost to the new correct TOTAL for the line —
+   higher when work is added, lower when it is reduced — never output just the difference. Keep every
+   part of the line's existing scope the contractor didn't ask to change.
 
 2. "add" — the work is genuinely new: a different trade, a different area, or large enough that the
    homeowner should see it priced on its own. Write a full line item with both tiers.
 
-3. "recategorize" — an EXISTING line is filed under the wrong category and should move. Use this
+3. "remove" — the contractor wants an existing line dropped entirely (e.g. "drop the wet bar",
+   "client is doing the painting themselves"). Give its target_index and category; do not restate
+   its scope or price. Use this ONLY when the whole line goes. If part of a line goes, or its quantity
+   shrinks, use "merge" instead: rewrite that line for the reduced scope and give its new, LOWER total
+   (e.g. flooring reduced from 900 to 600 sq ft).
+
+4. "recategorize" — an EXISTING line is filed under the wrong category and should move. Use this
    sparingly, only to tidy categories affected by this amendment. Do not restate its scope or price.
 
 CATEGORY RULES:
@@ -83,7 +91,7 @@ CATEGORY RULES:
 PRICING RULES (Omaha, NE market rates):
 - Price labor + materials at current Omaha residential remodeling rates. Be realistic; don't lowball or inflate.
 - Luxury tier is premium materials and master craftsmanship, typically 25-40% above standard.
-- On a merge, mid_cost is the FULL new cost of the combined line, including what it already covered.
+- On a merge, mid_cost is the FULL new cost of the line after the change, including what it still covers.
 - Never mention markup, multipliers, or percentages in any description.
 
 WRITING RULES:
@@ -128,7 +136,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing invoice_id" }, { status: 400 });
     }
     if (!scopeRequest || !scopeRequest.trim()) {
-      return NextResponse.json({ error: "Describe what you'd like to add to the proposal." }, { status: 400 });
+      return NextResponse.json({ error: "Describe what you'd like to change in the proposal." }, { status: 400 });
     }
 
     const supabase = getSupabase();
@@ -156,17 +164,10 @@ export async function POST(request: Request) {
 
     const items = Array.isArray(invoice.items) ? invoice.items : [];
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    const response = await geminiGenerate(apiKey, {
           contents: [{ parts: [{ text: buildPrompt(invoice, items, scopeRequest.trim()) }] }],
           generationConfig: { responseMimeType: "application/json" },
-        }),
-      }
-    );
+        });
 
     if (!response.ok) {
       const errBody = await response.text().catch(() => "");

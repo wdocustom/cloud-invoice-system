@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { geminiGenerate } from "@/lib/gemini";
 import { createClient } from "@supabase/supabase-js";
 import laborRates from "@/lib/labor-rates.json";
 import permitFees from "@/lib/permit-fees.json";
@@ -134,17 +135,10 @@ Respond ONLY with raw JSON matching this exact schema:
   ]
 }`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    const response = await geminiGenerate(apiKey, {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { responseMimeType: "application/json" },
-        }),
-      }
-    );
+        });
 
     if (!response.ok) {
       const errBody = await response.text().catch(() => "");
