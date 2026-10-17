@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { geminiGenerate } from "@/lib/gemini";
 import { describeContractForChangeOrder, normalizeAlreadyCovered } from "@/lib/change-orders";
 
 export async function POST(request: Request) {
@@ -93,19 +94,12 @@ Respond ONLY with raw JSON matching this exact schema:
   }
 }${isChangeOrder ? `\n\n"already_covered" may be an empty array. "items" may be empty only if every part of the request is already covered.` : ""}`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    const response = await geminiGenerate(apiKey, {
           contents: [{ parts: [{ text: systemInstruction }] }],
           generationConfig: {
             responseMimeType: "application/json"
           }
-        })
-      }
-    );
+        });
 
     const data = await response.json();
     let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";

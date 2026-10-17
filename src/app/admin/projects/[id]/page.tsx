@@ -440,7 +440,7 @@ export default function ProjectWorkspaceControlHub() {
 
   async function analyzeScopeAmendment() {
     if (!amendRequest.trim()) {
-      return toast("Describe what you'd like to add to this proposal.", "info");
+      return toast("Describe what you'd like to change in this proposal.", "info");
     }
 
     setIsAnalyzingAmendment(true);
@@ -1899,11 +1899,11 @@ export default function ProjectWorkspaceControlHub() {
           <div className="panel-sunken mt-5 p-5 sm:p-7">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="eyebrow-ink">Add Scope with AI</p>
+                <p className="eyebrow-ink">Change Scope with AI</p>
                 <p className="mt-1.5 max-w-2xl text-[12px] leading-relaxed text-ink-500">
-                  List what you want to add. The estimator checks it against the scope already in this proposal,
-                  folds work into the line it belongs to, prices what&apos;s genuinely new, and files everything by category.
-                  Nothing changes until you approve it below.
+                  Describe what to add, change, reduce or drop. The estimator checks it against the scope already in
+                  this proposal, folds work into the line it belongs to, reprices lines you change, prices what&apos;s
+                  genuinely new, and files everything by category. Nothing changes until you approve it below.
                 </p>
               </div>
             </div>
@@ -1914,7 +1914,7 @@ export default function ProjectWorkspaceControlHub() {
               value={amendRequest}
               onChange={(e) => setAmendRequest(e.target.value)}
               rows={3}
-              placeholder="e.g. add 6 can lights in the living room, upgrade the island counter to quartz, add a wet bar sink with supply and drain, tile the mudroom floor"
+              placeholder="e.g. add 6 can lights in the living room, upgrade the island counter to quartz, reduce flooring to 600 sq ft, drop the wet bar"
               className="field mt-4 resize-y leading-relaxed"
             />
 
@@ -1925,7 +1925,7 @@ export default function ProjectWorkspaceControlHub() {
                 disabled={isAnalyzingAmendment || !amendRequest.trim()}
                 className="btn-ink"
               >
-                {isAnalyzingAmendment ? "Analyzing scope..." : "Analyze Additions"}
+                {isAnalyzingAmendment ? "Analyzing scope..." : "Analyze Changes"}
               </button>
             </div>
 
@@ -1945,8 +1945,11 @@ export default function ProjectWorkspaceControlHub() {
                     const op = preview.operation;
                     const isMerge = op.action === "merge";
                     const isRecat = op.action === "recategorize";
-                    const badge = isMerge
-                      ? `Merged into line #${(op.target_index ?? 0) + 1}`
+                    const isRemove = op.action === "remove";
+                    const badge = isRemove
+                      ? `Removes line #${(op.target_index ?? 0) + 1}`
+                      : isMerge
+                      ? `${toNum(preview.mid_delta) < 0 ? "Reduces" : "Updates"} line #${(op.target_index ?? 0) + 1}`
                       : isRecat
                       ? `Recategorized line #${(op.target_index ?? 0) + 1}`
                       : "New line item";
@@ -1977,7 +1980,9 @@ export default function ProjectWorkspaceControlHub() {
                           <div className="min-w-0 flex-1 space-y-2">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <span className={`badge ${
-                                isMerge
+                                isRemove
+                                  ? "badge-declined"
+                                  : isMerge
                                   ? "badge-pending"
                                   : isRecat
                                   ? "badge-neutral"
@@ -1990,7 +1995,7 @@ export default function ProjectWorkspaceControlHub() {
                               </span>
                             </div>
 
-                            <p className="text-[13px] font-medium leading-snug tracking-[-0.01em] text-ink-900">{preview.after.title}</p>
+                            <p className="text-[13px] font-medium leading-snug tracking-[-0.01em] text-ink-900">{preview.after.title}{isRemove ? " — removed" : ""}</p>
 
                             {op.addition && (
                               <p className="text-[11.5px] text-ink-500">
@@ -2002,7 +2007,7 @@ export default function ProjectWorkspaceControlHub() {
                             )}
 
                             {/* Before → after, computed from the saved proposal */}
-                            {preview.before && !isRecat && (
+                            {preview.before && !isRecat && !isRemove && (
                               <div className="space-y-2 border-l border-rule-300/70 pl-3">
                                 <div>
                                   <p className="eyebrow">Was</p>

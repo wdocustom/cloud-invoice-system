@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { geminiGenerate } from "@/lib/gemini";
 import { createClient } from "@supabase/supabase-js";
 
 function getSupabase() {
@@ -75,22 +76,16 @@ ${category ? `Context: This sample is for the "${category}" selection category.`
 Respond ONLY with valid JSON, no markdown:
 {"product_name":"...","manufacturer":"...","material_type":"...","color_description":"...","product_url":"..."${photoCount > 1 ? ',"display_image":1' : ''}}`;
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    const geminiRes = await geminiGenerate(apiKey, {
           contents: [{
             parts: [
               { text: prompt },
               ...geminiParts,
             ],
           }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 1024 },
-        }),
-      }
-    );
+          // Headroom for the model's thinking, which counts against this cap.
+          generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
+        });
 
     if (!geminiRes.ok) {
       const errText = await geminiRes.text();

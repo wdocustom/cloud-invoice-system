@@ -13,11 +13,11 @@ import { toNum } from "./utils";
 
 export const UNCATEGORIZED = "General Scope";
 
-export type ScopeOperationAction = "merge" | "add" | "recategorize";
+export type ScopeOperationAction = "merge" | "add" | "recategorize" | "remove";
 
 export interface ScopeOperation {
   action: ScopeOperationAction;
-  /** Index into the existing items array. Required for merge/recategorize. */
+  /** Index into the existing items array. Required for merge/recategorize/remove. */
   target_index?: number;
   category: string;
   title?: string;
@@ -141,8 +141,12 @@ export function previewAmendment(
       };
     }
 
+    // A removal previews as the line at $0, so the review shows exactly what
+    // comes off the total.
     const after =
-      operation.action === "recategorize"
+      operation.action === "remove"
+        ? { ...target, mid_cost: 0, high_cost: 0 }
+        : operation.action === "recategorize"
         ? { ...target, category: cleanText(operation.category, categoryOf(target)) }
         : mergedItem(target, operation);
 
@@ -190,6 +194,9 @@ export function applyScopeAmendment(
   categoryOrder: string[] = []
 ): Record<string, any>[] {
   const next = [...items];
+  // Removals are collected and applied last: every operation's index refers
+  // to the proposal as it was, so nothing can shift underneath another.
+  const removed = new Set<number>();
 
   operations.forEach((op) => {
     if (op.action === "add") {
@@ -198,6 +205,10 @@ export function applyScopeAmendment(
     }
 
     const idx = op.target_index;
+    if (op.action === "remove") {
+      if (typeof idx === "number" && next[idx]) removed.add(idx);
+      return;
+    }
     if (typeof idx !== "number" || !next[idx]) {
       // A stale index would otherwise silently drop the contractor's addition.
       next.push(newItem(op));
@@ -210,7 +221,10 @@ export function applyScopeAmendment(
         : mergedItem(next[idx], op);
   });
 
-  return orderItemsByCategory(next, categoryOrder);
+  return orderItemsByCategory(
+    next.filter((_, i) => !removed.has(i)),
+    categoryOrder
+  );
 }
 
 /** [{ category, entries: [{ item, index }] }] for grouped rendering. */
@@ -229,7 +243,7 @@ export function groupItemsByCategory(
   return groups;
 }
 
-const VALID_ACTIONS: ScopeOperationAction[] = ["merge", "add", "recategorize"];
+const VALID_ACTIONS: ScopeOperationAction[] = ["merge", "add", "recategorize", "remove"];
 
 /**
  * A cost as the model wrote it. The prompt asks for a raw number, but models
@@ -258,7 +272,9 @@ export function normalizeOperations(raw: any, itemCount: number): ScopeOperation
     const rawIndex = Number(op?.target_index);
     const hasIndex = Number.isInteger(rawIndex) && rawIndex >= 0 && rawIndex < itemCount;
 
-    if (action === "recategorize" && !hasIndex) return [];
+    // Nothing to move or remove if the line doesn't exist — and guessing which
+    // line was meant could delete the wrong scope.
+    if ((action === "recategorize" || action === "remove") && !hasIndex) return [];
     const resolvedAction: ScopeOperationAction = action === "merge" && !hasIndex ? "add" : action;
 
     const title = (op?.title ?? "").toString().trim();
