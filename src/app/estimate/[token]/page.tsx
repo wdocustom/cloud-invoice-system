@@ -114,6 +114,7 @@ export default function PublicEstimatePage() {
   if (estimate.email) consultationParams.set("email", estimate.email);
   if (estimate.phone) consultationParams.set("phone", estimate.phone);
   if (estimate.project_type) consultationParams.set("project", estimate.project_type);
+  consultationParams.set("estimate", token);
 
   function handleUnlock(e: React.FormEvent) {
     e.preventDefault();

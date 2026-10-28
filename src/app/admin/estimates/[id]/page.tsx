@@ -12,6 +12,7 @@ import {
 } from "@/lib/lead-score";
 import { describeAnswers } from "@/lib/intake-questions";
 import { findPartnerById } from "@/lib/referral-partners";
+import { consultationLabel, hasEstimate, hasUpcomingConsultation } from "@/lib/consultation-lead";
 
 function fmt(n: number) {
   return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
@@ -201,6 +202,8 @@ export default function EstimateDetailPage() {
   if (!estimate) return null;
 
   const ed = estimate.estimate_data || {};
+  const withEstimate = hasEstimate(estimate);
+  const visit = consultationLabel(estimate);
   const isConverted = !!estimate.converted_to_invoice_id;
   const reminderCount = Array.isArray(estimate.reminder_emails) ? estimate.reminder_emails.length : 0;
   const fullAddress = [
@@ -282,7 +285,7 @@ export default function EstimateDetailPage() {
                 View Proposal
               </button>
             )}
-            {estimate.email && !isConverted && (
+            {estimate.email && !isConverted && withEstimate && (
               <button
                 type="button"
                 onClick={handleSendReminder}
@@ -292,6 +295,7 @@ export default function EstimateDetailPage() {
                 {sendingReminder ? "Sending..." : `Send Reminder${reminderCount > 0 ? ` (${reminderCount} sent)` : ""}`}
               </button>
             )}
+            {withEstimate && (
             <a
               href={`/estimate/${estimate.token}`}
               target="_blank"
@@ -303,6 +307,7 @@ export default function EstimateDetailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H18v4.5M17.25 6.75L10.5 13.5M18 14.25v3.75A1.5 1.5 0 0116.5 19.5h-10.5A1.5 1.5 0 014.5 18V7.5A1.5 1.5 0 016 6h3.75" />
               </svg>
             </a>
+            )}
           </div>
         </div>
       </div>
@@ -337,6 +342,30 @@ export default function EstimateDetailPage() {
                 </span>
               )}
             </div>
+          </section>
+        )}
+
+        {/* Consultation — the booked in-home visit */}
+        {visit && (
+          <section className="animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Consultation</h2>
+              <span className="eyebrow hidden sm:block">
+                {hasUpcomingConsultation(estimate) ? "Upcoming" : isConverted ? "Held" : "Past"}
+              </span>
+            </div>
+            <dl className="border-t border-rule-300/70">
+              <div className="flex flex-col gap-0.5 border-b border-rule-300/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
+                <dt className="eyebrow sm:w-44 sm:shrink-0">Visit</dt>
+                <dd className="min-w-0 text-[13.5px] text-ink-900">{visit}</dd>
+              </div>
+              <div className="flex flex-col gap-0.5 border-b border-rule-300/55 py-3 sm:flex-row sm:items-baseline sm:gap-6">
+                <dt className="eyebrow sm:w-44 sm:shrink-0">Came From</dt>
+                <dd className="min-w-0 text-[13.5px] text-ink-900">
+                  {withEstimate ? "Instant estimate, then booked a visit" : "Booked directly from the consultation page"}
+                </dd>
+              </div>
+            </dl>
           </section>
         )}
 
@@ -592,6 +621,18 @@ export default function EstimateDetailPage() {
         })()}
 
         {/* Schedule of values */}
+        {!withEstimate ? (
+          <section className="animate-rise">
+            <div className="title-block">
+              <h2 className="display-sm">Estimate</h2>
+              <span className="eyebrow hidden sm:block">None yet</span>
+            </div>
+            <p className="panel-sunken p-5 text-[13px] leading-relaxed text-ink-500 sm:p-7">
+              This homeowner booked a consultation without running the instant estimate. Convert to a proposal after
+              the visit and write the scope there.
+            </p>
+          </section>
+        ) : (
         <section className="animate-rise">
           <div className="title-block">
             <h2 className="display-sm">Estimate</h2>
@@ -660,6 +701,7 @@ export default function EstimateDetailPage() {
             </div>
           </div>
         </section>
+        )}
 
         {/* Reminder history */}
         {reminderCount > 0 && (

@@ -946,7 +946,7 @@ export default function InstantEstimatePage() {
                           Every remodeling project has different return potential based on scope, finish level, and your neighborhood&apos;s market. Schedule a free consultation with Skyler to discuss how to get the most value from your specific project — including which upgrades Omaha buyers pay premiums for.
                         </p>
                         <Link
-                          href={`/consultation?${new URLSearchParams({ ...(name ? { name } : {}), ...(email ? { email } : {}), ...(phone ? { phone } : {}), ...(projectType ? { project: projectType } : {}) }).toString()}`}
+                          href={`/consultation?${new URLSearchParams({ ...(name ? { name } : {}), ...(email ? { email } : {}), ...(phone ? { phone } : {}), ...(projectType ? { project: projectType } : {}), ...(result?.token ? { estimate: result.token } : {}) }).toString()}`}
                           className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-luxury-ochre hover:text-luxury-gold transition-colors"
                         >
                           Discuss ROI with Skyler
@@ -995,7 +995,7 @@ export default function InstantEstimatePage() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <Link
-                    href={`/consultation?${new URLSearchParams({ ...(name ? { name } : {}), ...(email ? { email } : {}), ...(phone ? { phone } : {}), ...(projectType ? { project: projectType } : {}) }).toString()}`}
+                    href={`/consultation?${new URLSearchParams({ ...(name ? { name } : {}), ...(email ? { email } : {}), ...(phone ? { phone } : {}), ...(projectType ? { project: projectType } : {}), ...(result?.token ? { estimate: result.token } : {}) }).toString()}`}
                     className="w-full sm:w-auto bg-luxury-gold hover:bg-luxury-ochre text-brand-charcoal font-black text-sm tracking-wide uppercase px-10 py-4 rounded-xl transition-all shadow-glow-gold active:scale-[0.98] text-center"
                   >
                     Schedule Free Consultation

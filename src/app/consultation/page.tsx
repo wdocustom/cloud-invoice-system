@@ -45,11 +45,15 @@ function ConsultationForm() {
   const prefillEmail = params.get("email") || "";
   const prefillPhone = params.get("phone") || "";
   const prefillProject = params.get("project") || "";
+  const prefillAddress = params.get("address") || "";
+  // The estimate link this booking came from, so it attaches to that lead
+  // instead of opening a second one.
+  const estimateToken = params.get("estimate") || "";
 
   const [name, setName] = useState(prefillName);
   const [email, setEmail] = useState(prefillEmail);
   const [phone, setPhone] = useState(prefillPhone);
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(prefillAddress);
   const [projectType, setProjectType] = useState(prefillProject);
   const [notes, setNotes] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -84,6 +88,7 @@ function ConsultationForm() {
           notes: notes.trim(),
           date: selectedDate,
           time: selectedTime,
+          ...(estimateToken ? { estimateToken } : {}),
         }),
       });
 
