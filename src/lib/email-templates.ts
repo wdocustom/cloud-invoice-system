@@ -926,6 +926,11 @@ interface ConsultationNotificationData {
   notes: string;
   date: string;
   time: string;
+  /** Admin page for the lead this booking was recorded on, when it was saved. */
+  leadUrl?: string;
+  leadNumber?: string;
+  /** True when the booking attached to an existing estimate rather than opening a new lead. */
+  linkedToEstimate?: boolean;
 }
 
 export function buildConsultationNotificationHtml(data: ConsultationNotificationData): string {
@@ -977,6 +982,14 @@ export function buildConsultationNotificationHtml(data: ConsultationNotification
         </table>
       </td></tr>
     </table>
+
+    ${data.leadUrl ? `
+    <p style="font-size:13px;color:#6B6B6B;line-height:1.7;margin:24px 0 12px;">
+      ${data.linkedToEstimate
+        ? `Linked to their existing estimate${data.leadNumber ? ` <strong style="color:#1A1A1A;">${esc(data.leadNumber)}</strong>` : ""} and marked Consultation Set.`
+        : `Added to your leads as${data.leadNumber ? ` <strong style="color:#1A1A1A;">${esc(data.leadNumber)}</strong>` : " a new lead"}, ready to convert to a proposal after the visit.`}
+    </p>
+    <a href="${esc(data.leadUrl)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:13px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:10px;">Open Lead</a>` : ""}
 
     <p style="font-size:12px;color:#9C9590;margin:28px 0 0;">Calendar invite attached &middot; wdocustom.com/consultation</p>
 

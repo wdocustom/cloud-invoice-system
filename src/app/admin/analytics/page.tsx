@@ -34,7 +34,7 @@ export default function AnalyticsPage() {
     setLoading(true);
     const [viewsRes, estRes] = await Promise.all([
       supabase.from("page_views").select("*").order("created_at", { ascending: false }).limit(10000),
-      supabase.from("estimates").select("id, name, project_type, status, created_at, converted_to_invoice_id, estimate_data").order("created_at", { ascending: false }),
+      supabase.from("estimates").select("*").order("created_at", { ascending: false }),
     ]);
     if (viewsRes.data) setViews(viewsRes.data);
     if (estRes.data) setEstimates(estRes.data);
@@ -56,6 +56,7 @@ export default function AnalyticsPage() {
   const filteredEstimates = estimates.filter((e) => new Date(e.created_at).getTime() >= cutoff);
   const totalLeads = filteredEstimates.length;
   const convertedLeads = filteredEstimates.filter((e) => !!e.converted_to_invoice_id).length;
+  const bookedConsultations = filteredEstimates.filter((e) => !!e.consultation_scheduled).length;
 
   // Page breakdown
   const pageCounts: Record<string, { views: number; sessions: Set<string> }> = {};
@@ -266,6 +267,7 @@ export default function AnalyticsPage() {
                     { label: "Viewed Estimator", count: pageCounts["/estimate"]?.sessions.size || 0, color: "bg-ink-300" },
                     { label: "Viewed Consultation", count: pageCounts["/consultation"]?.sessions.size || 0, color: "bg-rule-400" },
                     { label: "Submitted Lead", count: totalLeads, color: "bg-bronze-500" },
+                    { label: "Booked Visit", count: bookedConsultations, color: "bg-bronze-400" },
                     { label: "Converted", count: convertedLeads, color: "bg-forest-600" },
                   ].map((stage) => (
                     <div key={stage.label} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">

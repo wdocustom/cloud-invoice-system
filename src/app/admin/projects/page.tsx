@@ -7,6 +7,7 @@ import { changeOrdersByParent, contractTotals } from "@/lib/change-orders";
 import { contractTotalMismatch } from "@/lib/contract-total";
 import { findPartnerById } from "@/lib/referral-partners";
 import { BAND_LABELS, FLAG_LABELS, effectiveBand, effectiveScore, type LeadFlag } from "@/lib/lead-score";
+import { consultationLabel, consultationStartsAt, hasEstimate, hasUpcomingConsultation } from "@/lib/consultation-lead";
 
 export default function ProjectsIndexLedger() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function ProjectsIndexLedger() {
   // Triage controls. Sort defaults to score, but stays switchable: quietly
   // reordering a list someone reads chronologically is disorienting.
   const [leadSort, setLeadSort] = useState<"score" | "newest" | "value">("score");
-  const [leadFilter, setLeadFilter] = useState<"all" | "call" | "hot" | "attention">("all");
+  const [leadFilter, setLeadFilter] = useState<"all" | "call" | "hot" | "attention" | "visits">("all");
 
   async function deleteLead(id: string) {
     if (!confirm("Delete this lead permanently? This cannot be undone.")) return;
@@ -96,9 +97,14 @@ export default function ProjectsIndexLedger() {
       if (leadFilter === "call") return lead.status === "new";
       if (leadFilter === "hot") return effectiveBand(lead) === "A" && lead.status !== "converted";
       if (leadFilter === "attention") return needsAttention(lead);
+      if (leadFilter === "visits") return hasUpcomingConsultation(lead);
       return true;
     })
     .sort((a, b) => {
+      // Upcoming visits read as a calendar: soonest first.
+      if (leadFilter === "visits") {
+        return (consultationStartsAt(a) ?? 0) - (consultationStartsAt(b) ?? 0);
+      }
       if (leadSort === "newest") {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
@@ -111,6 +117,8 @@ export default function ProjectsIndexLedger() {
       if (diff !== 0) return diff;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
+
+  const upcomingVisits = estimates.filter((e) => hasUpcomingConsultation(e)).length;
 
   const hotLeads = estimates.filter(
     e => effectiveBand(e) === "A" && e.status !== "converted" && e.status !== "referred"
@@ -331,6 +339,9 @@ export default function ProjectsIndexLedger() {
               <span className="font-medium text-ink-900 tnum">{newLeads}</span>
               <span>need a first call</span>
               <span aria-hidden className="text-ink-300">·</span>
+              <span className="font-medium text-ink-900 tnum">{upcomingVisits}</span>
+              <span>{upcomingVisits === 1 ? "visit" : "visits"} booked</span>
+              <span aria-hidden className="text-ink-300">·</span>
               <span className="font-medium text-ink-900 tnum">{unconvertedEstimates.length}</span>
               <span>not yet converted</span>
             </p>
@@ -343,6 +354,7 @@ export default function ProjectsIndexLedger() {
                   ["call", "Need a call", newLeads],
                   ["hot", "Hot", hotLeads],
                   ["attention", "Needs a look", estimates.filter(needsAttention).length],
+                  ["visits", "Visits booked", upcomingVisits],
                 ] as const).map(([key, label, count]) => (
                   <button
                     key={key}
@@ -425,6 +437,10 @@ export default function ProjectsIndexLedger() {
                 };
                 const reminderCount = Array.isArray(est.reminder_emails) ? est.reminder_emails.length : 0;
                 const createdAgo = getTimeAgo(est.created_at);
+                // Leads booked straight from the consultation page have no
+                // estimate, so there's no range to show — the visit stands in.
+                const withEstimate = hasEstimate(est);
+                const visit = consultationLabel(est);
 
                 return (
                   <div
@@ -503,23 +519,33 @@ export default function ProjectsIndexLedger() {
                         </div>
 
                         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 sm:hidden">
+                          {withEstimate ? (
+                            <span className="text-[13px] text-ink-500">
+                              Preliminary range{" "}
+                              <span className="figure text-[13px]">
+                                ${(ed.total_projected_low || 0).toLocaleString()}–${(ed.total_projected_high || 0).toLocaleString()}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-[13px] text-ink-500">Booked a consultation</span>
+                          )}
+                          {visit && <span className="text-[13px] text-ink-900">Visit {visit}</span>}
+                          <span className="text-[13px] text-ink-400">{createdAgo}</span>
+                        </div>
+                      </div>
+
+                      <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
+                        {withEstimate ? (
                           <span className="text-[13px] text-ink-500">
                             Preliminary range{" "}
                             <span className="figure text-[13px]">
                               ${(ed.total_projected_low || 0).toLocaleString()}–${(ed.total_projected_high || 0).toLocaleString()}
                             </span>
                           </span>
-                          <span className="text-[13px] text-ink-400">{createdAgo}</span>
-                        </div>
-                      </div>
-
-                      <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
-                        <span className="text-[13px] text-ink-500">
-                          Preliminary range{" "}
-                          <span className="figure text-[13px]">
-                            ${(ed.total_projected_low || 0).toLocaleString()}–${(ed.total_projected_high || 0).toLocaleString()}
-                          </span>
-                        </span>
+                        ) : (
+                          <span className="text-[13px] text-ink-500">Booked a consultation</span>
+                        )}
+                        {visit && <span className="text-[13px] text-ink-900">Visit {visit}</span>}
                         <div className="flex items-center gap-3 text-[13px] text-ink-400">
                           {reminderCount > 0 && (
                             <span>{reminderCount} reminder{reminderCount !== 1 ? "s" : ""}</span>
@@ -557,7 +583,7 @@ export default function ProjectsIndexLedger() {
                 <div className="blueprint-grid border-b border-rule-300/55 px-8 py-20 text-center">
                   <p className="display-sm">No inquiries yet</p>
                   <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-ink-500">
-                    Inquiries arrive here from the estimate tool on the website.
+                    Inquiries arrive here from the estimate tool and consultation bookings on the website.
                   </p>
                 </div>
               )}
