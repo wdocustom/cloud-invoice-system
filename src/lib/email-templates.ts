@@ -46,6 +46,8 @@ interface ApprovalEmailData {
   signed_at: string;
   signature_name: string;
   items: { title: string; cost: number }[];
+  /** True when the certificate of insurance is attached to this send. */
+  coi_attached?: boolean;
 }
 
 interface ContractorMessageNotificationData {
@@ -432,6 +434,7 @@ export function buildApprovalConfirmationHtml(data: ApprovalEmailData): string {
             <span style="color:#4A7A4A;font-weight:700;margin-right:8px;">4.</span> Message us anytime through the Messages tab — we're always available
           </td></tr>
         </table>
+        ${data.coi_attached ? `<p style="font-size:13px;color:#6B6B6B;line-height:1.6;margin:12px 0 0;">Our certificate of insurance is attached for your records.</p>` : ""}
       </td></tr>
     </table>
 

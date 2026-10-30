@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { depositAmountOf, depositPercentOf, displayPercent, resolvePhases } from "@/lib/payment-schedule";
 import { buildDepositEmailHtml } from "@/lib/email-templates";
+import { loadCertificateOfInsurance } from "@/lib/certificate-of-insurance";
 
 function getSupabase() {
   return createClient(
@@ -14,25 +15,6 @@ function getSupabase() {
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
-
-/**
- * The certificate of insurance, sent with every deposit request once it exists.
- * Set COI_URL to wherever the PDF is hosted, or drop the file at
- * public/docs/certificate-of-insurance.pdf. Until one of those resolves, the
- * email goes out without it and doesn't mention it.
- */
-const COI_FILENAME = "WDO-Custom-Certificate-of-Insurance.pdf";
-
-async function findCertificateOfInsurance(baseUrl: string): Promise<string | null> {
-  const url = process.env.COI_URL || (baseUrl ? `${baseUrl}/docs/certificate-of-insurance.pdf` : "");
-  if (!url) return null;
-  try {
-    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(4000) });
-    return res.ok ? url : null;
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(request: Request) {
   try {
@@ -54,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     const depositAmount = depositAmountOf(invoice, invoice.amount);
-    const coiUrl = await findCertificateOfInsurance(base_url);
+    const coi = await loadCertificateOfInsurance(supabase);
     const portalUrl = `${base_url}/invoice/${invoice_id}`;
 
     const options = invoice.homeowner_options || [];
@@ -83,13 +65,13 @@ export async function POST(request: Request) {
         amount: i === 0 ? depositAmount : p.amount,
       })),
       pending_selections: pendingSelections.length > 0 ? pendingSelections : undefined,
-      coi_attached: !!coiUrl,
+      coi_attached: !!coi,
     };
 
     const html = buildDepositEmailHtml(emailData);
 
     if (preview_only) {
-      return NextResponse.json({ html, email_data: emailData, coi_attached: !!coiUrl });
+      return NextResponse.json({ html, email_data: emailData, coi_attached: !!coi });
     }
 
     if (!invoice.homeowner_email) {
@@ -107,7 +89,7 @@ export async function POST(request: Request) {
       to: [invoice.homeowner_email],
       subject: `Next step for ${projectLabel}: construction deposit`,
       html,
-      ...(coiUrl ? { attachments: [{ filename: COI_FILENAME, path: coiUrl }] } : {}),
+      ...(coi ? { attachments: [coi] } : {}),
     });
 
     return NextResponse.json({ success: true, sent_to: invoice.homeowner_email });

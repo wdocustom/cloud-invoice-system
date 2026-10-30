@@ -6,6 +6,7 @@ import {
   buildApprovalConfirmationHtml,
   buildContractorApprovalNotificationHtml,
 } from "@/lib/email-templates";
+import { loadCertificateOfInsurance } from "@/lib/certificate-of-insurance";
 
 function getSupabase() {
   return createClient(
@@ -75,14 +76,16 @@ export async function POST(request: Request) {
 
     const results: string[] = [];
 
-    // 1. Send confirmation to homeowner
+    // 1. Send confirmation to homeowner, with the certificate of insurance
     if (invoice.homeowner_email) {
       try {
+        const coi = await loadCertificateOfInsurance(supabase);
         await resend.emails.send({
           from: "WDO Custom <proposals@wdocustom.com>",
           to: [invoice.homeowner_email],
           subject: `Contract Signed — $${formatMoney(invoice.amount || 0)} confirmed for ${projectLabel}`,
-          html: buildApprovalConfirmationHtml(emailData),
+          html: buildApprovalConfirmationHtml({ ...emailData, coi_attached: !!coi }),
+          ...(coi ? { attachments: [coi] } : {}),
         });
         results.push(`homeowner:${invoice.homeowner_email}`);
       } catch (err) {
