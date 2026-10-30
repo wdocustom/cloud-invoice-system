@@ -66,14 +66,25 @@ interface PaymentReminderData {
   portal_url: string;
 }
 
-interface DepositEmailData {
+export interface DepositEmailData {
   homeowner_name: string;
   project_title?: string;
   job_address: string;
   deposit_amount: number;
+  deposit_percentage?: number;
   total_amount: number;
   portal_url: string;
+  proposal_number?: string | null;
+  /** When the homeowner signed the proposal (ISO timestamp). */
+  signed_at?: string | null;
+  /** YYYY-MM-DD, as stored on the proposal. */
+  estimated_start_date?: string | null;
+  project_length?: string | null;
+  /** The proposal's draw schedule; the first entry is the deposit. */
+  payment_phases?: { name: string; percentage: number; amount: number }[];
   pending_selections?: string[];
+  /** True when the certificate of insurance is attached to this send. */
+  coi_attached?: boolean;
 }
 
 interface SelectionReminderData {
@@ -96,6 +107,12 @@ interface SelectionMadeNotificationData {
   total_selected: number;
   total_categories: number;
   portal_url: string;
+}
+
+/** A portal link that opens on a given tab. */
+function withTab(url: string, tab: string): string {
+  if (!url || url === "#") return url;
+  return `${url}${url.includes("?") ? "&" : "?"}tab=${tab}`;
 }
 
 function formatMoney(n: number) {
@@ -392,8 +409,8 @@ export function buildApprovalConfirmationHtml(data: ApprovalEmailData): string {
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
-          Go to Your Project Portal
+        <a href="${esc(withTab(data.portal_url, "payments"))}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+          Pay Deposit
         </a>
       </td></tr>
     </table>
@@ -1479,21 +1496,50 @@ export function buildPaymentReminderHtml(data: PaymentReminderData): string {
 // ─── Deposit Email (first payment, material procurement focus) ───
 
 export function buildDepositEmailHtml(data: DepositEmailData): string {
-  const firstName = data.homeowner_name.split(" ")[0];
-  const projectLabel = data.project_title || data.job_address;
-  const hasSelections = data.pending_selections && data.pending_selections.length > 0;
+  // Everything stated here comes off the approved proposal. Rows with nothing
+  // behind them are left out rather than filled with general claims.
+  const firstName = (data.homeowner_name || "there").split(" ")[0];
+  const projectLabel = data.project_title || data.job_address || "your project";
+  const showAddress = !!data.job_address && data.job_address !== projectLabel;
+  const pct = data.deposit_percentage ? ` (${esc(data.deposit_percentage)}%)` : "";
+  const fmtDate = (value: string | null | undefined, dateOnly: boolean) => {
+    if (!value) return "";
+    const d = new Date(dateOnly ? `${value.slice(0, 10)}T00:00:00` : value);
+    return Number.isNaN(d.getTime())
+      ? ""
+      : d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  };
+  const signedOn = fmtDate(data.signed_at, false);
+  const startsOn = fmtDate(data.estimated_start_date, true);
 
-  const selectionsBlock = hasSelections ? `
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;background-color:#F9F7F4;border:1px solid #E8E4DF;border-radius:12px;">
-      <tr><td style="padding:20px 24px;">
-        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#9C9590;margin:0 0 12px;">Selections to Finalize</p>
-        ${data.pending_selections!.map(s => `<p style="font-size:13px;color:#1A1A1A;margin:0 0 6px;padding-left:12px;border-left:3px solid #C4A265;">
-          ${s}</p>`).join("")}
-        <p style="font-size:12px;color:#9C9590;line-height:1.6;margin:12px 0 0;">
-          Locking in your selections early helps us avoid delays. You can make your choices directly from your project portal.
-        </p>
-      </td></tr>
+  const row = (label: string, value: string) =>
+    `<tr><td style="padding:4px 0;font-size:13px;color:#6B6B6B;width:130px;vertical-align:top;">${label}</td><td style="padding:4px 0;font-size:13px;color:#1A1A1A;">${value}</td></tr>`;
+
+  const details = [
+    row("Project", esc(projectLabel)),
+    showAddress ? row("Address", esc(data.job_address)) : "",
+    data.proposal_number ? row("Proposal", esc(data.proposal_number)) : "",
+    signedOn ? row("Signed", esc(signedOn)) : "",
+    row("Contract total", `$${formatMoney(data.total_amount)}`),
+    startsOn ? row("Estimated start", esc(startsOn)) : "",
+    data.project_length ? row("Duration", esc(data.project_length)) : "",
+  ].join("");
+
+  const phases = data.payment_phases || [];
+  const scheduleBlock = phases.length > 1 ? `
+    <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#9C9590;margin:28px 0 8px;">Payment Schedule</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E8E4DF;">
+      ${phases.map((p, i) => `<tr>
+        <td style="padding:10px 0;font-size:13px;color:#1A1A1A;border-bottom:1px solid #E8E4DF;">${esc(p.name)}${i === 0 ? ` <span style="color:#4A7A4A;font-size:11px;font-weight:600;">&middot; Due now</span>` : ""}</td>
+        <td align="right" style="padding:10px 0;font-size:13px;color:#6B6B6B;border-bottom:1px solid #E8E4DF;white-space:nowrap;">${esc(p.percentage)}% &middot; <span style="color:#1A1A1A;">$${formatMoney(p.amount)}</span></td>
+      </tr>`).join("")}
     </table>` : "";
+
+  const selections = data.pending_selections || [];
+  const selectionsBlock = selections.length > 0 ? `
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:24px 0 0;">
+      Still open in your portal: <strong style="color:#1A1A1A;">${selections.map(esc).join(", ")}</strong>. You can choose these whenever you're ready.
+    </p>` : "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1509,53 +1555,40 @@ export function buildDepositEmailHtml(data: DepositEmailData): string {
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
   <tr><td style="padding:36px 32px 0;">
 
-    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${firstName},</p>
+    <p style="font-size:16px;font-weight:600;color:#1A1A1A;margin:0 0 8px;">Hi ${esc(firstName)},</p>
 
-    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 20px;">
-      We're excited to get started on <strong style="color:#1A1A1A;">${projectLabel}</strong> and we look forward to bringing your vision to life. Before we can begin, we need to secure your construction deposit so we can begin the procurement process on your behalf.
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 24px;">
+      Thank you for approving the proposal for <strong style="color:#1A1A1A;">${esc(projectLabel)}</strong>. The next step is the construction deposit, which lets us put your project on the schedule and place the first material orders.
     </p>
 
-    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 20px;">
-      Most major materials — cabinetry, countertops, specialty tile, and custom-order items — carry a <strong style="color:#1A1A1A;">6 to 8 week lead time</strong> from the date of order. Your deposit allows us to lock in pricing, reserve production slots, and begin coordinating the materials and trades needed for phase one of your project. The sooner we get rolling, the sooner we can start capturing that unused value in your home.
-    </p>
-
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;overflow:hidden;">
-      <tr><td style="padding:28px;">
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td>
-              <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#4A7A4A;margin:0 0 6px;">Construction Deposit</p>
-              <p style="font-size:32px;font-weight:700;color:#1A1A1A;margin:0;letter-spacing:-0.5px;">$` + formatMoney(data.deposit_amount) + `</p>
-            </td>
-            <td align="right" valign="top">
-              <span style="display:inline-block;background-color:#4A7A4A;color:#ffffff;font-size:10px;font-weight:700;padding:6px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">Phase 1</span>
-            </td>
-          </tr>
-        </table>
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px solid #C8D9C8;padding-top:12px;">
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Project:</strong> ${projectLabel}</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Total Contract:</strong> $` + formatMoney(data.total_amount) + `</td></tr>
-          <tr><td style="padding:3px 0;font-size:13px;color:#6B6B6B;"><strong style="color:#1A1A1A;">Deposit covers:</strong> Material procurement, scheduling, &amp; project coordination</td></tr>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F4F7F4;border:1px solid #C8D9C8;border-radius:16px;">
+      <tr><td style="padding:24px 28px;">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#4A7A4A;margin:0 0 6px;">Construction Deposit${pct}</p>
+        <p style="font-size:30px;font-weight:700;color:#1A1A1A;margin:0 0 16px;letter-spacing:-0.5px;">$${formatMoney(data.deposit_amount)}</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #C8D9C8;padding-top:10px;">
+          ${details}
         </table>
       </td></tr>
     </table>
 
-    ${selectionsBlock}
+    ${scheduleBlock}
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 48px;border-radius:12px;letter-spacing:0.2px;">
-          View Project &amp; Submit Deposit
+        <a href="${esc(withTab(data.portal_url, "payments"))}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 44px;border-radius:12px;letter-spacing:0.2px;">
+          Pay Deposit
         </a>
       </td></tr>
     </table>
 
-    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 8px;">
-      If you have any outstanding selections — flooring, tile, hardware, or other finishes — now is the perfect time to finalize those choices so we can include them in our initial material order and keep your timeline on track.
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0;">
+      You can pay by card or bank transfer (ACH) in your project portal.${data.coi_attached ? " Our certificate of insurance is attached for your records." : ""}
     </p>
 
-    <p style="font-size:14px;color:#6B6B6B;line-height:1.8;margin:0 0 20px;">
-      Payment can be made securely online through your project portal. We accept card and ACH bank transfer. If you have any questions about the process or your project timeline, don't hesitate to reach out — we're here to help.
+    ${selectionsBlock}
+
+    <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:20px 0 0;">
+      For anything about your project, the <a href="${esc(withTab(data.portal_url, "messages"))}" style="color:#1A1A1A;font-weight:600;text-decoration:underline;">Messages</a> tab in your portal is the best place to reach me. It keeps our conversation and decisions together in one spot, and I'm notified as soon as you post. For anything urgent, text me at <span style="white-space:nowrap;">402-819-8558</span>.
     </p>
 
     <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>
