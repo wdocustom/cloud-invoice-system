@@ -109,6 +109,12 @@ interface SelectionMadeNotificationData {
   portal_url: string;
 }
 
+/** A portal link that opens on a given tab. */
+function withTab(url: string, tab: string): string {
+  if (!url || url === "#") return url;
+  return `${url}${url.includes("?") ? "&" : "?"}tab=${tab}`;
+}
+
 function formatMoney(n: number) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -1569,7 +1575,7 @@ export function buildDepositEmailHtml(data: DepositEmailData): string {
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 44px;border-radius:12px;letter-spacing:0.2px;">
+        <a href="${esc(withTab(data.portal_url, "payments"))}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:16px 44px;border-radius:12px;letter-spacing:0.2px;">
           Pay Deposit
         </a>
       </td></tr>
@@ -1582,7 +1588,7 @@ export function buildDepositEmailHtml(data: DepositEmailData): string {
     ${selectionsBlock}
 
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:20px 0 0;">
-      Questions? Just reply here or call me at 402-819-8558.
+      For anything about your project, the <a href="${esc(withTab(data.portal_url, "messages"))}" style="color:#1A1A1A;font-weight:600;text-decoration:underline;">Messages</a> tab in your portal is the best place to reach me. It keeps our conversation and decisions together in one spot, and I'm notified as soon as you post. For anything urgent, call me at <span style="white-space:nowrap;">402-819-8558</span>.
     </p>
 
     <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>

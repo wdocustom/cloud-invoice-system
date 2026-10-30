@@ -50,7 +50,14 @@ export default function HomeownerPortalClient({
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [qaMessage, setQaMessage] = useState("");
   const [isSendingQa, setIsSendingQa] = useState(false);
-  const [activeTab, setActiveTab] = useState("proposal");
+  // Emails link straight to a tab (?tab=messages, ?tab=payments). Payments only
+  // exists once the proposal is signed, so it falls back to the default before.
+  const [activeTab, setActiveTab] = useState(() => {
+    const requested = searchParams.get("tab");
+    if (requested === "messages") return "messages";
+    if (requested === "payments" && initialInvoice?.status === "approved") return "payments";
+    return "proposal";
+  });
   const [now, setNow] = useState(Date.now());
   const [pendingSelection, setPendingSelection] = useState<{ category: string; value: string } | null>(null);
   const [pendingRemoveIdx, setPendingRemoveIdx] = useState<number | null>(null);

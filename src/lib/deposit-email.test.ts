@@ -47,3 +47,10 @@ test("start date and duration appear when the proposal has them", () => {
   assert.match(html, /November 16, 2026/);
   assert.match(html, /3 weeks/);
 });
+
+test("it points the homeowner to portal Messages and opens Payments for the deposit", () => {
+  const html = buildDepositEmailHtml(base);
+  assert.match(html, /invoice\/abc\?tab=messages/);
+  assert.match(html, /invoice\/abc\?tab=payments/);
+  assert.match(html, /Messages<\/a> tab/);
+});
