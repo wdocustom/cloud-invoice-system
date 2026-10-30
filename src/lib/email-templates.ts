@@ -1588,7 +1588,7 @@ export function buildDepositEmailHtml(data: DepositEmailData): string {
     ${selectionsBlock}
 
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:20px 0 0;">
-      For anything about your project, the <a href="${esc(withTab(data.portal_url, "messages"))}" style="color:#1A1A1A;font-weight:600;text-decoration:underline;">Messages</a> tab in your portal is the best place to reach me. It keeps our conversation and decisions together in one spot, and I'm notified as soon as you post. For anything urgent, call me at <span style="white-space:nowrap;">402-819-8558</span>.
+      For anything about your project, the <a href="${esc(withTab(data.portal_url, "messages"))}" style="color:#1A1A1A;font-weight:600;text-decoration:underline;">Messages</a> tab in your portal is the best place to reach me. It keeps our conversation and decisions together in one spot, and I'm notified as soon as you post. For anything urgent, text me at <span style="white-space:nowrap;">402-819-8558</span>.
     </p>
 
     <p style="font-size:14px;color:#1A1A1A;font-weight:600;margin:24px 0 4px;">Skyler Camacho</p>
