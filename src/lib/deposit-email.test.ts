@@ -70,3 +70,9 @@ test("the contract-signed email's deposit button opens Payments", async () => {
   } as any);
   assert.match(html, /invoice\/abc\?tab=payments"[^>]*>\s*Pay Deposit/);
 });
+
+test("it steers toward bank transfer without dropping card", () => {
+  const html = buildDepositEmailHtml(base);
+  assert.match(html, /bank transfer is preferred/);
+  assert.match(html, /or card/);
+});
