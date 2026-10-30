@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { processingPaymentFor, settledTotal } from "@/lib/stripe-payments";
 import { isReceiptTracked } from "@/lib/messages";
 import { toNum } from "@/lib/utils";
 import { toast } from "@/lib/toast";
@@ -1757,7 +1758,10 @@ export default function ProjectWorkspaceControlHub() {
                   {isApprovedProject && isPhasePaid && (
                     <span className="badge badge-approved shrink-0"><span className="badge-dot bg-forest-500" />Paid</span>
                   )}
-                  {isApprovedProject && isPhaseActive && !isPhasePaid && (
+                  {isApprovedProject && isPhaseActive && !isPhasePaid && processingPaymentFor(project?.payment_history, idx) && (
+                    <span className="badge badge-pending shrink-0" title="Paid by bank transfer — not cleared yet"><span className="badge-dot bg-bronze-400" />ACH processing</span>
+                  )}
+                  {isApprovedProject && isPhaseActive && !isPhasePaid && !processingPaymentFor(project?.payment_history, idx) && (
                     <span className="badge badge-pending shrink-0"><span className="badge-dot bg-bronze-400" />Due</span>
                   )}
                   <button
@@ -1813,7 +1817,7 @@ export default function ProjectWorkspaceControlHub() {
                       if (!project?.homeowner_email) return toast("No email on file.", "error");
                       setSendingReminderIdx(idx);
                       try {
-                        const totalPaid = (project.payment_history || []).reduce((s: number, p: any) => s + toNum(p.amount), 0);
+                        const totalPaid = settledTotal(project.payment_history);
                         const totalRemaining = toNum(project.amount) - totalPaid;
                         const res = await fetch("/api/send-payment-reminder", {
                           method: "POST",

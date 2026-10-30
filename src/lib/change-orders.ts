@@ -328,11 +328,15 @@ export function normalizeAlreadyCovered(raw: unknown): AlreadyCovered[] {
   });
 }
 
-/** True once any payment has been recorded against the change order. */
+/**
+ * True once money has been received against the change order. A bank payment
+ * still clearing counts too: it can't be withdrawn from our side, so the change
+ * order mustn't be deletable underneath it. A returned (failed) one doesn't.
+ */
 export function changeOrderIsPaid(co: { deposit_cleared?: unknown; payment_history?: unknown } | null | undefined): boolean {
   if (!co) return false;
   if (co.deposit_cleared === true) return true;
-  return Array.isArray(co.payment_history) && co.payment_history.length > 0;
+  return Array.isArray(co.payment_history) && co.payment_history.some((p: any) => p?.status !== "failed");
 }
 
 /** What has to be typed to delete a signed change order. */

@@ -11,6 +11,7 @@ import { depositAmountOf, depositPercentOf, displayPercent, phaseAmountOf, phase
 import { TERMS_AND_CONDITIONS } from "@/lib/terms";
 import { isReceiptTracked, isUnreadFromContractor } from "@/lib/messages";
 import { changeOrderEmailFigures, changeOrderPdfInput, contractTotals } from "@/lib/change-orders";
+import { processingPaymentFor, settledTotal } from "@/lib/stripe-payments";
 import { buildScheduleFromItems, clampProgress, overallProgress } from "@/lib/project-schedule";
 
 interface HomeownerPortalProps {
@@ -342,10 +343,10 @@ export default function HomeownerPortalClient({
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // The server prices the payment from the signed proposal; amount and
+        // description here only label the button.
         body: JSON.stringify({
           invoice_id: id,
-          amount,
-          description,
           phase_index: phaseIndex,
           change_order_id: changeOrderId,
         }),
@@ -595,7 +596,7 @@ export default function HomeownerPortalClient({
             <svg className="h-4 w-4 shrink-0 text-forest-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
-            Payment received. Your account will be updated shortly.
+            Thank you — your payment went through. Card payments show here within a minute; bank transfers show as processing until they clear, usually a few business days.
           </div>
         )}
         {paymentStatus === "cancelled" && (
@@ -1556,8 +1557,18 @@ export default function HomeownerPortalClient({
         {isLocked && activeTab === "payments" && (
           <div className="mx-auto max-w-3xl animate-rise space-y-14">
 
+            {/* A bank transfer has been started and is clearing — no second payment. */}
+            {!invoice.deposit_cleared && processingPaymentFor(invoice.payment_history, 0) && (
+              <div className="panel-sunken flex items-start gap-3 p-5 text-[13px] leading-relaxed text-ink-500">
+                <span className="badge badge-pending shrink-0"><span className="badge-dot bg-bronze-400" />Processing</span>
+                <span>
+                  Your bank payment of ${toNum(processingPaymentFor(invoice.payment_history, 0)?.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} is on its way. Bank transfers usually take a few business days to clear, and you&apos;ll get a receipt by email when it does.
+                </span>
+              </div>
+            )}
+
             {/* Deposit Dock */}
-            {!invoice.deposit_cleared && (
+            {!invoice.deposit_cleared && !processingPaymentFor(invoice.payment_history, 0) && (
               <div>
                 <div className="title-block">
                   <h2 className="display-sm">Deposit</h2>
@@ -1619,7 +1630,8 @@ export default function HomeownerPortalClient({
                   const isPaid = invoice.deposit_cleared && idx < activePhaseIdx;
                   const isFirstPhaseDepositPaid = invoice.deposit_cleared && idx === 0;
                   const isPhaseActive = idx === activePhaseIdx || (idx === 0 && !invoice.deposit_cleared);
-                  const canPayPhase = isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) && idx > 0;
+                  const phaseProcessing = !!processingPaymentFor(invoice.payment_history, idx);
+                  const canPayPhase = isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) && idx > 0 && !phaseProcessing;
 
                   return (
                     <div key={idx} className={`border-b border-rule-300/50 px-5 py-5 last:border-b-0 ${isPhaseActive && !(isPaid || isFirstPhaseDepositPaid) ? 'border-l-2 border-l-bronze-500 bg-bronze-50/40' : ''}`}>
@@ -1633,6 +1645,8 @@ export default function HomeownerPortalClient({
                             <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
                               {(isPaid || isFirstPhaseDepositPaid) ? (
                                 <span className="badge badge-approved"><span className="badge-dot bg-forest-500" />Paid</span>
+                              ) : phaseProcessing ? (
+                                <span className="badge badge-pending"><span className="badge-dot bg-bronze-400" />Bank payment processing</span>
                               ) : isPhaseActive ? (
                                 <span className="badge badge-pending"><span className="badge-dot bg-bronze-400" />Active</span>
                               ) : (
@@ -1791,7 +1805,10 @@ export default function HomeownerPortalClient({
                             </button>
                             {/* A no-cost change order is legitimate (a scope swap)
                                 and has nothing to pay. */}
-                            {isCoApproved && !isCoPaid && toNum(co.amount) > 0 && (
+                            {isCoApproved && !isCoPaid && toNum(co.amount) > 0 && processingPaymentFor(co.payment_history) && (
+                              <p className="text-center text-[12.5px] text-ink-500">Bank payment processing — usually clears in a few business days.</p>
+                            )}
+                            {isCoApproved && !isCoPaid && toNum(co.amount) > 0 && !processingPaymentFor(co.payment_history) && (
                               <button
                                 type="button"
                                 disabled={isPaymentLoading}
@@ -1832,7 +1849,7 @@ export default function HomeownerPortalClient({
                       <div key={i} className="flex items-start justify-between gap-4 border-b border-rule-300/50 px-6 py-5">
                         <div className="min-w-0">
                           <p className="text-[12.5px] font-medium text-ink-900">
-                            {pmt.phase_index === 0 ? "Deposit" : `Phase ${pmt.phase_index} Draw`}
+                            {pmt.phase_index === 0 ? "Deposit" : (invoice.payment_phases?.[pmt.phase_index]?.name || `Phase ${pmt.phase_index + 1} Draw`)}
                           </p>
                           <p className="mt-1 font-sans text-[13px] tracking-architect text-ink-500">
                             {new Date(pmt.paid_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
@@ -1840,10 +1857,12 @@ export default function HomeownerPortalClient({
                           </p>
                         </div>
                         <div className="shrink-0 text-right">
-                          <span className="figure text-[13px] text-forest-600">
+                          <span className={`figure text-[13px] ${pmt.status === "processing" ? "text-ink-500" : pmt.status === "failed" ? "text-brick-600 line-through" : "text-forest-600"}`}>
                             ${toNum(pmt.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
-                          <p className="mt-0.5 font-sans text-[13px] tracking-architect text-forest-600">Confirmed</p>
+                          <p className={`mt-0.5 font-sans text-[13px] tracking-architect ${pmt.status === "processing" ? "text-ink-500" : pmt.status === "failed" ? "text-brick-600" : "text-forest-600"}`}>
+                            {pmt.status === "processing" ? "Processing" : pmt.status === "failed" ? "Did not go through" : "Confirmed"}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -1851,13 +1870,13 @@ export default function HomeownerPortalClient({
                       <div className="flex items-baseline justify-between px-6 py-5">
                         <dt className="eyebrow">Total Paid</dt>
                         <dd className="figure text-[14px] text-forest-600">
-                          ${invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${settledTotal(invoice.payment_history).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </dd>
                       </div>
                       <div className="flex items-baseline justify-between bg-paper-50/60 px-6 py-5">
                         <dt className="eyebrow-ink">Remaining Balance</dt>
                         <dd className="figure text-[17px]">
-                          ${(combinedProjectTotal - invoice.payment_history.reduce((s: number, p: any) => s + toNum(p.amount), 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          ${(combinedProjectTotal - settledTotal(invoice.payment_history)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </dd>
                       </div>
                     </dl>
