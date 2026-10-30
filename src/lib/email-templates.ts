@@ -1582,7 +1582,7 @@ export function buildDepositEmailHtml(data: DepositEmailData): string {
     </table>
 
     <p style="font-size:14px;color:#6B6B6B;line-height:1.7;margin:0;">
-      You can pay by card or bank transfer (ACH) in your project portal.${data.coi_attached ? " Our certificate of insurance is attached for your records." : ""}
+      You can pay by bank transfer (ACH) or card in your project portal. If it works for you, bank transfer is preferred: it keeps processing fees down, and it just takes a few business days to clear.${data.coi_attached ? " Our certificate of insurance is attached for your records." : ""}
     </p>
 
     ${selectionsBlock}

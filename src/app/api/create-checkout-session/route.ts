@@ -92,7 +92,8 @@ export async function POST(request: Request) {
       "";
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card", "us_bank_account"],
+      // Bank transfer listed first: it's the preferred method (far lower fees).
+      payment_method_types: ["us_bank_account", "card"],
       mode: "payment",
       customer_email: invoice.homeowner_email || undefined,
       line_items: [
