@@ -409,8 +409,8 @@ export function buildApprovalConfirmationHtml(data: ApprovalEmailData): string {
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
       <tr><td align="center">
-        <a href="${esc(data.portal_url)}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
-          Go to Your Project Portal
+        <a href="${esc(withTab(data.portal_url, "payments"))}" style="display:inline-block;background-color:#1A1A1A;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:14px 40px;border-radius:12px;letter-spacing:0.2px;">
+          Pay Deposit
         </a>
       </td></tr>
     </table>

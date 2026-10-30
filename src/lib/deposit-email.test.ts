@@ -54,3 +54,19 @@ test("it points the homeowner to portal Messages and opens Payments for the depo
   assert.match(html, /invoice\/abc\?tab=payments/);
   assert.match(html, /Messages<\/a> tab/);
 });
+
+test("the contract-signed email's deposit button opens Payments", async () => {
+  const { buildApprovalConfirmationHtml } = await import("./email-templates");
+  const html = buildApprovalConfirmationHtml({
+    homeowner_name: "Richard Parks",
+    job_address: "4206 William St",
+    amount: 8100,
+    deposit_amount: 4050,
+    deposit_percentage: 50,
+    portal_url: "https://www.wdocustom.com/invoice/abc",
+    signed_at: "2026-10-28T17:00:00Z",
+    signature_name: "Richard Parks",
+    items: [],
+  } as any);
+  assert.match(html, /invoice\/abc\?tab=payments"[^>]*>\s*Pay Deposit/);
+});
